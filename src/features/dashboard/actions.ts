@@ -113,7 +113,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     }))
     .sort((a, b) => b.total - a.total)
 
-  // 3. 10 transaksi sukses terbaru secara keseluruhan
+  // 3. 50 transaksi sukses terbaru secara keseluruhan untuk filter tab Transaksi
   const recentTransactions = await db
     .select({
       id: captures.id,
@@ -126,7 +126,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     .from(captures)
     .where(and(eq(captures.userId, userId), eq(captures.status, 'ok')))
     .orderBy(desc(captures.createdAt))
-    .limit(10)
+    .limit(50)
 
   // 4. Perangkat iPhone aktif terakhir
   const [activeDevice] = await db

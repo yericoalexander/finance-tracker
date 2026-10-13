@@ -18,19 +18,34 @@ interface RecentTransactionsProps {
   transactions: TransactionItem[]
   selectedCategory: string | null
   onSelectCategory: (category: string | null) => void
+  onNavigateToAdd?: () => void
 }
 
 export function RecentTransactions({
   transactions,
   selectedCategory,
   onSelectCategory,
+  onNavigateToAdd,
 }: RecentTransactionsProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [dateFilter, setDateFilter] = useState<'all' | 'month' | 'week'>('all')
 
-  // Filter transaksi berdasarkan kategori dan pencarian live
+  const now = new Date()
+  const currentMonthPrefix = now.toISOString().slice(0, 7)
+  const sevenDaysAgoStr = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
+  // Filter transaksi berdasarkan kategori, tanggal, dan pencarian live
   const filtered = transactions.filter((tx) => {
     const matchesCategory =
       !selectedCategory || (tx.category && tx.category.toLowerCase() === selectedCategory.toLowerCase())
+
+    const dateVal = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
+    let matchesDate = true
+    if (dateFilter === 'month') {
+      matchesDate = dateVal.startsWith(currentMonthPrefix)
+    } else if (dateFilter === 'week') {
+      matchesDate = dateVal >= sevenDaysAgoStr
+    }
 
     const query = searchQuery.trim().toLowerCase()
     const matchesQuery =
@@ -39,8 +54,10 @@ export function RecentTransactions({
       (tx.txDate && tx.txDate.includes(query)) ||
       (tx.category && tx.category.toLowerCase().includes(query))
 
-    return matchesCategory && matchesQuery
+    return matchesCategory && matchesDate && matchesQuery
   })
+
+  const totalFiltered = filtered.reduce((acc, tx) => acc + (tx.amountIdr ?? 0), 0)
 
   // Ambil daftar kategori unik yang ada di transaksi
   const existingCategories = Array.from(
@@ -145,6 +162,41 @@ export function RecentTransactions({
         ) : null}
       </div>
 
+      {/* Filter Periode Cepat */}
+      <div style={{ display: 'flex', gap: '6px' }}>
+        {(
+          [
+            { id: 'all', label: 'Semua Waktu' },
+            { id: 'month', label: 'Bulan Ini' },
+            { id: 'week', label: '7 Hari Terakhir' },
+          ] as const
+        ).map((item) => {
+          const isSelected = dateFilter === item.id
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setDateFilter(item.id)}
+              style={{
+                flex: 1,
+                minHeight: '36px',
+                padding: '4px 8px',
+                borderRadius: 'var(--radius-md)',
+                border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                backgroundColor: isSelected ? 'var(--color-accent-subtle)' : 'var(--color-surface-raised)',
+                color: isSelected ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                fontSize: '0.74rem',
+                fontWeight: isSelected ? 600 : 500,
+                cursor: 'pointer',
+                transition: 'all var(--duration-fast) var(--ease-default)',
+              }}
+            >
+              {item.label}
+            </button>
+          )
+        })}
+      </div>
+
       {/* Chips Filter Kategori */}
       {existingCategories.length > 0 ? (
         <div
@@ -201,6 +253,33 @@ export function RecentTransactions({
         </div>
       ) : null}
 
+      {/* Baris Total Terfilter */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: 'var(--space-2) var(--space-3)',
+          backgroundColor: 'var(--color-surface-raised)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--color-border)',
+        }}
+      >
+        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+          {filtered.length} Transaksi Terpilih
+        </span>
+        <span
+          style={{
+            fontSize: '0.88rem',
+            fontWeight: 700,
+            color: 'var(--color-text)',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {formatRupiah(totalFiltered)}
+        </span>
+      </div>
+
       {/* Daftar Transaksi */}
       {filtered.length === 0 ? (
         <div
@@ -216,16 +295,17 @@ export function RecentTransactions({
         >
           <Receipt size={30} strokeWidth={1.5} />
           <p style={{ margin: 0, fontSize: '0.84rem' }}>
-            {searchQuery || selectedCategory
+            {searchQuery || selectedCategory || dateFilter !== 'all'
               ? 'Tidak ada transaksi yang cocok dengan filter.'
               : 'Belum ada transaksi tersinkronisasi.'}
           </p>
-          {(searchQuery || selectedCategory) && (
+          {(searchQuery || selectedCategory || dateFilter !== 'all') ? (
             <button
               type="button"
               onClick={() => {
                 setSearchQuery('')
                 onSelectCategory(null)
+                setDateFilter('all')
               }}
               style={{
                 marginTop: 'var(--space-1)',
@@ -239,7 +319,26 @@ export function RecentTransactions({
             >
               Reset filter
             </button>
-          )}
+          ) : onNavigateToAdd ? (
+            <button
+              type="button"
+              onClick={onNavigateToAdd}
+              style={{
+                marginTop: 'var(--space-2)',
+                padding: 'var(--space-2) var(--space-4)',
+                minHeight: '44px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-text)',
+                border: 'none',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Catat Transaksi Pertama
+            </button>
+          ) : null}
         </div>
       ) : (
         <ul

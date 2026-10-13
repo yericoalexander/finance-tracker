@@ -7,12 +7,14 @@ interface CategoryBreakdownProps {
   categories: CategorySummary[]
   selectedCategory: string | null
   onSelectCategory: (category: string | null) => void
+  onViewCategoryInTransactions?: (category: string) => void
 }
 
 export function CategoryBreakdown({
   categories,
   selectedCategory,
   onSelectCategory,
+  onViewCategoryInTransactions,
 }: CategoryBreakdownProps) {
   if (categories.length === 0) return null
 
@@ -49,22 +51,43 @@ export function CategoryBreakdown({
         </h2>
 
         {selectedCategory ? (
-          <button
-            type="button"
-            onClick={() => onSelectCategory(null)}
-            style={{
-              padding: '2px 8px',
-              minHeight: '30px',
-              fontSize: '0.74rem',
-              fontWeight: 600,
-              backgroundColor: 'transparent',
-              color: 'var(--color-accent)',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            Tampilkan Semua
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {onViewCategoryInTransactions ? (
+              <button
+                type="button"
+                onClick={() => onViewCategoryInTransactions(selectedCategory)}
+                style={{
+                  padding: '3px 8px',
+                  minHeight: '30px',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  backgroundColor: 'var(--color-accent-subtle)',
+                  color: 'var(--color-accent)',
+                  border: '1px solid var(--color-accent)',
+                  borderRadius: 'var(--radius-sm)',
+                  cursor: 'pointer',
+                }}
+              >
+                Lihat di Transaksi →
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => onSelectCategory(null)}
+              style={{
+                padding: '2px 6px',
+                minHeight: '30px',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                backgroundColor: 'transparent',
+                color: 'var(--color-text-muted)',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Reset
+            </button>
+          </div>
         ) : null}
       </div>
 
