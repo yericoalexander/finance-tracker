@@ -1,12 +1,9 @@
 import { eq } from 'drizzle-orm'
-import { ExternalLink, LogOut, Smartphone } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
 import { auth, signOut } from '@/auth'
-import { CategoryBreakdown } from '@/features/dashboard/category-breakdown'
-import { RecentTransactions } from '@/features/dashboard/recent-transactions'
-import { ReviewQueue } from '@/features/dashboard/review-queue'
-import { SummaryCards } from '@/features/dashboard/summary-cards'
+import { DashboardView } from '@/features/dashboard/dashboard-view'
 import { getDashboardData } from '@/features/dashboard/actions'
 import { RetrySheetCard } from '@/features/sheets/retry-sheet-card'
 import { db } from '@/lib/db/client'
@@ -76,7 +73,7 @@ export default async function DashboardPage() {
         >
           <button
             type="submit"
-            aria-label="Keluar"
+            aria-label="Keluar dari akun"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -99,81 +96,11 @@ export default async function DashboardPage() {
         </form>
       </header>
 
-      {/* Kartu retry jika spreadsheet belum siap */}
-      {!currentSheetId && <RetrySheetCard />}
+      {/* Kartu coba lagi bila pembuatan spreadsheet awal belum selesai */}
+      {!currentSheetId ? <RetrySheetCard /> : null}
 
-      {/* Ringkasan pengeluaran bulan ini (MTD) */}
-      <SummaryCards
-        mtdTotal={dashboardData.mtdTotal}
-        txCount={dashboardData.txCount}
-      />
-
-      {/* Antrean transaksi perlu dicek (confidence rendah / unconfirmed) */}
-      <ReviewQueue items={dashboardData.reviewQueue} />
-
-      {/* Pengeluaran per kategori */}
-      <CategoryBreakdown categories={dashboardData.categoryBreakdown} />
-
-      {/* 10 Transaksi terbaru */}
-      <RecentTransactions transactions={dashboardData.recentTransactions} />
-
-      {/* Tautan Cepat */}
-      <section
-        aria-label="Navigasi cepat"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-3)',
-          marginTop: 'var(--space-2)',
-        }}
-      >
-        {currentSheetId && (
-          <a
-            href={`https://docs.google.com/spreadsheets/d/${currentSheetId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 'var(--space-2)',
-              minHeight: '44px',
-              padding: `var(--space-3) var(--space-5)`,
-              backgroundColor: 'var(--color-accent)',
-              color: 'var(--color-accent-text)',
-              borderRadius: 'var(--radius-md)',
-              textDecoration: 'none',
-              fontWeight: 600,
-              fontSize: '0.9rem',
-            }}
-          >
-            <ExternalLink size={16} />
-            Buka Google Sheets
-          </a>
-        )}
-
-        <a
-          href="/pair"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 'var(--space-2)',
-            minHeight: '44px',
-            padding: `var(--space-3) var(--space-5)`,
-            backgroundColor: 'transparent',
-            color: 'var(--color-text)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            textDecoration: 'none',
-            fontSize: '0.85rem',
-            fontWeight: 500,
-          }}
-        >
-          <Smartphone size={16} />
-          Kelola Perangkat iPhone
-        </a>
-      </section>
+      {/* Antarmuka Dashboard Interaktif */}
+      <DashboardView data={dashboardData} sheetId={currentSheetId} />
     </main>
   )
 }

@@ -1,9 +1,10 @@
 'use client'
 
-import { AlertCircle, Check, Trash2, Loader2, Sparkles } from 'lucide-react'
 import { useState, useTransition } from 'react'
+import { AlertCircle, Check, Trash2, Loader2, Sparkles } from 'lucide-react'
 
 import { CATEGORIES } from '@/lib/ai/types'
+import { formatRupiah } from '@/lib/ai/currency'
 import { approveReviewAction, dismissReviewAction } from './actions'
 
 interface ReviewItem {
@@ -20,7 +21,13 @@ interface ReviewQueueProps {
   items: ReviewItem[]
 }
 
-export function ReviewQueue({ items }: ReviewQueueProps) {
+export function ReviewQueue({ items: initialItems }: ReviewQueueProps) {
+  const [items, setItems] = useState(initialItems)
+
+  const handleItemRemoved = (id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id))
+  }
+
   if (items.length === 0) {
     return (
       <section
@@ -54,7 +61,7 @@ export function ReviewQueue({ items }: ReviewQueueProps) {
         <h2
           style={{
             fontSize: '1rem',
-            fontWeight: 600,
+            fontWeight: 700,
             color: 'var(--color-text)',
             margin: 0,
           }}
@@ -66,10 +73,10 @@ export function ReviewQueue({ items }: ReviewQueueProps) {
             margin: 0,
             fontSize: '0.82rem',
             color: 'var(--color-text-muted)',
-            maxWidth: '280px',
+            maxWidth: '300px',
           }}
         >
-          Tidak ada struk atau transfer yang memerlukan verifikasi manual saat ini.
+          Tidak ada struk atau bukti transfer yang memerlukan pengecekan manual saat ini.
         </p>
       </section>
     )
@@ -81,7 +88,7 @@ export function ReviewQueue({ items }: ReviewQueueProps) {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--space-4)',
+        gap: 'var(--space-3)',
       }}
     >
       <div
@@ -107,7 +114,7 @@ export function ReviewQueue({ items }: ReviewQueueProps) {
         <span
           style={{
             fontSize: '0.78rem',
-            fontWeight: 600,
+            fontWeight: 700,
             padding: '2px 8px',
             borderRadius: 'var(--radius-full)',
             backgroundColor: 'var(--color-warning)',
@@ -126,14 +133,24 @@ export function ReviewQueue({ items }: ReviewQueueProps) {
         }}
       >
         {items.map((item) => (
-          <ReviewItemCard key={item.id} item={item} />
+          <InteractiveReviewCard
+            key={item.id}
+            item={item}
+            onRemoved={() => handleItemRemoved(item.id)}
+          />
         ))}
       </div>
     </section>
   )
 }
 
-function ReviewItemCard({ item }: { item: ReviewItem }) {
+function InteractiveReviewCard({
+  item,
+  onRemoved,
+}: {
+  item: ReviewItem
+  onRemoved: () => void
+}) {
   const [isPending, startTransition] = useTransition()
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
@@ -142,21 +159,27 @@ function ReviewItemCard({ item }: { item: ReviewItem }) {
       ? item.merchant
       : '',
   )
-  const [amount, setAmount] = useState(item.amountIdr && item.amountIdr > 0 ? String(item.amountIdr) : '')
-  const [category, setCategory] = useState(item.category || 'Lainnya')
-  const [txDate, setTxDate] = useState(
+  const [amountRaw, setAmountRaw] = useState<number>(item.amountIdr && item.amountIdr > 0 ? item.amountIdr : 0)
+  const [category, setCategory] = useState<string>(item.category || 'Makanan & Minuman')
+  const [txDate, setTxDate] = useState<string>(
     item.txDate || new Date(item.createdAt).toISOString().slice(0, 10),
   )
 
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+
+  const addNominal = (val: number) => {
+    setAmountRaw((prev) => prev + val)
+  }
+
   const handleApprove = () => {
     setErrorMsg(null)
-    const numAmount = parseInt(amount.replace(/\D/g, ''), 10)
     if (!merchant.trim()) {
-      setErrorMsg('Nama merchant/toko harus diisi')
+      setErrorMsg('Nama merchant atau toko wajib diisi')
       return
     }
-    if (!numAmount || numAmount <= 0) {
-      setErrorMsg('Nominal harus lebih dari 0')
+    if (amountRaw <= 0) {
+      setErrorMsg('Nominal harus lebih dari Rp 0')
       return
     }
 
@@ -164,12 +187,14 @@ function ReviewItemCard({ item }: { item: ReviewItem }) {
       const res = await approveReviewAction({
         captureId: item.id,
         merchant: merchant.trim(),
-        amountIdr: numAmount,
+        amountIdr: amountRaw,
         category,
         txDate,
       })
       if (!res.ok) {
         setErrorMsg(res.error || 'Gagal menyimpan transaksi')
+      } else {
+        onRemoved()
       }
     })
   }
@@ -180,6 +205,8 @@ function ReviewItemCard({ item }: { item: ReviewItem }) {
       const res = await dismissReviewAction(item.id)
       if (!res.ok) {
         setErrorMsg(res.error || 'Gagal menghapus')
+      } else {
+        onRemoved()
       }
     })
   }
@@ -188,15 +215,18 @@ function ReviewItemCard({ item }: { item: ReviewItem }) {
     <div
       style={{
         backgroundColor: 'var(--color-surface)',
-        borderRadius: 'var(--radius-lg)',
-        padding: 'var(--space-4)',
+        borderRadius: 'var(--radius-xl)',
+        padding: 'var(--space-5)',
         border: '1px solid var(--color-border)',
         boxShadow: 'var(--shadow-sm)',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-3)',
+        transition: 'opacity var(--duration-base) var(--ease-default)',
+        opacity: isPending ? 0.6 : 1,
       }}
     >
+      {/* Header Card */}
       <div
         style={{
           display: 'flex',
@@ -204,7 +234,7 @@ function ReviewItemCard({ item }: { item: ReviewItem }) {
           justifyContent: 'space-between',
         }}
       >
-        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
           {new Date(item.createdAt).toLocaleDateString('id-ID', {
             day: 'numeric',
             month: 'short',
@@ -214,9 +244,9 @@ function ReviewItemCard({ item }: { item: ReviewItem }) {
         </span>
         <span
           style={{
-            fontSize: '0.72rem',
-            padding: '2px 6px',
-            borderRadius: 'var(--radius-sm)',
+            fontSize: '0.74rem',
+            padding: '2px 8px',
+            borderRadius: 'var(--radius-full)',
             backgroundColor: 'var(--color-surface-raised)',
             color: 'var(--color-text-muted)',
             border: '1px solid var(--color-border)',
@@ -226,113 +256,260 @@ function ReviewItemCard({ item }: { item: ReviewItem }) {
         </span>
       </div>
 
-      {errorMsg && (
+      {errorMsg ? (
         <div
           role="alert"
           style={{
-            fontSize: '0.78rem',
+            fontSize: '0.8rem',
             color: 'var(--color-error)',
             backgroundColor: 'var(--color-error-subtle)',
             padding: 'var(--space-2) var(--space-3)',
-            borderRadius: 'var(--radius-sm)',
+            borderRadius: 'var(--radius-md)',
           }}
         >
           {errorMsg}
         </div>
-      )}
+      ) : null}
 
-      {/* Input Form Cepat */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)' }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Merchant / Toko</span>
+      {/* Input Merchant & Nominal */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        <div>
+          <label
+            htmlFor={`merchant-${item.id}`}
+            style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '4px' }}
+          >
+            Nama Toko / Merchant
+          </label>
           <input
+            id={`merchant-${item.id}`}
             type="text"
-            placeholder="mis. Warteg / Indomaret"
+            placeholder="mis. Warteg Ceria, Alfamart, GoPay"
             value={merchant}
             disabled={isPending}
             onChange={(e) => setMerchant(e.target.value)}
             style={{
-              height: '44px',
+              width: '100%',
+              minHeight: '44px',
               padding: '0 var(--space-3)',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--color-border)',
               backgroundColor: 'var(--color-bg)',
               color: 'var(--color-text)',
-              fontSize: '0.85rem',
+              fontSize: '0.9rem',
             }}
           />
-        </label>
+        </div>
 
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Nominal (Rp)</span>
+        <div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '4px',
+            }}
+          >
+            <label
+              htmlFor={`amount-${item.id}`}
+              style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}
+            >
+              Nominal Transaksi
+            </label>
+            <span
+              style={{
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                color: 'var(--color-text)',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {formatRupiah(amountRaw)}
+            </span>
+          </div>
+
           <input
+            id={`amount-${item.id}`}
             type="text"
             inputMode="numeric"
-            placeholder="0"
-            value={amount}
+            placeholder="Ketik nominal..."
+            value={amountRaw > 0 ? String(amountRaw) : ''}
             disabled={isPending}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '')
+              setAmountRaw(digits ? parseInt(digits, 10) : 0)
+            }}
             style={{
-              height: '44px',
+              width: '100%',
+              minHeight: '44px',
               padding: '0 var(--space-3)',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--color-border)',
               backgroundColor: 'var(--color-bg)',
               color: 'var(--color-text)',
-              fontSize: '0.85rem',
+              fontSize: '0.9rem',
               fontVariantNumeric: 'tabular-nums',
             }}
           />
-        </label>
+
+          {/* Quick Preset Nominal Chips */}
+          <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+            {[10000, 20000, 50000, 100000].map((val) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => addNominal(val)}
+                disabled={isPending}
+                style={{
+                  minHeight: '32px',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--color-surface-raised)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text)',
+                  fontSize: '0.74rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                +{val / 1000}rb
+              </button>
+            ))}
+            {amountRaw > 0 ? (
+              <button
+                type="button"
+                onClick={() => setAmountRaw(0)}
+                disabled={isPending}
+                style={{
+                  minHeight: '32px',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'transparent',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '0.74rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Reset
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)' }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Kategori</span>
-          <select
-            value={category}
+      {/* Kategori Quick Chips */}
+      <div>
+        <span
+          style={{
+            display: 'block',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: 'var(--color-text-muted)',
+            marginBottom: '6px',
+          }}
+        >
+          Pilih Kategori
+        </span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {CATEGORIES.map((cat) => {
+            const isSelected = category === cat
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategory(cat)}
+                disabled={isPending}
+                style={{
+                  minHeight: '34px',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                  backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+                  color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
+                  fontSize: '0.75rem',
+                  fontWeight: isSelected ? 600 : 400,
+                  cursor: 'pointer',
+                  transition: 'all var(--duration-fast) var(--ease-default)',
+                }}
+              >
+                {cat}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Tanggal Cepat */}
+      <div>
+        <span
+          style={{
+            display: 'block',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: 'var(--color-text-muted)',
+            marginBottom: '6px',
+          }}
+        >
+          Tanggal Transaksi
+        </span>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => setTxDate(todayStr)}
             disabled={isPending}
-            onChange={(e) => setCategory(e.target.value)}
             style={{
-              height: '44px',
-              padding: '0 var(--space-3)',
+              minHeight: '36px',
+              padding: '0 12px',
               borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontSize: '0.85rem',
+              border: txDate === todayStr ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+              backgroundColor: txDate === todayStr ? 'var(--color-surface-raised)' : 'transparent',
+              color: txDate === todayStr ? 'var(--color-accent)' : 'var(--color-text-muted)',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer',
             }}
           >
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Tanggal</span>
+            Hari Ini
+          </button>
+          <button
+            type="button"
+            onClick={() => setTxDate(yesterday)}
+            disabled={isPending}
+            style={{
+              minHeight: '36px',
+              padding: '0 12px',
+              borderRadius: 'var(--radius-md)',
+              border: txDate === yesterday ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+              backgroundColor: txDate === yesterday ? 'var(--color-surface-raised)' : 'transparent',
+              color: txDate === yesterday ? 'var(--color-accent)' : 'var(--color-text-muted)',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Kemarin
+          </button>
           <input
             type="date"
             value={txDate}
             disabled={isPending}
             onChange={(e) => setTxDate(e.target.value)}
             style={{
-              height: '44px',
-              padding: '0 var(--space-3)',
+              flex: 1,
+              minHeight: '36px',
+              padding: '0 var(--space-2)',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--color-border)',
               backgroundColor: 'var(--color-bg)',
               color: 'var(--color-text)',
-              fontSize: '0.85rem',
+              fontSize: '0.8rem',
             }}
           />
-        </label>
+        </div>
       </div>
 
       {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
+      <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
         <button
           type="button"
           onClick={handleApprove}
@@ -345,7 +522,7 @@ function ReviewItemCard({ item }: { item: ReviewItem }) {
             border: 'none',
             borderRadius: 'var(--radius-md)',
             fontWeight: 600,
-            fontSize: '0.85rem',
+            fontSize: '0.86rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -361,7 +538,7 @@ function ReviewItemCard({ item }: { item: ReviewItem }) {
           type="button"
           onClick={handleDismiss}
           disabled={isPending}
-          aria-label="Abaikan"
+          aria-label="Abaikan transaksi ini"
           style={{
             minHeight: '44px',
             minWidth: '44px',

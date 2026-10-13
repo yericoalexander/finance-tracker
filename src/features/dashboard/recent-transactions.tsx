@@ -1,4 +1,7 @@
-import { Receipt } from 'lucide-react'
+'use client'
+
+import { useState } from 'react'
+import { Receipt, Search, X } from 'lucide-react'
 
 import { formatRupiah } from '@/lib/ai/currency'
 
@@ -13,9 +16,37 @@ interface TransactionItem {
 
 interface RecentTransactionsProps {
   transactions: TransactionItem[]
+  selectedCategory: string | null
+  onSelectCategory: (category: string | null) => void
 }
 
-export function RecentTransactions({ transactions }: RecentTransactionsProps) {
+export function RecentTransactions({
+  transactions,
+  selectedCategory,
+  onSelectCategory,
+}: RecentTransactionsProps) {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Filter transaksi berdasarkan kategori dan pencarian live
+  const filtered = transactions.filter((tx) => {
+    const matchesCategory =
+      !selectedCategory || (tx.category && tx.category.toLowerCase() === selectedCategory.toLowerCase())
+
+    const query = searchQuery.trim().toLowerCase()
+    const matchesQuery =
+      !query ||
+      (tx.merchant && tx.merchant.toLowerCase().includes(query)) ||
+      (tx.txDate && tx.txDate.includes(query)) ||
+      (tx.category && tx.category.toLowerCase().includes(query))
+
+    return matchesCategory && matchesQuery
+  })
+
+  // Ambil daftar kategori unik yang ada di transaksi
+  const existingCategories = Array.from(
+    new Set(transactions.map((tx) => tx.category).filter(Boolean)),
+  ) as string[]
+
   return (
     <section
       aria-label="Riwayat transaksi terbaru"
@@ -30,6 +61,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
         gap: 'var(--space-4)',
       }}
     >
+      {/* Header & Counter */}
       <div
         style={{
           display: 'flex',
@@ -45,19 +77,132 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             margin: 0,
           }}
         >
-          Transaksi Terbaru
+          Riwayat Transaksi
         </h2>
         <span
           style={{
             fontSize: '0.78rem',
             color: 'var(--color-text-muted)',
+            fontVariantNumeric: 'tabular-nums',
           }}
         >
-          {transactions.length} tercatat
+          {filtered.length} transaksi
         </span>
       </div>
 
-      {transactions.length === 0 ? (
+      {/* Input Pencarian Live */}
+      <div
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <Search
+          size={16}
+          color="var(--color-text-muted)"
+          style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }}
+        />
+        <input
+          type="text"
+          placeholder="Cari toko atau tanggal..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            width: '100%',
+            minHeight: '44px',
+            paddingLeft: '38px',
+            paddingRight: searchQuery ? '38px' : '14px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-bg)',
+            color: 'var(--color-text)',
+            fontSize: '0.85rem',
+          }}
+        />
+        {searchQuery ? (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            aria-label="Hapus pencarian"
+            style={{
+              position: 'absolute',
+              right: '8px',
+              width: '28px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              border: 'none',
+              backgroundColor: 'var(--color-surface-raised)',
+              color: 'var(--color-text-muted)',
+              cursor: 'pointer',
+            }}
+          >
+            <X size={14} />
+          </button>
+        ) : null}
+      </div>
+
+      {/* Chips Filter Kategori */}
+      {existingCategories.length > 0 ? (
+        <div
+          style={{
+            display: 'flex',
+            gap: '6px',
+            overflowX: 'auto',
+            paddingBottom: '2px',
+            scrollbarWidth: 'none',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => onSelectCategory(null)}
+            style={{
+              whiteSpace: 'nowrap',
+              minHeight: '32px',
+              padding: '0 12px',
+              borderRadius: 'var(--radius-full)',
+              border: !selectedCategory ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+              backgroundColor: !selectedCategory ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+              color: !selectedCategory ? 'var(--color-accent-text)' : 'var(--color-text)',
+              fontSize: '0.74rem',
+              fontWeight: !selectedCategory ? 600 : 400,
+              cursor: 'pointer',
+            }}
+          >
+            Semua
+          </button>
+          {existingCategories.map((cat) => {
+            const isSelected = selectedCategory === cat
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => onSelectCategory(isSelected ? null : cat)}
+                style={{
+                  whiteSpace: 'nowrap',
+                  minHeight: '32px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-full)',
+                  border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                  backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+                  color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
+                  fontSize: '0.74rem',
+                  fontWeight: isSelected ? 600 : 400,
+                  cursor: 'pointer',
+                }}
+              >
+                {cat}
+              </button>
+            )
+          })}
+        </div>
+      ) : null}
+
+      {/* Daftar Transaksi */}
+      {filtered.length === 0 ? (
         <div
           style={{
             padding: 'var(--space-6) 0',
@@ -69,11 +214,32 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             color: 'var(--color-text-muted)',
           }}
         >
-          <Receipt size={32} strokeWidth={1.5} />
-          <p style={{ margin: 0, fontSize: '0.85rem' }}>Belum ada transaksi tersinkronisasi.</p>
-          <p style={{ margin: 0, fontSize: '0.78rem' }}>
-            Lakukan Back Tap di iPhone untuk mencatat transaksi pertama.
+          <Receipt size={30} strokeWidth={1.5} />
+          <p style={{ margin: 0, fontSize: '0.84rem' }}>
+            {searchQuery || selectedCategory
+              ? 'Tidak ada transaksi yang cocok dengan filter.'
+              : 'Belum ada transaksi tersinkronisasi.'}
           </p>
+          {(searchQuery || selectedCategory) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('')
+                onSelectCategory(null)
+              }}
+              style={{
+                marginTop: 'var(--space-1)',
+                backgroundColor: 'transparent',
+                color: 'var(--color-accent)',
+                border: 'none',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Reset filter
+            </button>
+          )}
         </div>
       ) : (
         <ul
@@ -83,21 +249,21 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             margin: 0,
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--space-3)',
+            gap: 'var(--space-2)',
           }}
         >
-          {transactions.map((tx) => (
+          {filtered.map((tx) => (
             <li
               key={tx.id}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingBottom: 'var(--space-3)',
+                padding: 'var(--space-3) 0',
                 borderBottom: '1px solid var(--color-border-subtle)',
               }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
                 <span
                   style={{
                     fontSize: '0.9rem',
@@ -131,7 +297,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
 
               <div
                 style={{
-                  fontSize: '0.92rem',
+                  fontSize: '0.94rem',
                   fontWeight: 700,
                   color: 'var(--color-text)',
                   fontVariantNumeric: 'tabular-nums',

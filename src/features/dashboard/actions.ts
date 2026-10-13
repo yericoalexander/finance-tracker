@@ -1,6 +1,6 @@
 'use server'
 
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, isNull, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -8,7 +8,7 @@ import { auth } from '@/auth'
 import { CATEGORIES } from '@/lib/ai/types'
 import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
-import { captures, googleTokens, users } from '@/lib/db/schema'
+import { captures, devices, googleTokens, users } from '@/lib/db/schema'
 import { appendTransactionRow } from '@/lib/google/sheets'
 
 const ApproveReviewSchema = z.object({
@@ -48,6 +48,10 @@ export interface DashboardData {
     createdAt: Date
   }>
   categoryBreakdown: CategorySummary[]
+  activeDevice?: {
+    label: string
+    lastSeenAt: Date | null
+  } | null
 }
 
 /**
@@ -124,12 +128,24 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     .orderBy(desc(captures.createdAt))
     .limit(10)
 
+  // 4. Perangkat iPhone aktif terakhir
+  const [activeDevice] = await db
+    .select({
+      label: devices.label,
+      lastSeenAt: devices.lastSeenAt,
+    })
+    .from(devices)
+    .where(and(eq(devices.userId, userId), isNull(devices.revokedAt)))
+    .orderBy(desc(devices.lastSeenAt))
+    .limit(1)
+
   return {
     mtdTotal,
     txCount,
     recentTransactions,
     reviewQueue,
     categoryBreakdown,
+    activeDevice: activeDevice ?? null,
   }
 }
 
