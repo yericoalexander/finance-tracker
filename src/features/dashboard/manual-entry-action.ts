@@ -12,7 +12,7 @@ import { db } from '@/lib/db/client'
 import { captures, googleTokens, users } from '@/lib/db/schema'
 import { appendTransactionRow } from '@/lib/google/sheets'
 
-export const CreateManualTransactionSchema = z.object({
+const CreateManualTransactionSchema = z.object({
   merchant: z.string().trim().min(1, 'Nama merchant tidak boleh kosong').max(100),
   amountIdr: z.coerce.number().int().positive('Nominal harus lebih dari 0'),
   category: z.enum(CATEGORIES),

@@ -77,8 +77,9 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
         resetForm()
         router.refresh()
       }
-    } catch {
-      setErrorMsg('Terjadi kesalahan jaringan. Coba beberapa saat lagi.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem. Coba beberapa saat lagi.'
+      setErrorMsg(msg)
     } finally {
       setIsSubmitting(false)
     }
