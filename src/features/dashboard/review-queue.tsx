@@ -117,8 +117,9 @@ export function ReviewQueue({ items: initialItems }: ReviewQueueProps) {
             fontWeight: 700,
             padding: '2px 8px',
             borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--color-warning)',
-            color: '#ffffff',
+            backgroundColor: 'var(--color-warning-subtle)',
+            color: 'var(--color-warning-text)',
+            border: '1px solid var(--color-warning)',
           }}
         >
           {items.length} item
