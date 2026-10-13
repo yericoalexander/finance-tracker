@@ -6,6 +6,7 @@ export type SheetStep =
   | 'create spreadsheet'
   | 'update header'
   | 'tulis rumus Ringkasan'
+  | 'format spreadsheet'
   | 'tulis baris Transaksi'
 
 // Header baku sheet Transaksi — urutan harus konsisten dengan semua writer
@@ -222,7 +223,129 @@ export async function ensureSpreadsheet(
     throw logGoogleError('tulis rumus Ringkasan', err)
   }
 
+  try {
+    // Format spreadsheet agar rapi dan mudah dibaca
+    await formatSpreadsheet(refreshToken, spreadsheetId)
+  } catch (err) {
+    throw logGoogleError('format spreadsheet', err)
+  }
+
   return spreadsheetId
+}
+
+// ── Formatting Requests ─────────────────────────────────────────────────────
+
+function buildTransactionSheetRequests(sheetId: number) {
+  const columnWidths = [115, 85, 200, 160, 135, 160, 220, 90, 130]
+
+  return [
+    {
+      updateSheetProperties: {
+        properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+        fields: 'gridProperties.frozenRowCount',
+      },
+    },
+    {
+      updateDimensionProperties: {
+        range: { sheetId, dimension: 'ROWS', startIndex: 0, endIndex: 1 },
+        properties: { pixelSize: 38 },
+        fields: 'pixelSize',
+      },
+    },
+    ...columnWidths.map((pixelSize, idx) => ({
+      updateDimensionProperties: {
+        range: { sheetId, dimension: 'COLUMNS', startIndex: idx, endIndex: idx + 1 },
+        properties: { pixelSize },
+        fields: 'pixelSize',
+      },
+    })),
+    {
+      repeatCell: {
+        range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 9 },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: { red: 0.118, green: 0.161, blue: 0.231 },
+            textFormat: { bold: true, foregroundColor: { red: 1, green: 1, blue: 1 }, fontSize: 10 },
+            verticalAlignment: 'MIDDLE',
+          },
+        },
+        fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)',
+      },
+    },
+    { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 1000, startColumnIndex: 0, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 1000, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { bold: true } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat.bold)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 1000, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 1000, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', verticalAlignment: 'MIDDLE', textFormat: { bold: true }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat.bold,numberFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 1000, startColumnIndex: 5, endColumnIndex: 7 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 1000, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: { red: 0.45, green: 0.45, blue: 0.45 } } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat.foregroundColor)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 1000, startColumnIndex: 8, endColumnIndex: 9 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 8, foregroundColor: { red: 0.6, green: 0.6, blue: 0.6 } } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat.fontSize,textFormat.foregroundColor)' } },
+    {
+      addBanding: {
+        bandedRange: {
+          range: { sheetId, startRowIndex: 0, endRowIndex: 1000, startColumnIndex: 0, endColumnIndex: 9 },
+          rowProperties: {
+            headerColor: { red: 0.118, green: 0.161, blue: 0.231 },
+            firstBandColor: { red: 1, green: 1, blue: 1 },
+            secondBandColor: { red: 0.965, green: 0.973, blue: 0.984 },
+          },
+        },
+      },
+    },
+  ]
+}
+
+function buildSummarySheetRequests(sheetId: number) {
+  return [
+    { updateDimensionProperties: { range: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 }, properties: { pixelSize: 180 }, fields: 'pixelSize' } },
+    { updateDimensionProperties: { range: { sheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 }, properties: { pixelSize: 160 }, fields: 'pixelSize' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 2 }, cell: { userEnteredFormat: { textFormat: { bold: true, fontSize: 11 } } }, fields: 'userEnteredFormat.textFormat' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 0, endColumnIndex: 2 }, cell: { userEnteredFormat: { backgroundColor: { red: 0.118, green: 0.161, blue: 0.231 }, textFormat: { bold: true, foregroundColor: { red: 1, green: 1, blue: 1 }, fontSize: 10 }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' }, textFormat: { bold: true }, horizontalAlignment: 'RIGHT' } }, fields: 'userEnteredFormat(numberFormat,textFormat.bold,horizontalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: 5, startColumnIndex: 0, endColumnIndex: 2 }, cell: { userEnteredFormat: { textFormat: { bold: true, fontSize: 11 } } }, fields: 'userEnteredFormat.textFormat' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 5, endRowIndex: 6, startColumnIndex: 0, endColumnIndex: 2 }, cell: { userEnteredFormat: { backgroundColor: { red: 0.118, green: 0.161, blue: 0.231 }, textFormat: { bold: true, foregroundColor: { red: 1, green: 1, blue: 1 }, fontSize: 10 }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 6, endRowIndex: 13, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' }, horizontalAlignment: 'RIGHT' } }, fields: 'userEnteredFormat(numberFormat,horizontalAlignment)' } },
+  ]
+}
+
+/**
+ * Terapkan styling rapi, format mata uang, lebar kolom, dan zebra-banding ke spreadsheet.
+ */
+export async function formatSpreadsheet(
+  refreshToken: string,
+  spreadsheetId: string,
+): Promise<void> {
+  const auth = buildOAuth2Client(refreshToken)
+  const sheetsClient = google.sheets({ version: 'v4', auth })
+
+  try {
+    const meta = await sheetsClient.spreadsheets.get({ spreadsheetId })
+    const txSheet = meta.data.sheets?.find((s) => s.properties?.title === 'Transaksi')
+    const summarySheet = meta.data.sheets?.find((s) => s.properties?.title === 'Ringkasan')
+
+    const txSheetId = txSheet?.properties?.sheetId ?? 0
+    const summarySheetId = summarySheet?.properties?.sheetId ?? 1
+
+    const existingBanding = txSheet?.bandedRanges ?? []
+    const deleteBandingRequests = existingBanding.map((b) => ({
+      deleteBanding: { bandedRangeId: b.bandedRangeId },
+    }))
+
+    const requests = [
+      ...deleteBandingRequests,
+      ...buildTransactionSheetRequests(txSheetId),
+      ...buildSummarySheetRequests(summarySheetId),
+    ]
+
+    await sheetsClient.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: { requests },
+    })
+  } catch (err) {
+    throw logGoogleError('format spreadsheet', err)
+  }
 }
 
 export interface TransactionRowData {

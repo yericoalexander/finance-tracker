@@ -12,6 +12,9 @@ vi.mock('@/lib/env', () => ({
 // Mock googleapis
 const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
+const mockGet = vi.fn()
+const mockBatchUpdate = vi.fn()
+
 vi.mock('googleapis', () => ({
   google: {
     auth: {
@@ -24,19 +27,30 @@ vi.mock('googleapis', () => ({
     sheets: vi.fn().mockReturnValue({
       spreadsheets: {
         create: mockCreate,
+        get: mockGet,
+        batchUpdate: mockBatchUpdate,
         values: { update: mockUpdate },
       },
     }),
   },
 }))
 
-const { ensureSpreadsheet, GoogleApiError } = await import('@/lib/google/sheets')
+const { ensureSpreadsheet, formatSpreadsheet, GoogleApiError } = await import('@/lib/google/sheets')
 
 describe('ensureSpreadsheet', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockCreate.mockResolvedValue({ data: { spreadsheetId: 'sheet-abc-123' } })
     mockUpdate.mockResolvedValue({ data: {} })
+    mockGet.mockResolvedValue({
+      data: {
+        sheets: [
+          { properties: { title: 'Transaksi', sheetId: 0 } },
+          { properties: { title: 'Ringkasan', sheetId: 1 } },
+        ],
+      },
+    })
+    mockBatchUpdate.mockResolvedValue({ data: {} })
   })
 
   it('idempoten: langsung kembalikan sheetId jika sudah ada', async () => {
@@ -164,3 +178,18 @@ describe('ensureSpreadsheet', () => {
     })
   })
 })
+
+describe('formatSpreadsheet', () => {
+  it('berhasil memanggil batchUpdate dengan konfigurasi formatting lengkap', async () => {
+    await formatSpreadsheet('refresh-token', 'sheet-abc-123')
+    expect(mockGet).toHaveBeenCalledWith({ spreadsheetId: 'sheet-abc-123' })
+    expect(mockBatchUpdate).toHaveBeenCalledOnce()
+    const callArgs = mockBatchUpdate.mock.calls[0]?.[0] as {
+      spreadsheetId: string
+      requestBody: { requests: unknown[] }
+    }
+    expect(callArgs.spreadsheetId).toBe('sheet-abc-123')
+    expect(callArgs.requestBody.requests.length).toBeGreaterThan(10)
+  })
+})
+
