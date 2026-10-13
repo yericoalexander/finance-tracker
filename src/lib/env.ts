@@ -6,7 +6,25 @@ const envSchema = z.object({
 
   // Auth.js
   NEXTAUTH_SECRET: z.string().min(32, 'NEXTAUTH_SECRET minimal 32 karakter'),
-  NEXTAUTH_URL: z.string().url('NEXTAUTH_URL harus berupa URL yang valid'),
+  NEXTAUTH_URL: z
+    .string()
+    .optional()
+    .transform((val) => {
+      const raw =
+        val?.trim() ||
+        (process.env.VERCEL_PROJECT_PRODUCTION_URL
+          ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+          : process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : 'http://localhost:3000')
+
+      let cleaned = raw.trim().replace(/^["']|["']$/g, '')
+      if (cleaned && !cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+        cleaned = `https://${cleaned}`
+      }
+      return cleaned
+    })
+    .pipe(z.string().url('NEXTAUTH_URL harus berupa URL yang valid')),
 
   // Google OAuth
   GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID wajib diisi'),
