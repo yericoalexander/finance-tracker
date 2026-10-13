@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import { CategoryBreakdown } from './category-breakdown'
 import { ManualEntryCard } from './manual-entry-card'
 import { RecentTransactions } from './recent-transactions'
-import { ReviewQueue } from './review-queue'
 import { SummaryCards } from './summary-cards'
 import type { DashboardData } from './actions'
 
@@ -78,16 +77,6 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
         >
           <BarChart3 size={16} />
           <span>Ringkasan</span>
-          {data.reviewQueue.length > 0 ? (
-            <span
-              style={{
-                width: '7px',
-                height: '7px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-warning)',
-              }}
-            />
-          ) : null}
         </button>
 
         <button
@@ -183,9 +172,6 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
             sheetId={sheetId}
             activeDevice={data.activeDevice}
           />
-
-          {/* Antrean Perlu Dicek (Hanya tampil jika ada screenshot ambigu) */}
-          <ReviewQueue items={data.reviewQueue} />
 
           {/* Distribusi Pengeluaran per Kategori */}
           <CategoryBreakdown
