@@ -68,7 +68,7 @@ src/
 - [x] **Fase 0** — Scaffold + tooling + env
 - [x] **Fase 1** — Auth Google + pembuatan Sheet otomatis
 - [x] **Fase 2** — Pairing perangkat + /api/capture + ekstraksi AI Gemini Vision
-- [ ] **Fase 3** — Dashboard + antrean "Perlu dicek"
+- [x] **Fase 3** — Dashboard + antrean "Perlu dicek"
 - [ ] **Fase 4** — Onboarding + landing + PWA
 - [ ] **Fase 5** — Tes E2E, hardening & panduan Shortcut iOS
 
