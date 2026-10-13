@@ -1,0 +1,288 @@
+import { createHash } from 'crypto'
+import { and, eq } from 'drizzle-orm'
+import { type NextRequest, NextResponse } from 'next/server'
+
+import { formatRupiah } from '@/lib/ai/currency'
+import { defaultExtractionProvider } from '@/lib/ai/gemini'
+import type { TransactionExtraction } from '@/lib/ai/types'
+import { decrypt } from '@/lib/crypto'
+import { db } from '@/lib/db/client'
+import { captures, devices, googleTokens, users } from '@/lib/db/schema'
+import { appendTransactionRow, ensureSpreadsheet, GoogleApiError } from '@/lib/google/sheets'
+import { validateImageBuffer } from '@/lib/security/magic-bytes'
+import { checkRateLimit } from '@/lib/security/rate-limit'
+
+// ── Helper Autentikasi Perangkat ──────────────────────────────────────────────
+async function authenticateDevice(authHeader: string | null) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { ok: false, error: 'Token perangkat tidak ditemukan' } as const
+  }
+
+  const token = authHeader.slice(7).trim()
+  if (!token) {
+    return { ok: false, error: 'Token perangkat kosong' } as const
+  }
+
+  const tokenHash = createHash('sha256').update(token).digest('hex')
+  const device = await db.query.devices.findFirst({
+    where: eq(devices.tokenHash, tokenHash),
+  })
+
+  if (!device || device.revokedAt) {
+    return { ok: false, error: 'Perangkat tidak terdaftar atau akses telah dicabut' } as const
+  }
+
+  return { ok: true, device } as const
+}
+
+// ── Helper Ekstraksi & Transaksi Sheets ───────────────────────────────────────
+async function syncToGoogleSheets(
+  userId: string,
+  captureId: string,
+  extraction: TransactionExtraction,
+) {
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { sheetId: true },
+  })
+
+  const tokenRecord = await db.query.googleTokens.findFirst({
+    where: eq(googleTokens.userId, userId),
+  })
+
+  if (!tokenRecord) {
+    throw new Error('GOOGLE_AUTH_MISSING')
+  }
+
+  const refreshToken = decrypt({
+    ciphertext: tokenRecord.refreshTokenEncrypted,
+    iv: tokenRecord.iv,
+    authTag: tokenRecord.authTag,
+  })
+
+  let sheetId = user?.sheetId
+  if (!sheetId) {
+    sheetId = await ensureSpreadsheet(refreshToken, null)
+    await db.update(users).set({ sheetId }).where(eq(users.id, userId))
+  }
+
+  await appendTransactionRow(refreshToken, sheetId, {
+    date: extraction.date,
+    time: extraction.time,
+    merchant: extraction.merchant,
+    category: extraction.category,
+    amountIdr: extraction.amountIdr,
+    paymentMethod: extraction.paymentMethod,
+    note: extraction.note,
+    source: 'iPhone',
+    id: captureId,
+  })
+}
+
+// ── Handler POST /api/capture ────────────────────────────────────────────────
+export async function POST(request: NextRequest) {
+  // 1. Autentikasi token perangkat
+  const authResult = await authenticateDevice(request.headers.get('Authorization'))
+  if (!authResult.ok) {
+    return NextResponse.json(
+      { status: 'failed', message: authResult.error },
+      { status: 401 },
+    )
+  }
+
+  const device = authResult.device
+
+  // 2. Rate limit: 20 request / menit per perangkat
+  const rateLimit = checkRateLimit(`device_${device.id}`, 20, 60 * 1000)
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        status: 'failed',
+        message: `Terlalu banyak permintaan. Tunggu ${rateLimit.retryAfterSeconds} detik.`,
+      },
+      { status: 429 },
+    )
+  }
+
+  // Update last seen perangkat di background
+  await db.update(devices).set({ lastSeenAt: new Date() }).where(eq(devices.id, device.id))
+
+  // 3. Validasi multipart & file gambar
+  let imageBuffer: Buffer | null = null
+  const contentType = request.headers.get('content-type') ?? ''
+
+  if (contentType.startsWith('image/')) {
+    imageBuffer = Buffer.from(await request.arrayBuffer())
+  } else {
+    let formData: FormData
+    try {
+      formData = await request.formData()
+    } catch {
+      return NextResponse.json(
+        { status: 'failed', message: 'Format request harus berupa form-data' },
+        { status: 400 },
+      )
+    }
+
+    const file = formData.get('image')
+    if (!file) {
+      return NextResponse.json(
+        { status: 'failed', message: 'Field image tidak ditemukan pada form-data' },
+        { status: 400 },
+      )
+    }
+
+    if (file instanceof Blob) {
+      imageBuffer = Buffer.from(await file.arrayBuffer())
+    } else if (typeof file === 'string') {
+      const base64Data = file.replace(/^data:image\/[a-z]+;base64,/, '')
+      const decoded = Buffer.from(base64Data, 'base64')
+      const check = validateImageBuffer(decoded)
+      if (check.valid) {
+        imageBuffer = decoded
+      } else {
+        return NextResponse.json(
+          {
+            status: 'failed',
+            message:
+              'Field image di Shortcuts terkirim sebagai teks. Hapus field image di Shortcuts, tambah baru dengan tipe File (bukan Text), lalu pilih variabel Screenshot.',
+          },
+          { status: 400 },
+        )
+      }
+    }
+  }
+
+  if (!imageBuffer) {
+    return NextResponse.json(
+      { status: 'failed', message: 'File gambar tidak dapat dibaca' },
+      { status: 400 },
+    )
+  }
+
+  const validation = validateImageBuffer(imageBuffer)
+  if (!validation.valid || !validation.mimeType) {
+    return NextResponse.json(
+      { status: 'failed', message: validation.error ?? 'Format gambar tidak valid' },
+      { status: 400 },
+    )
+  }
+
+  // 4. Deteksi duplikat via SHA-256 gambar
+  const imageHash = createHash('sha256').update(imageBuffer).digest('hex')
+  const existing = await db.query.captures.findFirst({
+    where: and(eq(captures.userId, device.userId), eq(captures.imageHash, imageHash)),
+  })
+
+  if (existing) {
+    return NextResponse.json({
+      status: 'duplicate',
+      merchant: existing.merchant ?? undefined,
+      amount: existing.amountIdr ? formatRupiah(existing.amountIdr) : undefined,
+      message: 'Transaksi ini sudah pernah dicatat sebelumnya',
+    })
+  }
+
+  // 5. Ekstraksi model AI
+  let extraction: TransactionExtraction
+  try {
+    extraction = await defaultExtractionProvider.extractReceipt(imageBuffer, validation.mimeType)
+  } catch {
+    await db.insert(captures).values({
+      userId: device.userId,
+      deviceId: device.id,
+      imageHash,
+      status: 'failed',
+      errorCode: 'EXTRACTION_FAILED',
+    })
+    return NextResponse.json({
+      status: 'failed',
+      message: 'Gagal mengekstrak struk: informasi transaksi tidak terbaca',
+    })
+  }
+
+  // 6. Tangani alur confidence & Google Sheets
+  const formattedAmount = formatRupiah(extraction.amountIdr)
+  const isConfident = extraction.confidence >= 0.7
+
+  if (!isConfident) {
+    await db.insert(captures).values({
+      userId: device.userId,
+      deviceId: device.id,
+      imageHash,
+      status: 'needs_review',
+      confidence: extraction.confidence,
+      merchant: extraction.merchant,
+      amountIdr: extraction.amountIdr,
+      category: extraction.category,
+      txDate: extraction.date,
+    })
+
+    return NextResponse.json({
+      status: 'needs_review',
+      merchant: extraction.merchant,
+      amount: formattedAmount,
+      message: `Tercatat di Perlu Dicek: ${formattedAmount} (perlu konfirmasi)`,
+    })
+  }
+
+  // Simpan record capture status ok
+  const [newCapture] = await db
+    .insert(captures)
+    .values({
+      userId: device.userId,
+      deviceId: device.id,
+      imageHash,
+      status: 'ok',
+      confidence: extraction.confidence,
+      merchant: extraction.merchant,
+      amountIdr: extraction.amountIdr,
+      category: extraction.category,
+      txDate: extraction.date,
+    })
+    .returning()
+
+  if (!newCapture) {
+    return NextResponse.json({ status: 'failed', message: 'Gagal menyimpan transaksi ke database' })
+  }
+
+  // Tulis ke Google Sheets
+  try {
+    await syncToGoogleSheets(device.userId, newCapture.id, extraction)
+    await db
+      .update(captures)
+      .set({ sheetRowId: newCapture.id })
+      .where(eq(captures.id, newCapture.id))
+
+    return NextResponse.json({
+      status: 'ok',
+      merchant: extraction.merchant,
+      amount: formattedAmount,
+      message: `Tercatat: ${formattedAmount} di ${extraction.merchant}`,
+    })
+  } catch (err) {
+    const isGoogleAuthError =
+      (err instanceof GoogleApiError && (err.code === 401 || err.code === 403)) ||
+      (err instanceof Error && err.message === 'GOOGLE_AUTH_MISSING')
+
+    await db
+      .update(captures)
+      .set({
+        status: 'failed',
+        errorCode: isGoogleAuthError ? 'GOOGLE_AUTH_EXPIRED' : 'SHEETS_SYNC_ERROR',
+      })
+      .where(eq(captures.id, newCapture.id))
+
+    if (isGoogleAuthError) {
+      return NextResponse.json({
+        status: 'failed',
+        message: 'Akses Google perlu diperbarui, masuk ulang di aplikasi',
+      })
+    }
+
+    return NextResponse.json({
+      status: 'failed',
+      message: 'Gagal menulis ke Google Sheets. Coba lagi nanti.',
+    })
+  }
+}

@@ -1,0 +1,133 @@
+@import 'tailwindcss';
+
+/* ─── Design Tokens ─────────────────────────────────────────────────── */
+:root {
+  /* Neutral palette — warm white / light greys */
+  --color-bg: #fafaf9;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f5f5f4;
+  --color-border: #e7e5e4;
+  --color-border-subtle: #f0ede9;
+
+  /* Text */
+  --color-text: #1c1917;
+  --color-text-muted: #78716c;
+  --color-text-placeholder: #a8a29e;
+
+  /* Accent — single accent color (indigo-600) */
+  --color-accent: #4f46e5;
+  --color-accent-hover: #4338ca;
+  --color-accent-subtle: #eef2ff;
+  --color-accent-text: #ffffff;
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-error-subtle: #fef2f2;
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 12px 32px -4px rgb(0 0 0 / 0.12);
+
+  /* Typography */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 250ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Dark Mode ─────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0a0a0a;
+    --color-surface: #171717;
+    --color-surface-raised: #262626;
+    --color-border: #2d2d2d;
+    --color-border-subtle: #1f1f1f;
+
+    --color-text: #fafaf9;
+    --color-text-muted: #a8a29e;
+    --color-text-placeholder: #57534e;
+
+    --color-accent: #6366f1;
+    --color-accent-hover: #818cf8;
+    --color-accent-subtle: #1e1b4b;
+
+    --color-error-subtle: #1c0a0a;
+  }
+}
+
+/* ─── Reduced Motion ────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Base Reset ────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* Respect iPhone safe areas */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ─── Utilities ─────────────────────────────────────────────────────── */
+
+/* Tabular numbers for all monetary values */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Minimum touch target 44px (WCAG 2.5.5) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Muted text shortcut */
+.text-muted {
+  color: var(--color-text-muted);
+}
