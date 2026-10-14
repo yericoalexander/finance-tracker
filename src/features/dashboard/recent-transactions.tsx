@@ -109,12 +109,17 @@ export function RecentTransactions({
   const [draftStartDate, setDraftStartDate] = useState<string>('')
   const [draftEndDate, setDraftEndDate] = useState<string>('')
 
+  const todayStr = useMemo(() => getJakartaDateOffset(0), [])
+  const yesterdayStr = useMemo(() => getJakartaDateOffset(-1), [])
+  const sevenDaysAgoStr = useMemo(() => getJakartaDateOffset(-7), [])
+  const currentMonthPrefix = useMemo(() => todayStr.slice(0, 7), [todayStr])
+
   // Sync draft states when opening modal
   const handleOpenFilterModal = () => {
     setDraftQuickDate(quickDate)
     setDraftCategory(selectedCategory)
-    setDraftStartDate(startDate)
-    setDraftEndDate(endDate)
+    setDraftStartDate(startDate || sevenDaysAgoStr)
+    setDraftEndDate(endDate || todayStr)
     setFilterModalOpen(true)
   }
 
@@ -128,11 +133,6 @@ export function RecentTransactions({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [filterModalOpen])
-
-  const todayStr = useMemo(() => getJakartaDateOffset(0), [])
-  const yesterdayStr = useMemo(() => getJakartaDateOffset(-1), [])
-  const sevenDaysAgoStr = useMemo(() => getJakartaDateOffset(-7), [])
-  const currentMonthPrefix = useMemo(() => todayStr.slice(0, 7), [todayStr])
 
   // Count active filters for badge
   const activeFilterCount = useMemo(() => {
@@ -239,8 +239,13 @@ export function RecentTransactions({
   const handleApplyFilterModal = () => {
     setQuickDate(draftQuickDate)
     onSelectCategory(draftCategory)
-    setStartDate(draftStartDate)
-    setEndDate(draftEndDate)
+    if (draftQuickDate === 'range' && draftStartDate && draftEndDate && draftStartDate > draftEndDate) {
+      setStartDate(draftEndDate)
+      setEndDate(draftStartDate)
+    } else {
+      setStartDate(draftStartDate)
+      setEndDate(draftEndDate)
+    }
     setFilterModalOpen(false)
   }
 
@@ -946,9 +951,15 @@ export function RecentTransactions({
                     <button
                       key={opt.id}
                       type="button"
-                      onClick={() => setDraftQuickDate(opt.id)}
+                      onClick={() => {
+                        setDraftQuickDate(opt.id)
+                        if (opt.id === 'range') {
+                          if (!draftStartDate) setDraftStartDate(sevenDaysAgoStr)
+                          if (!draftEndDate) setDraftEndDate(todayStr)
+                        }
+                      }}
                       style={{
-                        minHeight: '38px',
+                        minHeight: '40px',
                         padding: '6px 8px',
                         borderRadius: 'var(--radius-md)',
                         border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
@@ -971,59 +982,114 @@ export function RecentTransactions({
               {/* Input Rentang Tanggal jika opsi 'range' dipilih */}
               {draftQuickDate === 'range' && (
                 <div
-                  className="animate-fade-in"
+                  className="animate-slide-up"
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '8px',
-                    marginTop: '6px',
-                    padding: 'var(--space-3)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 'var(--space-3)',
+                    marginTop: '8px',
+                    padding: 'var(--space-3) var(--space-4)',
                     backgroundColor: 'var(--color-surface-raised)',
-                    borderRadius: 'var(--radius-lg)',
+                    borderRadius: 'var(--radius-xl)',
                     border: '1px solid var(--color-border)',
                   }}
                 >
-                  <div>
-                    <label style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'block' }}>
-                      Dari Tanggal
-                    </label>
-                    <input
-                      type="date"
-                      value={draftStartDate}
-                      onChange={(e) => setDraftStartDate(e.target.value)}
-                      style={{
-                        width: '100%',
-                        minHeight: '36px',
-                        padding: '4px 6px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-surface)',
-                        color: 'var(--color-text)',
-                        fontSize: '0.78rem',
-                        fontFamily: 'inherit',
-                      }}
-                    />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Calendar size={14} color="var(--color-accent)" />
+                      Rentang Tanggal
+                    </span>
+                    {draftStartDate && draftEndDate && (
+                      <span
+                        style={{
+                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          color: draftStartDate > draftEndDate ? 'var(--color-expense)' : 'var(--color-text-muted)',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}
+                      >
+                        {draftStartDate > draftEndDate
+                          ? '⚠️ Mulai > Akhir'
+                          : `${formatDateLabel(draftStartDate)} – ${formatDateLabel(draftEndDate)}`}
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <label style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'block' }}>
-                      Sampai Tanggal
-                    </label>
-                    <input
-                      type="date"
-                      value={draftEndDate}
-                      onChange={(e) => setDraftEndDate(e.target.value)}
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto 1fr',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    {/* Dari */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                        Dari Tanggal
+                      </label>
+                      <input
+                        type="date"
+                        value={draftStartDate}
+                        onChange={(e) => setDraftStartDate(e.target.value)}
+                        style={{
+                          width: '100%',
+                          minHeight: '44px',
+                          padding: '8px 10px',
+                          borderRadius: 'var(--radius-lg)',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-surface)',
+                          color: 'var(--color-text)',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit',
+                          outline: 'none',
+                          boxShadow: 'var(--shadow-sm)',
+                          textAlign: 'center',
+                          WebkitAppearance: 'none',
+                        }}
+                      />
+                    </div>
+
+                    {/* Arrow Divider */}
+                    <div
                       style={{
-                        width: '100%',
-                        minHeight: '36px',
-                        padding: '4px 6px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-surface)',
-                        color: 'var(--color-text)',
-                        fontSize: '0.78rem',
-                        fontFamily: 'inherit',
+                        marginTop: '16px',
+                        color: 'var(--color-text-muted)',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
                       }}
-                    />
+                    >
+                      →
+                    </div>
+
+                    {/* Sampai */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                        Sampai Tanggal
+                      </label>
+                      <input
+                        type="date"
+                        value={draftEndDate}
+                        onChange={(e) => setDraftEndDate(e.target.value)}
+                        style={{
+                          width: '100%',
+                          minHeight: '44px',
+                          padding: '8px 10px',
+                          borderRadius: 'var(--radius-lg)',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-surface)',
+                          color: 'var(--color-text)',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit',
+                          outline: 'none',
+                          boxShadow: 'var(--shadow-sm)',
+                          textAlign: 'center',
+                          WebkitAppearance: 'none',
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
