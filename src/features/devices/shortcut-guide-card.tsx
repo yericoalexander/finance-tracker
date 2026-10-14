@@ -1,10 +1,8 @@
 'use client'
 
-import { ChevronDown, ChevronUp, Layers, Sparkles } from 'lucide-react'
-import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 
 export function ShortcutGuideCard() {
-  const [showDetailRecipe, setShowDetailRecipe] = useState(false)
 
   return (
     <div
@@ -153,80 +151,25 @@ export function ShortcutGuideCard() {
         </div>
       </div>
 
-      {/* Accordion Alur Lengkap Pintasan */}
+      {/* Catatan Sederhana Cara Pakai */}
       <div
         style={{
-          borderTop: '1px solid var(--color-border)',
-          paddingTop: 'var(--space-3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--space-2)',
+          padding: 'var(--space-3)',
+          backgroundColor: 'var(--color-surface-raised)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--color-border)',
+          fontSize: '0.8rem',
+          color: 'var(--color-text-muted)',
+          lineHeight: 1.4,
         }}
       >
-        <button
-          type="button"
-          onClick={() => setShowDetailRecipe(!showDetailRecipe)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
-            backgroundColor: 'transparent',
-            border: 'none',
-            color: 'var(--color-text)',
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            padding: 'var(--space-1) 0',
-          }}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <Layers size={16} style={{ color: 'var(--color-accent)' }} />
-            <span>Lihat Struktur Aksi Pintasan iOS</span>
-          </span>
-          {showDetailRecipe ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
-
-        {showDetailRecipe && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-2)',
-              marginTop: 'var(--space-3)',
-              padding: 'var(--space-3)',
-              backgroundColor: 'var(--color-surface-raised)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              fontSize: '0.78rem',
-              color: 'var(--color-text-muted)',
-              lineHeight: 1.5,
-            }}
-          >
-            <p style={{ margin: 0, fontWeight: 600, color: 'var(--color-text)' }}>
-              Alur Pintasan &quot;Finance Tracker&quot;:
-            </p>
-            <ol style={{ margin: 0, paddingLeft: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <li>
-                <strong>Ambil Tangkapan Layar (Take Screenshot)</strong>
-              </li>
-              <li>
-                <strong>Dapatkan Isi URL (Get Contents of URL)</strong>:
-                <br />• URL: <code>{typeof window !== 'undefined' ? window.location.origin : ''}/api/capture</code>
-                <br />• Metode: <code>POST</code>
-                <br />• Tajuk (Header): <code>Authorization: Bearer [Token Perangkat]</code>
-                <br />• Isi Permintaan (Body): <code>Form</code> dengan kunci <code>image</code> bertipe File (isi dengan Screenshot).
-              </li>
-              <li>
-                <strong>Dapatkan Kamus dari Hasil URL</strong>
-              </li>
-              <li>
-                <strong>Tampilkan Pemberitahuan</strong>: Ambil teks pesan (<code>message</code>) dari hasil URL.
-              </li>
-            </ol>
-            <p style={{ margin: 0, marginTop: '4px', fontSize: '0.74rem' }}>
-              💡 Pintasan akan secara otomatis membaca struk atau notifikasi bank dari screenshot dan
-              menuliskannya langsung ke spreadsheet pribadi Anda.
-            </p>
-          </div>
-        )}
+        <span>💡</span>
+        <span>
+          <strong>Selesai!</strong> Kapan pun Anda melihat struk atau bukti transfer di iPhone, cukup ketuk 2x punggung iPhone Anda untuk mencatat pengeluaran otomatis ke Google Sheets.
+        </span>
       </div>
     </div>
   )
