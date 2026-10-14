@@ -17,13 +17,14 @@ export default async function DashboardPage() {
   const { user } = session
   const firstName = user.name?.split(' ')[0] ?? 'Kamu'
 
-  const dbUser = await db.query.users.findFirst({
-    where: eq(users.id, user.id),
-    columns: { sheetId: true },
-  })
+  const [dbUser, dashboardData] = await Promise.all([
+    db.query.users.findFirst({
+      where: eq(users.id, user.id),
+      columns: { sheetId: true },
+    }),
+    getDashboardData(user.id),
+  ])
   const currentSheetId = dbUser?.sheetId ?? user.sheetId
-
-  const dashboardData = await getDashboardData(user.id)
 
   return (
     <main

@@ -76,6 +76,11 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
         setSuccessMsg(`Berhasil mencatat ${formatRupiah(numericAmount)} untuk ${merchant.trim()} ke Google Sheets!`)
         resetForm()
         router.refresh()
+        if (onSuccess) {
+          setTimeout(() => {
+            onSuccess()
+          }, 700)
+        }
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem. Coba beberapa saat lagi.'

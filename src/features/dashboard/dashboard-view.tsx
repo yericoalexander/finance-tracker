@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Smartphone, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -22,12 +22,54 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [newTxAlert, setNewTxAlert] = useState<string | null>(null)
+  const prevFirstTxId = useRef<string | null>(data.recentTransactions[0]?.id ?? null)
 
   const handleRefresh = () => {
     setIsRefreshing(true)
     router.refresh()
     setTimeout(() => setIsRefreshing(false), 600)
   }
+
+  // Auto-refresh saat window focus atau tab aktif kembali, serta polling berkala
+  useEffect(() => {
+    const handleRevalidate = () => {
+      if (document.visibilityState === 'visible') {
+        router.refresh()
+      }
+    }
+    const handleFocus = () => router.refresh()
+
+    document.addEventListener('visibilitychange', handleRevalidate)
+    window.addEventListener('focus', handleFocus)
+
+    // Polling setiap 4 detik saat tab terbuka agar transaksi baru (dari iPhone / Shortcut) langsung masuk instan
+    const intervalTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        router.refresh()
+      }
+    }, 4000)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleRevalidate)
+      window.removeEventListener('focus', handleFocus)
+      clearInterval(intervalTimer)
+    }
+  }, [router])
+
+  // Deteksi transaksi baru yang baru saja masuk
+  useEffect(() => {
+    const currentFirstId = data.recentTransactions[0]?.id ?? null
+    if (prevFirstTxId.current && currentFirstId && prevFirstTxId.current !== currentFirstId) {
+      const newTx = data.recentTransactions[0]
+      if (newTx) {
+        setNewTxAlert(`${newTx.merchant ?? 'Transaksi'} baru saja masuk!`)
+        const timer = setTimeout(() => setNewTxAlert(null), 4000)
+        return () => clearTimeout(timer)
+      }
+    }
+    prevFirstTxId.current = currentFirstId
+  }, [data.recentTransactions])
 
   const handleCategoryJump = (category: string) => {
     setSelectedCategory(category)
@@ -41,7 +83,47 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      {/* Notifikasi Transaksi Baru Masuk */}
+      {newTxAlert ? (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 'var(--space-2) var(--space-4)',
+            backgroundColor: 'var(--color-accent)',
+            color: 'var(--color-accent-text)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-md)',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+          }}
+        >
+          <span>✨ {newTxAlert}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('transactions')
+              setNewTxAlert(null)
+            }}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              color: 'var(--color-accent-text)',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: 0,
+            }}
+          >
+            Lihat Transaksi
+          </button>
+        </div>
+      ) : null}
       {/* Segmented Tab Control — clean, mirip referensi */}
       <nav
         aria-label="Pilihan tampilan dashboard"

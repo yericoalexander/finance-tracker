@@ -980,30 +980,50 @@ export function RecentTransactions({
             gap: 'var(--space-2)',
           }}
         >
-          {filtered.map((tx) => (
-            <li
-              key={tx.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: 'var(--space-3) 0',
-                borderBottom: '1px solid var(--color-border-subtle)',
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
-                <span
-                  style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    color: 'var(--color-text)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {tx.merchant || 'Transaksi'}
-                </span>
+          {filtered.map((tx) => {
+            const isVeryRecent =
+              tx.createdAt && Date.now() - new Date(tx.createdAt).getTime() < 120000
+            return (
+              <li
+                key={tx.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: 'var(--space-3) 0',
+                  borderBottom: '1px solid var(--color-border-subtle)',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span
+                      style={{
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        color: 'var(--color-text)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {tx.merchant || 'Transaksi'}
+                    </span>
+                    {isVeryRecent && (
+                      <span
+                        style={{
+                          fontSize: '0.66rem',
+                          padding: '1px 5px',
+                          borderRadius: 'var(--radius-sm)',
+                          backgroundColor: 'var(--color-success-subtle)',
+                          color: 'var(--color-success)',
+                          fontWeight: 700,
+                          flexShrink: 0,
+                        }}
+                      >
+                        Baru
+                      </span>
+                    )}
+                  </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   <span
                     style={{
@@ -1036,7 +1056,8 @@ export function RecentTransactions({
                 {formatRupiah(tx.amountIdr ?? 0)}
               </div>
             </li>
-          ))}
+          )
+        })}
         </ul>
       )}
     </section>

@@ -60,40 +60,69 @@ export interface DashboardData {
 export async function getDashboardData(userId: string): Promise<DashboardData> {
   const currentMonthPrefix = new Date().toISOString().slice(0, 7) // 'YYYY-MM'
 
-  // 1. Antrean review (needs_review)
-  const reviewQueue = await db
-    .select({
-      id: captures.id,
-      merchant: captures.merchant,
-      amountIdr: captures.amountIdr,
-      category: captures.category,
-      txDate: captures.txDate,
-      confidence: captures.confidence,
-      createdAt: captures.createdAt,
-    })
-    .from(captures)
-    .where(and(eq(captures.userId, userId), eq(captures.status, 'needs_review')))
-    .orderBy(desc(captures.createdAt))
+  // Eksekusi semua query secara paralel untuk memangkas waktu tunggu database
+  const [reviewQueue, monthOkCaptures, recentTransactions, activeDeviceList] = await Promise.all([
+    // 1. Antrean review (needs_review)
+    db
+      .select({
+        id: captures.id,
+        merchant: captures.merchant,
+        amountIdr: captures.amountIdr,
+        category: captures.category,
+        txDate: captures.txDate,
+        confidence: captures.confidence,
+        createdAt: captures.createdAt,
+      })
+      .from(captures)
+      .where(and(eq(captures.userId, userId), eq(captures.status, 'needs_review')))
+      .orderBy(desc(captures.createdAt)),
 
-  // 2. Transaksi sukses bulan ini untuk hitung MTD & kategori
-  const monthOkCaptures = await db
-    .select({
-      id: captures.id,
-      merchant: captures.merchant,
-      amountIdr: captures.amountIdr,
-      category: captures.category,
-      txDate: captures.txDate,
-      createdAt: captures.createdAt,
-    })
-    .from(captures)
-    .where(
-      and(
-        eq(captures.userId, userId),
-        eq(captures.status, 'ok'),
-        sql`${captures.txDate} LIKE ${`${currentMonthPrefix}%`}`,
-      ),
-    )
-    .orderBy(desc(captures.createdAt))
+    // 2. Transaksi sukses bulan ini untuk hitung MTD & kategori
+    db
+      .select({
+        id: captures.id,
+        merchant: captures.merchant,
+        amountIdr: captures.amountIdr,
+        category: captures.category,
+        txDate: captures.txDate,
+        createdAt: captures.createdAt,
+      })
+      .from(captures)
+      .where(
+        and(
+          eq(captures.userId, userId),
+          eq(captures.status, 'ok'),
+          sql`${captures.txDate} LIKE ${`${currentMonthPrefix}%`}`,
+        ),
+      )
+      .orderBy(desc(captures.createdAt)),
+
+    // 3. 50 transaksi sukses terbaru secara keseluruhan untuk filter tab Transaksi
+    db
+      .select({
+        id: captures.id,
+        merchant: captures.merchant,
+        amountIdr: captures.amountIdr,
+        category: captures.category,
+        txDate: captures.txDate,
+        createdAt: captures.createdAt,
+      })
+      .from(captures)
+      .where(and(eq(captures.userId, userId), eq(captures.status, 'ok')))
+      .orderBy(desc(captures.createdAt))
+      .limit(50),
+
+    // 4. Perangkat iPhone aktif terakhir
+    db
+      .select({
+        label: devices.label,
+        lastSeenAt: devices.lastSeenAt,
+      })
+      .from(devices)
+      .where(and(eq(devices.userId, userId), isNull(devices.revokedAt)))
+      .orderBy(desc(devices.lastSeenAt))
+      .limit(1),
+  ])
 
   const mtdTotal = monthOkCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
   const txCount = monthOkCaptures.length
@@ -113,31 +142,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     }))
     .sort((a, b) => b.total - a.total)
 
-  // 3. 50 transaksi sukses terbaru secara keseluruhan untuk filter tab Transaksi
-  const recentTransactions = await db
-    .select({
-      id: captures.id,
-      merchant: captures.merchant,
-      amountIdr: captures.amountIdr,
-      category: captures.category,
-      txDate: captures.txDate,
-      createdAt: captures.createdAt,
-    })
-    .from(captures)
-    .where(and(eq(captures.userId, userId), eq(captures.status, 'ok')))
-    .orderBy(desc(captures.createdAt))
-    .limit(50)
-
-  // 4. Perangkat iPhone aktif terakhir
-  const [activeDevice] = await db
-    .select({
-      label: devices.label,
-      lastSeenAt: devices.lastSeenAt,
-    })
-    .from(devices)
-    .where(and(eq(devices.userId, userId), isNull(devices.revokedAt)))
-    .orderBy(desc(devices.lastSeenAt))
-    .limit(1)
+  const activeDevice = activeDeviceList[0] ?? null
 
   return {
     mtdTotal,
@@ -145,7 +150,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     recentTransactions,
     reviewQueue,
     categoryBreakdown,
-    activeDevice: activeDevice ?? null,
+    activeDevice,
   }
 }
 

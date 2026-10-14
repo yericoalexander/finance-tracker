@@ -83,19 +83,7 @@ export async function createManualTransactionAction(
   try {
     const { sheetId, refreshToken } = await getUserGoogleCredentials(userId)
 
-    await appendTransactionRow(refreshToken, sheetId, {
-      date: data.txDate,
-      time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      merchant: data.merchant,
-      category: data.category,
-      amountIdr: data.amountIdr,
-      paymentMethod: data.paymentMethod ?? 'Lainnya',
-      note: data.note ?? '-',
-      source: 'Manual (Web)',
-      id: captureId,
-    })
-
-    await db.insert(captures).values({
+    const insertDbPromise = db.insert(captures).values({
       id: captureId,
       userId,
       imageHash,
@@ -107,6 +95,20 @@ export async function createManualTransactionAction(
       txDate: data.txDate,
       sheetRowId: captureId,
     })
+
+    const appendSheetPromise = appendTransactionRow(refreshToken, sheetId, {
+      date: data.txDate,
+      time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      merchant: data.merchant,
+      category: data.category,
+      amountIdr: data.amountIdr,
+      paymentMethod: data.paymentMethod ?? 'Lainnya',
+      note: data.note ?? '-',
+      source: 'Manual (Web)',
+      id: captureId,
+    })
+
+    await Promise.all([insertDbPromise, appendSheetPromise])
 
     revalidatePath('/dashboard')
     return { ok: true, id: captureId }
