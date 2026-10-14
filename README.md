@@ -1,81 +1,292 @@
-# Finance Tracker
+# 💸 Finance Tracker
 
-Catat pengeluaran dari screenshot iPhone langsung ke Google Sheets milikmu — tanpa App Store.
+> **Pencatatan pengeluaran instan dan otomatis dari tangkapan layar iPhone langsung ke Google Sheets pribadi & dashboard PWA Anda — didukung Gemini Vision AI dan Apple Shortcuts Back Tap.**
 
-## Cara Kerja
+[![Next.js](https://img.shields.io/badge/Next.js-16.4.0-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Database-Supabase%20Postgres-3ECF8E?style=flat&logo=supabase)](https://supabase.com/)
+[![Drizzle ORM](https://img.shields.io/badge/ORM-Drizzle-C5F74F?style=flat&logo=drizzle)](https://orm.drizzle.team/)
+[![Google Sheets API](https://img.shields.io/badge/API-Google%20Sheets%20v4-34A853?style=flat&logo=googlesheets)](https://developers.google.com/sheets/api)
+[![Gemini AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-4285F4?style=flat&logo=google)](https://deepmind.google/technologies/gemini/)
+[![Tests](https://img.shields.io/badge/Tests-60%2F60%20Passed-brightgreen?style=flat&logo=vitest)](https://vitest.dev/)
 
+---
+
+## 📱 Contoh Tampilan Halaman (Page Preview)
+
+### 1. Dashboard Utama — Ringkasan Bulan Berjalan & Navigasi
+Tampilan mobile-first yang bersih, elegan, dan kaya data. Menampilkan total pengeluaran per bulan, rata-rata harian, akses ke Google Sheets pribadi, serta visualisasi kategori transaksi.
+
+```text
+┌──────────────────────────────────────────────┐
+│ FINANCE.                              🌙 (👤)│
+│ Halo, Yerico 👋                              │
+│                                              │
+│ ┌───────────────┬──────────────┬───────────┐ │
+│ │   Ringkasan   │   Transaksi  │  + Catat  │ │
+│ └───────────────┴──────────────┴───────────┘ │
+│                                              │
+│ Tersinkron ke Sheets             🔄 Segarkan │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │ ‹            September 2026            › │ │
+│ └──────────────────────────────────────────┘ │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │ ↙ PENGELUARAN BULAN INI     [Total] /Hari│ │
+│ │ Rp 76.000                                │ │
+│ │ 1 transaksi tercatat                     │ │
+│ └──────────────────────────────────────────┘ │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │ 📊 Spreadsheet Google Sheets Pribadi   → │ │
+│ └──────────────────────────────────────────┘ │
+│                                              │
+│ Kategori Pengeluaran                         │
+│ • Makanan & Minuman          Rp 76.000 (100%)│
+│   ████████████████████████████████████████   │
+└──────────────────────────────────────────────┘
 ```
-Back Tap → Shortcut iOS → POST /api/capture → model vision → Google Sheets
+
+---
+
+### 2. Tab Riwayat Transaksi — Realtime & Filter Kategori
+Pembaruan data instan saat struk selesai diekstrak. Transaksi baru otomatis mendapatkan lencana **Baru** dan banner konfirmasi.
+
+```text
+┌──────────────────────────────────────────────┐
+│ FINANCE.                              🌙 (👤)│
+│ ┌───────────────┬──────────────┬───────────┐ │
+│ │   Ringkasan   │  [Transaksi] │  + Catat  │ │
+│ └───────────────┴──────────────┴───────────┘ │
+│                                              │
+│ Semua Transaksi                              │
+│ 15 transaksi tercatat                        │
+│                                              │
+│ ┌─────────────────────────────┐ ┌──────────┐ │
+│ │ 🔍 Cari transaksi...        │ │ 🎛 Filter │ │
+│ └─────────────────────────────┘ └──────────┘ │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │ 🍽️  YOSHINOYA PLAZA FES   [Baru]          │ │
+│ │     Makanan & Minuman · 30 Sep   -Rp 76k │ │
+│ └──────────────────────────────────────────┘ │
+│ ┌──────────────────────────────────────────┐ │
+│ │ ☕  FORE TIS SQUARE                      │ │
+│ │     Makanan & Minuman · 12 Okt   -Rp 29k │ │
+│ └──────────────────────────────────────────┘ │
+│ ┌──────────────────────────────────────────┐ │
+│ │ 🛒  Photomatics                          │ │
+│ │     Belanja · 11 Okt             -Rp 35k │ │
+│ └──────────────────────────────────────────┘ │
+└──────────────────────────────────────────────┘
 ```
 
-## Prasyarat
+---
 
-- Node.js 20+
-- Akun [Neon](https://neon.tech) (Postgres gratis)
-- Google Cloud project dengan Sheets API + Drive API aktif
-- OAuth Client ID (Web application)
+### 3. Setup Perangkat iPhone — 1-Click Instant Pairing
+Menghubungkan iPhone tanpa input token manual. Menggunakan URL scheme Apple Shortcuts native `shortcuts://run-shortcut`.
 
-## Mulai Lokal
+```text
+┌──────────────────────────────────────────────┐
+│ 📲 Sambungkan iPhone Kamu                    │
+│                                              │
+│ Cukup 1 kali klik tombol di bawah untuk      │
+│ memasang shortcut resmi dan menghubungkan    │
+│ iPhone Anda secara otomatis:                 │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │ ⚡ Hubungkan Otomatis ke iPhone          │ │
+│ └──────────────────────────────────────────┘ │
+│                                              │
+│  Langkah otomatis:                           │
+│  1. Token aman disimpan ke folder iCloud     │
+│  2. Aktifkan Back Tap (Ketuk Belakang 2x)    │
+│  3. Selesai! Siap pakai di aplikasi apa pun  │
+└──────────────────────────────────────────────┘
+```
 
+---
+
+## ⚡ Alur Kerja & Arsitektur
+
+```mermaid
+flowchart TD
+    A["📱 Pengguna iPhone (BCA / Gojek / Grab / Struk Fisik)"] -->|"Ketuk Belakang (Back Tap 2x)"| B["⚡ Apple Shortcut: Ambil Screenshot"]
+    B -->|"POST /api/capture (Bearer Device Token)"| C["🛡️ Server Next.js 16 (Vercel)"]
+    C -->|"1. Autentikasi Token & Rate Limit"| D[("🗄️ Supabase Postgres")]
+    C -->|"2. Ekstraksi Vision AI"| E["🤖 Gemini 2.5 Flash"]
+    E -->|"Data Terstruktur: Merchant, Nominal, Kategori, Tanggal"| C
+    C -->|"3. Tulis Baris Transaksi"| F["📊 Google Sheets Pribadi User"]
+    C -->|"4. Invalidate Cache (/dashboard)"| G["📱 Web App PWA Dashboard (Realtime)"]
+    C -->|"5. Response JSON"| B
+    B -->|"Notifikasi iOS: 'Tercatat: Rp 76.000 di Yoshinoya'"| A
+```
+
+---
+
+## ✨ Fitur Unggulan
+
+- ⚡ **Pembaruan Instan & Realtime**: Dilengkapi mekanisme *Fast Burst* pada saat kembali membuka aplikasi (0s, 1.5s, 3.5s) dan polling 4 detik saat tab aktif. 0% boros baterai saat layar mati.
+- 📸 **iOS Back Tap Otomatis**: Cukup ketuk bagian belakang iPhone 2x pada layar pembayaran apa pun (QRIS, m-banking, invoice marketplace, struk kasir).
+- 🧠 **Gemini 2.5 Flash Vision**: Ekstraksi pintar mengenali format rupiah Indonesia (`Rp 76.000`, `15rb`, `1,2 jt`), tanggal transaksi, nama merchant, dan kategori pengeluaran secara terstruktur.
+- 📑 **Google Sheets Otomatis Milik Pengguna**: Saat login pertama via Google OAuth, spreadsheet baru otomatis dibuat di Google Drive masing-masing pengguna dengan rumus ringkasan interaktif.
+- 🔐 **Keamanan & Privasi Maksimal**:
+  - Token Google OAuth dienkripsi menggunakan **AES-256-GCM**.
+  - Token perangkat iPhone disimpan dalam format **SHA-256 hash**.
+  - Tangkapan layar diproses secara *in-memory* (RAM) dan **TIDAK PERNAH** disimpan ke disk/server.
+  - Scope Google OAuth dibatasi hanya pada `drive.file` (hanya dapat mengakses spreadsheet yang dibuat oleh aplikasi ini).
+- 🗓️ **Month Navigator**: Navigasi antar bulan (September, Oktober, dst.) instan dengan sinkronisasi reaktif data ringkasan.
+- 🌓 **Mode Gelap / Terang**: Mendukung dark mode modern dengan desain mobile-first dan tipografi tabular angka uang.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 16 (App Router & Turbopack)](https://nextjs.org/)
+- **Bahasa**: [TypeScript 5 (Strict Mode)](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/) + CSS Design Tokens
+- **Autentikasi**: [Auth.js (NextAuth v5 beta)](https://authjs.dev/) dengan Google Provider
+- **Database**: [Supabase Postgres](https://supabase.com/) via Transaction Pooler
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **Model Vision AI**: [Google Gemini 2.5 Flash API](https://ai.google.dev/)
+- **Sheets Integration**: [Google APIs Node.js Client (`googleapis`)](https://github.com/googleapis/google-api-nodejs-client)
+- **Kriptografi**: Node.js Native `crypto` (`aes-256-gcm` & `sha256`)
+- **Testing**: [Vitest](https://vitest.dev/) (60 Unit & Integration Tests)
+
+---
+
+## 🚀 Memulai Proyek Secara Lokal
+
+### 1. Prasyarat
+- Node.js versi 20 atau lebih baru (`node -v`)
+- Akun Google Cloud dengan Google Sheets API & Google Drive API aktif
+- Database PostgreSQL (Supabase / Neon)
+
+### 2. Kloning & Instalasi
 ```bash
-# 1. Clone
-git clone <repo-url>
+git clone https://github.com/yericoalexander/finance-tracker.git
 cd finance-tracker
-
-# 2. Install dependencies
 npm install
+```
 
-# 3. Salin dan isi env
-cp .env.example .env.local
-# Edit .env.local dengan nilai nyata
+### 3. Konfigurasi Lingkungan (`.env`)
+Salin file `.env.example` ke `.env`:
+```bash
+cp .env.example .env
+```
 
-# 4. Jalankan dev server
+Isi variabel-variabel berikut di `.env`:
+```env
+# Database PostgreSQL
+DATABASE_URL="postgresql://postgres:[PASSWORD]@[HOST]:6543/postgres"
+
+# Auth.js
+NEXTAUTH_SECRET="your-32-byte-base64-secret"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Google OAuth Credentials
+GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Kunci Enkripsi AES-256-GCM (64 karakter hex = 32 byte)
+ENCRYPTION_KEY="your-64-character-hex-encryption-key"
+
+# Gemini AI API Key
+GEMINI_API_KEY="your-gemini-api-key"
+GEMINI_MODEL="gemini-2.5-flash"
+
+# Shortcut iCloud URL Resmi
+NEXT_PUBLIC_SHORTCUT_ICLOUD_URL="https://www.icloud.com/shortcuts/4d6a9040bd104b02b91f2a198b0d8bef"
+```
+
+### 4. Push Skema Database
+```bash
+npm run db:push
+```
+
+### 5. Jalankan Server Development
+```bash
 npm run dev
 ```
+Buka browser di [http://localhost:3000](http://localhost:3000).
 
-Buka [http://localhost:3000](http://localhost:3000).
+---
 
-## Scripts
+## 🧪 Skrip & Pengujian
 
-| Script | Deskripsi |
-|--------|-----------|
-| `npm run dev` | Dev server (hot reload) |
-| `npm run build` | Production build |
-| `npm run lint` | ESLint check |
-| `npm run typecheck` | TypeScript check |
-| `npm test` | Unit & integration test |
-| `npm run db:push` | Push skema ke database |
-| `npm run db:studio` | Drizzle Studio (GUI) |
+Semua fitur diuji dengan cakupan ketat untuk parser nominal, tanggal, skema ekstraksi AI, enkripsi AES-256-GCM, dan integrasi API:
 
-## Struktur Proyek
+```bash
+# Menjalankan seluruh tes unit & integrasi
+npm test
 
-```
-src/
-├── app/              # Next.js App Router (routes)
-├── features/         # Logic per fitur (auth, capture, dashboard, ...)
-├── lib/              # Shared utilities (db, google, crypto, ai, env)
-│   ├── db/           # Drizzle client + schema
-│   ├── google/       # Google Sheets & OAuth wrappers
-│   ├── crypto/       # AES-256-GCM helpers
-│   └── env.ts        # Validasi env (satu-satunya tempat baca process.env)
-├── components/
-│   └── ui/           # shadcn/ui components
-└── test/             # Test setup
+# Menjalankan linter ESLint
+npm run lint
+
+# Menjalankan verifikasi tipe TypeScript
+npm run typecheck
+
+# Membangun bundle produksi
+npm run build
 ```
 
-## Fase Pengembangan
+---
 
-- [x] **Fase 0** — Scaffold + tooling + env
-- [x] **Fase 1** — Auth Google + pembuatan Sheet otomatis
-- [x] **Fase 2** — Pairing perangkat + /api/capture + ekstraksi AI Gemini Vision
-- [x] **Fase 3** — Dashboard + antrean "Perlu dicek"
-- [ ] **Fase 4** — Onboarding + landing + PWA
-- [ ] **Fase 5** — Tes E2E, hardening & panduan Shortcut iOS
+## 📂 Struktur Direktori Proyek
 
-## Deploy ke Vercel
+Proyek ini dibangun dengan arsitektur berbasis fitur (*feature-based*):
 
-1. Push ke GitHub
-2. Import project di [vercel.com](https://vercel.com)
-3. Isi semua env dari `.env.example` di dashboard Vercel
-4. Set `NEXTAUTH_URL` ke domain produksi
-5. Update Redirect URI di Google Cloud Console ke domain produksi
+```text
+finance-tracker/
+├── .agent/                   # Aturan & skills asisten AI
+├── drizzle/                  # Riwayat migrasi database SQL
+├── public/                   # Ikon PWA & manifest web
+├── src/
+│   ├── app/                  # Next.js App Router (Rute & Endpoint API)
+│   │   ├── api/
+│   │   │   ├── auth/         # Handler NextAuth OAuth
+│   │   │   ├── capture/      # POST /api/capture (Terima screenshot struk)
+│   │   │   ├── devices/      # Pairing perangkat iOS
+│   │   │   └── sheets/       # Endpoint segarkan formula sheets
+│   │   ├── dashboard/        # Halaman dashboard utama
+│   │   ├── login/            # Halaman masuk via Google
+│   │   ├── pair/             # Halaman pairing & panduan Shortcut
+│   │   ├── globals.css       # Design tokens & CSS variables
+│   │   └── layout.tsx        # Root layout & tema
+│   ├── features/             # Komponen & server actions per fitur
+│   │   ├── auth/             # Konfigurasi NextAuth
+│   │   ├── dashboard/        # Kartu ringkasan, navigator bulan, transaksi
+│   │   ├── devices/          # Setup gate, banner pairing, modal onboarding
+│   │   └── sheets/           # Retry & refresh kartu Google Sheets
+│   ├── lib/                  # Utilitas bersama
+│   │   ├── ai/               # Ekstraksi Gemini Vision & currency parser
+│   │   ├── crypto/           # AES-256-GCM enkripsi refresh token
+│   │   ├── db/               # Klien Drizzle ORM & skema PostgreSQL
+│   │   ├── env.ts            # Validasi Zod variabel lingkungan
+│   │   ├── google/           # Klien Google Sheets v4 & Drive API
+│   │   └── security/         # Validasi Magic Bytes gambar & rate limit
+│   └── middleware.ts         # Proteksi rute & autentikasi sesi
+└── vitest.config.ts          # Konfigurasi runner Vitest
+```
+
+---
+
+## 📲 Panduan Pemasangan Shortcut iOS (Apple Shortcuts)
+
+1. **Unduh Shortcut Resmi**:
+   Buka tautan [Finance Tracker Shortcut iCloud](https://www.icloud.com/shortcuts/4d6a9040bd104b02b91f2a198b0d8bef) di Safari iPhone Anda dan tap **Dapatkan Pintasan / Add Shortcut**.
+2. **Koneksi 1-Klik**:
+   Di dashboard aplikasi, tap tombol **"⚡ Hubungkan Otomatis ke iPhone"**. Shortcut akan terbuka otomatis dan menyimpan token otorisasi ke folder `FinanceTracker/token.txt` di iCloud Drive iPhone Anda.
+3. **Aktifkan Back Tap**:
+   - Buka **Pengaturan (Settings)** iPhone.
+   - Pilih **Aksesibilitas (Accessibility)** > **Sentuh (Touch)**.
+   - Gulir ke bawah dan pilih **Ketuk Bagian Belakang (Back Tap)**.
+   - Pilih **Ketuk Dua Kali (Double Tap)** > cari dan pilih **Finance Tracker**.
+4. **Selesai!** Setiap kali Anda mengetuk punggung iPhone 2x pada bukti transaksi, pengeluaran Anda akan tercatat seketika di Google Sheets & dashboard.
+
+---
+
+## 📄 Lisensi
+
+Didistribusikan di bawah lisensi MIT. Hak cipta © 2026 Yerico Alexander.
