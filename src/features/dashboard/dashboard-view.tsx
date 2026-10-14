@@ -215,7 +215,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
 
       {/* Tab: Ringkasan */}
       {activeTab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingTop: 'var(--space-1)' }}>
+        <div key="overview" className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingTop: 'var(--space-1)' }}>
           {/* Banner Pemasangan Shortcut iPhone jika Belum Terhubung */}
           <DeviceSetupBanner hasActiveDevice={Boolean(data.activeDevice)} />
 
@@ -276,18 +276,20 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
 
       {/* Tab: Transaksi */}
       {activeTab === 'transactions' && (
-        <RecentTransactions
-          transactions={data.recentTransactions}
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          onNavigateToAdd={() => setActiveTab('add')}
-          stickyOffset={stickyOffset}
-        />
+        <div key="transactions" className="animate-fade-in">
+          <RecentTransactions
+            transactions={data.recentTransactions}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+            onNavigateToAdd={() => setActiveTab('add')}
+            stickyOffset={stickyOffset}
+          />
+        </div>
       )}
 
       {/* Tab: Catat */}
       {activeTab === 'add' && (
-        <div style={{ paddingTop: 'var(--space-2)' }}>
+        <div key="add" className="animate-fade-in" style={{ paddingTop: 'var(--space-2)' }}>
           <ManualEntryCard onSuccess={() => setActiveTab('transactions')} />
         </div>
       )}

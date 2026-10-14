@@ -54,6 +54,7 @@ export default async function PairPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <Link
             href="/dashboard"
+            prefetch={true}
             aria-label="Kembali ke Dashboard"
             style={{
               display: 'flex',

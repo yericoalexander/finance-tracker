@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   Settings,
   HelpCircle,
@@ -432,8 +433,10 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', margin: 0 }}>
                   Shortcut iPhone (Back Tap)
                 </p>
-                <a
+                <Link
                   href="/pair"
+                  prefetch={true}
+                  onClick={() => setActiveModal(null)}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -447,7 +450,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 >
                   <Smartphone size={15} />
                   Hubungkan / Pasang Ulang Shortcut →
-                </a>
+                </Link>
               </div>
             </div>
 
