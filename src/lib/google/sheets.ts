@@ -741,14 +741,34 @@ function buildSummarySheetRequests(sheetId: number) {
     ...columnWidths.map((pixelSize, idx) => ({
       updateDimensionProperties: { range: { sheetId, dimension: 'COLUMNS', startIndex: idx, endIndex: idx + 1 }, properties: { pixelSize }, fields: 'pixelSize' },
     })),
+    // Merges
+    {
+      mergeCells: {
+        range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 8 },
+        mergeType: 'MERGE_ALL',
+      },
+    },
     // Row 1 Title Banner
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 0, endIndex: 1 }, properties: { pixelSize: 44 }, fields: 'pixelSize' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 8 }, cell: { userEnteredFormat: { backgroundColor: NAVY, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 13, fontFamily: 'Google Sans' }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
+    {
+      repeatCell: {
+        range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 8 },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: NAVY,
+            textFormat: { bold: true, foregroundColor: WHITE, fontSize: 13, fontFamily: 'Google Sans' },
+            horizontalAlignment: 'CENTER',
+            verticalAlignment: 'MIDDLE',
+          },
+        },
+        fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)',
+      },
+    },
 
     // Row 3 Section Headers
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 2, endIndex: 3 }, properties: { pixelSize: 32 }, fields: 'pixelSize' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 0, endColumnIndex: 3 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 4, endColumnIndex: 8 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
 
     // Row 4 Filter Inputs
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 3, endIndex: 4 }, properties: { pixelSize: 34 }, fields: 'pixelSize' } },
@@ -759,7 +779,8 @@ function buildSummarySheetRequests(sheetId: number) {
 
     // Row 5 Filter Results
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 4, endIndex: 5 }, properties: { pixelSize: 32 }, fields: 'pixelSize' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: 5, startColumnIndex: 0, endColumnIndex: 8 }, cell: { userEnteredFormat: { backgroundColor: CARD_BG, verticalAlignment: 'MIDDLE', textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(backgroundColor,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: 5, startColumnIndex: 0, endColumnIndex: 3 }, cell: { userEnteredFormat: { backgroundColor: CARD_BG, verticalAlignment: 'MIDDLE', textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(backgroundColor,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: 5, startColumnIndex: 4, endColumnIndex: 8 }, cell: { userEnteredFormat: { backgroundColor: CARD_BG, verticalAlignment: 'MIDDLE', textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(backgroundColor,verticalAlignment,textFormat)' } },
     { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: 5, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,textFormat,numberFormat)' } },
     { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: 5, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', textFormat: { foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,textFormat)' } },
     { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: 5, startColumnIndex: 5, endColumnIndex: 6 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,textFormat,numberFormat)' } },
@@ -767,15 +788,17 @@ function buildSummarySheetRequests(sheetId: number) {
 
     // Row 7 Month Section Header
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 6, endIndex: 7 }, properties: { pixelSize: 32 }, fields: 'pixelSize' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 6, endRowIndex: 7, startColumnIndex: 0, endColumnIndex: 6 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 6, endRowIndex: 7, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
 
     // Row 8 Month Subheaders
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 7, endIndex: 8 }, properties: { pixelSize: 28 }, fields: 'pixelSize' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 7, endRowIndex: 8, startColumnIndex: 0, endColumnIndex: 6 }, cell: { userEnteredFormat: { backgroundColor: SECTION_BG, textFormat: { bold: true, fontSize: 9, fontFamily: 'Google Sans' }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 7, endRowIndex: 8, startColumnIndex: 0, endColumnIndex: 3 }, cell: { userEnteredFormat: { backgroundColor: SECTION_BG, textFormat: { bold: true, fontSize: 9, fontFamily: 'Google Sans' }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 7, endRowIndex: 8, startColumnIndex: 4, endColumnIndex: 6 }, cell: { userEnteredFormat: { backgroundColor: SECTION_BG, textFormat: { bold: true, fontSize: 9, fontFamily: 'Google Sans' }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
 
     // Row 9 Month KPI Values
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 8, endIndex: 9 }, properties: { pixelSize: 36 }, fields: 'pixelSize' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 8, endRowIndex: 9, startColumnIndex: 0, endColumnIndex: 6 }, cell: { userEnteredFormat: { backgroundColor: CARD_BG, verticalAlignment: 'MIDDLE', textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(backgroundColor,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 8, endRowIndex: 9, startColumnIndex: 0, endColumnIndex: 3 }, cell: { userEnteredFormat: { backgroundColor: CARD_BG, verticalAlignment: 'MIDDLE', textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(backgroundColor,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 8, endRowIndex: 9, startColumnIndex: 4, endColumnIndex: 6 }, cell: { userEnteredFormat: { backgroundColor: CARD_BG, verticalAlignment: 'MIDDLE', textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(backgroundColor,verticalAlignment,textFormat)' } },
     { repeatCell: { range: { sheetId, startRowIndex: 8, endRowIndex: 9, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { textFormat: { bold: true, fontSize: 11, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat.textFormat' } },
     { repeatCell: { range: { sheetId, startRowIndex: 8, endRowIndex: 9, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', textFormat: { bold: true, fontSize: 13, foregroundColor: GREEN_ACCENT, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,textFormat,numberFormat)' } },
     { repeatCell: { range: { sheetId, startRowIndex: 8, endRowIndex: 9, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', textFormat: { bold: true, fontSize: 11, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,textFormat)' } },
@@ -783,8 +806,8 @@ function buildSummarySheetRequests(sheetId: number) {
 
     // Row 11 Category Section Headers
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 10, endIndex: 11 }, properties: { pixelSize: 32 }, fields: 'pixelSize' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 10, endRowIndex: 11, startColumnIndex: 0, endColumnIndex: 3 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 10, endRowIndex: 11, startColumnIndex: 4, endColumnIndex: 8 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 10, endRowIndex: 11, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 10, endRowIndex: 11, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
 
     // Row 12 Subheaders
     { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 11, endIndex: 12 }, properties: { pixelSize: 28 }, fields: 'pixelSize' } },
