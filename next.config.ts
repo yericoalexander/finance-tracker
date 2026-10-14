@@ -19,10 +19,10 @@ const nextConfig: NextConfig = {
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         ],
       },
-      // Cache agresif untuk static assets (icons, fonts, images)
+      // Cache untuk static assets (icons, fonts, images) dengan revalidasi
       {
         source: '/icons/(.*)',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
       },
       {
         source: '/manifest.json',
