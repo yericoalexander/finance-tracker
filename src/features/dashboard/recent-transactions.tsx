@@ -22,6 +22,7 @@ interface RecentTransactionsProps {
 }
 
 type DateFilterMode = 'all' | 'today' | 'month' | 'custom'
+type DateCustomMode = 'single' | 'range'
 
 function formatDateLabel(dateStr: string): string {
   try {
@@ -59,7 +60,10 @@ export function RecentTransactions({
 }: RecentTransactionsProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [dateFilter, setDateFilter] = useState<DateFilterMode>('all')
+  const [customMode, setCustomMode] = useState<DateCustomMode>('single')
   const [customDate, setCustomDate] = useState<string>('')
+  const [startDate, setStartDate] = useState<string>('')
+  const [endDate, setEndDate] = useState<string>('')
   const [showDatePicker, setShowDatePicker] = useState(false)
 
   const todayStr = useMemo(() => getTodayJakartaString(), [])
@@ -75,7 +79,7 @@ export function RecentTransactions({
     return Array.from(dates).sort().reverse()
   }, [transactions])
 
-  // 1. Filter periode / tanggal tertentu
+  // 1. Filter periode / tanggal tertentu / rentang tanggal
   const dateFilteredTransactions = useMemo(() => {
     return transactions.filter((tx) => {
       const dateVal = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
@@ -85,12 +89,28 @@ export function RecentTransactions({
       if (dateFilter === 'month') {
         return dateVal.startsWith(currentMonthPrefix)
       }
-      if (dateFilter === 'custom' && customDate) {
-        return dateVal === customDate
+      if (dateFilter === 'custom') {
+        if (customMode === 'single') {
+          return customDate ? dateVal === customDate : true
+        }
+        if (customMode === 'range') {
+          if (!startDate && !endDate) return true
+          const start = startDate && endDate ? (startDate <= endDate ? startDate : endDate) : startDate
+          const end = startDate && endDate ? (startDate <= endDate ? endDate : startDate) : endDate
+          if (start && end) {
+            return dateVal >= start && dateVal <= end
+          }
+          if (start) {
+            return dateVal >= start
+          }
+          if (end) {
+            return dateVal <= end
+          }
+        }
       }
       return true
     })
-  }, [transactions, dateFilter, customDate, todayStr, currentMonthPrefix])
+  }, [transactions, dateFilter, customMode, customDate, startDate, endDate, todayStr, currentMonthPrefix])
 
   // 2. Kategori yang tersedia pada periode terpilih
   const categoriesInPeriod = useMemo(() => {
@@ -136,21 +156,59 @@ export function RecentTransactions({
     searchQuery.trim() !== '' ||
     selectedCategory !== null ||
     dateFilter !== 'all' ||
-    customDate !== ''
+    customDate !== '' ||
+    startDate !== '' ||
+    endDate !== ''
   )
 
   const handleResetFilters = () => {
     setSearchQuery('')
     setDateFilter('all')
     setCustomDate('')
+    setStartDate('')
+    setEndDate('')
     onSelectCategory(null)
     setShowDatePicker(false)
   }
 
   const handleSelectCustomDate = (date: string) => {
     setCustomDate(date)
+    setCustomMode('single')
     setDateFilter('custom')
   }
+
+  const handleClearDateFilter = () => {
+    setCustomDate('')
+    setStartDate('')
+    setEndDate('')
+    setDateFilter('all')
+    setShowDatePicker(false)
+  }
+
+  const handleSwitchCustomMode = (mode: DateCustomMode) => {
+    setCustomMode(mode)
+    setDateFilter('custom')
+    if (mode === 'range' && !startDate && customDate) {
+      setStartDate(customDate)
+    } else if (mode === 'single' && !customDate && startDate) {
+      setCustomDate(startDate)
+    }
+  }
+
+  const dateButtonLabel = useMemo(() => {
+    if (dateFilter !== 'custom') return 'Pilih Tanggal'
+    if (customMode === 'single') {
+      return customDate ? formatDateLabel(customDate) : 'Pilih Tanggal'
+    }
+    if (startDate && endDate) {
+      const start = startDate <= endDate ? startDate : endDate
+      const end = startDate <= endDate ? endDate : startDate
+      return `${formatDateLabel(start)} – ${formatDateLabel(end)}`
+    }
+    if (startDate) return `≥ ${formatDateLabel(startDate)}`
+    if (endDate) return `≤ ${formatDateLabel(endDate)}`
+    return 'Pilih Rentang'
+  }, [dateFilter, customMode, customDate, startDate, endDate])
 
   return (
     <section
@@ -307,7 +365,6 @@ export function RecentTransactions({
               type="button"
               onClick={() => {
                 setDateFilter(item.id)
-                setCustomDate('')
                 setShowDatePicker(false)
               }}
               style={{
@@ -330,10 +387,17 @@ export function RecentTransactions({
           )
         })}
 
-        {/* Tombol Filter Tanggal Tertentu */}
+        {/* Tombol Filter Tanggal / Rentang Tertentu */}
         <button
           type="button"
-          onClick={() => setShowDatePicker((prev) => !prev)}
+          onClick={() => {
+            if (dateFilter !== 'custom') {
+              setDateFilter('custom')
+              setShowDatePicker(true)
+            } else {
+              setShowDatePicker((prev) => !prev)
+            }
+          }}
           style={{
             whiteSpace: 'nowrap',
             minHeight: '34px',
@@ -353,35 +417,32 @@ export function RecentTransactions({
           }}
         >
           <Calendar size={13} />
-          {dateFilter === 'custom' && customDate ? formatDateLabel(customDate) : 'Pilih Tanggal'}
+          {dateButtonLabel}
         </button>
       </div>
 
-      {/* Panel Pemilih Tanggal Tertentu */}
+      {/* Panel Pemilih Tanggal Tertentu & Rentang Tanggal */}
       {(showDatePicker || dateFilter === 'custom') && (
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--space-2)',
+            gap: 'var(--space-3)',
             padding: 'var(--space-3)',
             backgroundColor: 'var(--color-surface-raised)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--color-border)',
           }}
         >
+          {/* Header Panel */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--color-text)' }}>
-              Pilih Tanggal Transaksi:
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}>
+              Filter Tanggal Transaksi:
             </span>
-            {customDate ? (
+            {customDate || startDate || endDate ? (
               <button
                 type="button"
-                onClick={() => {
-                  setCustomDate('')
-                  setDateFilter('all')
-                  setShowDatePicker(false)
-                }}
+                onClick={handleClearDateFilter}
                 style={{
                   fontSize: '0.72rem',
                   color: 'var(--color-accent)',
@@ -396,71 +457,261 @@ export function RecentTransactions({
             ) : null}
           </div>
 
-          {/* Quick Date Chips dari Transaksi Nyata */}
-          {availableDates.length > 0 && (
-            <div
+          {/* Mode Tab Switcher: Satu Tanggal vs Rentang Tanggal */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '4px',
+              backgroundColor: 'var(--color-bg)',
+              padding: '3px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => handleSwitchCustomMode('single')}
               style={{
-                display: 'flex',
-                gap: '6px',
-                overflowX: 'auto',
-                paddingBottom: '2px',
-                scrollbarWidth: 'none',
+                flex: 1,
+                minHeight: '32px',
+                borderRadius: 'var(--radius-sm)',
+                border: 'none',
+                backgroundColor: customMode === 'single' ? 'var(--color-surface-raised)' : 'transparent',
+                color: customMode === 'single' ? 'var(--color-text)' : 'var(--color-text-muted)',
+                fontWeight: customMode === 'single' ? 600 : 500,
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                boxShadow: customMode === 'single' ? 'var(--shadow-sm)' : 'none',
+                transition: 'all var(--duration-fast)',
               }}
             >
-              {availableDates.map((d) => {
-                const isDateSelected = dateFilter === 'custom' && customDate === d
-                return (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => handleSelectCustomDate(d)}
-                    style={{
-                      whiteSpace: 'nowrap',
-                      minHeight: '30px',
-                      padding: '2px 10px',
-                      borderRadius: 'var(--radius-full)',
-                      border: isDateSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                      backgroundColor: isDateSelected ? 'var(--color-accent)' : 'var(--color-surface)',
-                      color: isDateSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
-                      fontSize: '0.72rem',
-                      fontWeight: isDateSelected ? 600 : 500,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    {formatDateLabel(d)}
-                  </button>
-                )
-              })}
+              Satu Tanggal
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSwitchCustomMode('range')}
+              style={{
+                flex: 1,
+                minHeight: '32px',
+                borderRadius: 'var(--radius-sm)',
+                border: 'none',
+                backgroundColor: customMode === 'range' ? 'var(--color-surface-raised)' : 'transparent',
+                color: customMode === 'range' ? 'var(--color-text)' : 'var(--color-text-muted)',
+                fontWeight: customMode === 'range' ? 600 : 500,
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                boxShadow: customMode === 'range' ? 'var(--shadow-sm)' : 'none',
+                transition: 'all var(--duration-fast)',
+              }}
+            >
+              Rentang Tanggal
+            </button>
+          </div>
+
+          {/* Konten Mode: Satu Tanggal */}
+          {customMode === 'single' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              {availableDates.length > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '6px',
+                    overflowX: 'auto',
+                    paddingBottom: '2px',
+                    scrollbarWidth: 'none',
+                  }}
+                >
+                  {availableDates.map((d) => {
+                    const isDateSelected = dateFilter === 'custom' && customDate === d
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => handleSelectCustomDate(d)}
+                        style={{
+                          whiteSpace: 'nowrap',
+                          minHeight: '30px',
+                          padding: '2px 10px',
+                          borderRadius: 'var(--radius-full)',
+                          border: isDateSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                          backgroundColor: isDateSelected ? 'var(--color-accent)' : 'var(--color-surface)',
+                          color: isDateSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
+                          fontSize: '0.72rem',
+                          fontWeight: isDateSelected ? 600 : 500,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        {formatDateLabel(d)}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="date"
+                  aria-label="Pilih tanggal transaksi"
+                  value={customDate}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleSelectCustomDate(e.target.value)
+                    }
+                  }}
+                  style={{
+                    minHeight: '38px',
+                    padding: '4px 10px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'var(--color-bg)',
+                    color: 'var(--color-text)',
+                    fontSize: '0.78rem',
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
+                  }}
+                />
+                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                  atau cari tanggal bebas di kalender
+                </span>
+              </div>
             </div>
           )}
 
-          {/* Input Date Kalender */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              type="date"
-              value={customDate}
-              onChange={(e) => {
-                if (e.target.value) {
-                  handleSelectCustomDate(e.target.value)
-                }
-              }}
-              style={{
-                minHeight: '36px',
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-bg)',
-                color: 'var(--color-text)',
-                fontSize: '0.78rem',
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-              }}
-            />
-            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-              atau cari tanggal bebas di kalender
-            </span>
-          </div>
+          {/* Konten Mode: Rentang Tanggal */}
+          {customMode === 'range' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {/* Quick Range Shortcut bila ada riwayat tanggal */}
+              {availableDates.length >= 2 && availableDates[0] && availableDates[availableDates.length - 1] ? (
+                (() => {
+                  const earliest = availableDates[availableDates.length - 1] as string
+                  const latest = availableDates[0] as string
+                  return (
+                    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStartDate(earliest)
+                          setEndDate(latest)
+                          setDateFilter('custom')
+                        }}
+                        style={{
+                          whiteSpace: 'nowrap',
+                          minHeight: '30px',
+                          padding: '2px 10px',
+                          borderRadius: 'var(--radius-full)',
+                          border: '1px dashed var(--color-accent)',
+                          backgroundColor: 'var(--color-accent-subtle)',
+                          color: 'var(--color-accent)',
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        Rentang Semua Transaksi ({formatDateLabel(earliest)} – {formatDateLabel(latest)})
+                      </button>
+                    </div>
+                  )
+                })()
+              ) : null}
+
+              {/* Input Rentang: Dari & Sampai Tanggal */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label
+                    htmlFor="start-date-input"
+                    style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600 }}
+                  >
+                    Dari Tanggal:
+                  </label>
+                  <input
+                    id="start-date-input"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value)
+                      setDateFilter('custom')
+                    }}
+                    style={{
+                      minHeight: '38px',
+                      padding: '4px 10px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-bg)',
+                      color: 'var(--color-text)',
+                      fontSize: '0.8rem',
+                      fontFamily: 'inherit',
+                      cursor: 'pointer',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label
+                    htmlFor="end-date-input"
+                    style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600 }}
+                  >
+                    Sampai Tanggal:
+                  </label>
+                  <input
+                    id="end-date-input"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value)
+                      setDateFilter('custom')
+                    }}
+                    style={{
+                      minHeight: '38px',
+                      padding: '4px 10px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-bg)',
+                      color: 'var(--color-text)',
+                      fontSize: '0.8rem',
+                      fontFamily: 'inherit',
+                      cursor: 'pointer',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Keterangan Status Rentang */}
+              {startDate && endDate ? (
+                <div
+                  style={{
+                    fontSize: '0.72rem',
+                    color: 'var(--color-accent)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 500,
+                  }}
+                >
+                  ✓ Menampilkan {formatDateLabel(startDate <= endDate ? startDate : endDate)} s/d {formatDateLabel(startDate <= endDate ? endDate : startDate)}
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.71rem', color: 'var(--color-text-muted)' }}>
+                  {startDate
+                    ? `Menampilkan transaksi mulai dari ${formatDateLabel(startDate)}`
+                    : endDate
+                    ? `Menampilkan transaksi sampai ${formatDateLabel(endDate)}`
+                    : 'Pilih tanggal awal dan akhir untuk menyaring transaksi.'}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -554,19 +805,38 @@ export function RecentTransactions({
             </span>
           )}
 
-          {dateFilter === 'custom' && customDate && (
-            <span
-              style={{
-                fontSize: '0.7rem',
-                padding: '1px 6px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-accent-subtle)',
-                color: 'var(--color-accent)',
-                fontWeight: 600,
-              }}
-            >
-              {formatDateLabel(customDate)}
-            </span>
+          {dateFilter === 'custom' && (
+            customMode === 'single' && customDate ? (
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  padding: '1px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--color-accent-subtle)',
+                  color: 'var(--color-accent)',
+                  fontWeight: 600,
+                }}
+              >
+                {formatDateLabel(customDate)}
+              </span>
+            ) : customMode === 'range' && (startDate || endDate) ? (
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  padding: '1px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--color-accent-subtle)',
+                  color: 'var(--color-accent)',
+                  fontWeight: 600,
+                }}
+              >
+                {startDate && endDate
+                  ? `${formatDateLabel(startDate <= endDate ? startDate : endDate)} – ${formatDateLabel(startDate <= endDate ? endDate : startDate)}`
+                  : startDate
+                  ? `≥ ${formatDateLabel(startDate)}`
+                  : `≤ ${formatDateLabel(endDate)}`}
+              </span>
+            ) : null
           )}
 
           {selectedCategory && (
