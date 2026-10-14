@@ -220,50 +220,6 @@ export default function DashboardLoading() {
         </div>
       </div>
 
-      {/* Spreadsheet Link Card Skeleton */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-3)',
-          padding: 'var(--space-4)',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--color-border)',
-          height: '68px',
-        }}
-      >
-        <div
-          style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'var(--color-border-subtle)',
-            animation: 'pulse 1.5s ease-in-out infinite',
-          }}
-        />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div
-            style={{
-              width: '100px',
-              height: '14px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'var(--color-border)',
-              animation: 'pulse 1.5s ease-in-out infinite',
-            }}
-          />
-          <div
-            style={{
-              width: '140px',
-              height: '11px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'var(--color-border-subtle)',
-              animation: 'pulse 1.5s ease-in-out infinite',
-            }}
-          />
-        </div>
-      </div>
-
       {/* Categories Card Skeleton */}
       <div
         style={{

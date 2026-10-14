@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { RefreshCw, Receipt } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CategoryBreakdown } from './category-breakdown'
@@ -255,88 +255,6 @@ export function DashboardView({ data, sheetId, header, banner }: DashboardViewPr
             sheetId={sheetId}
             activeDevice={data.activeDevice}
           />
-
-          {/* Card Transaksi — Identik dengan referensi Image 1 */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('transactions')}
-            aria-label="Lihat semua transaksi"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-3)',
-              minHeight: '64px',
-              padding: 'var(--space-3) var(--space-4)',
-              backgroundColor: 'var(--color-surface-raised)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-xl)',
-              cursor: 'pointer',
-              textAlign: 'left',
-              width: '100%',
-              fontFamily: 'inherit',
-              transition: 'opacity var(--duration-fast), transform var(--duration-fast)',
-            }}
-          >
-            {/* Ikon kiri */}
-            <div
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: 'var(--radius-lg)',
-                backgroundColor: 'var(--color-surface)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                border: '1px solid var(--color-border)',
-              }}
-            >
-              <Receipt size={18} color="var(--color-text-muted)" />
-            </div>
-
-            {/* Teks tengah */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p
-                style={{
-                  fontSize: '0.88rem',
-                  fontWeight: 700,
-                  color: 'var(--color-text)',
-                  margin: 0,
-                  lineHeight: 1.3,
-                }}
-              >
-                Transaksi
-              </p>
-              <p
-                style={{
-                  fontSize: '0.74rem',
-                  color: 'var(--color-text-muted)',
-                  margin: '2px 0 0 0',
-                }}
-              >
-                Lihat semua catatan keuangan
-              </p>
-            </div>
-
-            {/* Panah kanan — bulat */}
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                fontSize: '0.9rem',
-                color: 'var(--color-text)',
-              }}
-            >
-              →
-            </div>
-          </button>
 
           <CategoryBreakdown
             categories={data.categoryBreakdown}
