@@ -403,6 +403,7 @@ export async function ensureSpreadsheet(
 // ── Formatting Palette ───────────────────────────────────────────────────────
 const NAVY = { red: 0.059, green: 0.090, blue: 0.165 }
 const NAVY_LIGHT = { red: 0.118, green: 0.161, blue: 0.231 }
+const DARK_TEXT = { red: 0.118, green: 0.161, blue: 0.231 }
 const WHITE = { red: 1, green: 1, blue: 1 }
 const GRAY_BG = { red: 0.973, green: 0.980, blue: 0.988 }
 const GREEN_ACCENT = { red: 0.02, green: 0.59, blue: 0.41 }
@@ -461,13 +462,13 @@ function buildTransactionSheetRequests(sheetId: number, rowCount: number) {
     { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
     { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
     { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
-    // Data columns
-    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'TIME', pattern: 'hh:mm' }, textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    // Data columns (Warna teks gelap pekat DARK_TEXT dan format rapi)
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'TIME', pattern: 'hh:mm' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
     { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat,numberFormat)' } },
-    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 5, endColumnIndex: 7 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 5, endColumnIndex: 7 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
     { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 9, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
     { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 8, endColumnIndex: 9 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 8, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
     // Zebra Banding
@@ -725,15 +726,47 @@ export async function appendTransactionRow(
   ]
 
   try {
-    await sheetsClient.spreadsheets.values.append({
+    const appendRes = await sheetsClient.spreadsheets.values.append({
       spreadsheetId,
       range: 'Transaksi!A:I',
       valueInputOption: 'USER_ENTERED',
-      insertDataOption: 'INSERT_ROWS',
+      insertDataOption: 'OVERWRITE',
       requestBody: {
         values: [rowValues],
       },
     })
+
+    const updatedRange = appendRes.data.updates?.updatedRange
+    if (updatedRange) {
+      const match = updatedRange.match(/!A(\d+):/)
+      if (match && match[1]) {
+        const rowNumber = parseInt(match[1], 10)
+        const rowIndex = rowNumber - 1
+
+        // Ambil sheetId Transaksi secara aman
+        const meta = await sheetsClient.spreadsheets.get({ spreadsheetId }).catch(() => null)
+        const txSheetId = meta?.data.sheets?.find((s) => s.properties?.title === 'Transaksi')?.properties?.sheetId ?? 0
+
+        // Format baris yang baru ditulis agar warna teks selalu gelap pekat (bukan putih)
+        await sheetsClient.spreadsheets
+          .batchUpdate({
+            spreadsheetId,
+            requestBody: {
+              requests: [
+                { repeatCell: { range: { sheetId: txSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+                { repeatCell: { range: { sheetId: txSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'TIME', pattern: 'hh:mm' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+                { repeatCell: { range: { sheetId: txSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+                { repeatCell: { range: { sheetId: txSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+                { repeatCell: { range: { sheetId: txSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat,numberFormat)' } },
+                { repeatCell: { range: { sheetId: txSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 5, endColumnIndex: 7 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+                { repeatCell: { range: { sheetId: txSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 9, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+                { repeatCell: { range: { sheetId: txSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 8, endColumnIndex: 9 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 8, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+              ],
+            },
+          })
+          .catch(() => {})
+      }
+    }
   } catch (err) {
     throw logGoogleError('tulis baris Transaksi', err)
   }
