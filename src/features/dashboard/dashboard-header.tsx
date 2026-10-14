@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -31,7 +32,22 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
   const [activeModal, setActiveModal] = useState<'settings' | 'help' | 'feedback' | null>(null)
   const [feedbackText, setFeedbackText] = useState('')
   const [feedbackSent, setFeedbackSent] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Lock background scroll when modal is active
+  useEffect(() => {
+    if (activeModal) {
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+      }
+    }
+  }, [activeModal])
 
   const firstName = user.name?.split(' ')[0] ?? 'Kamu'
   const userInitial = (user.name?.charAt(0) ?? 'U').toUpperCase()
@@ -294,36 +310,39 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
       </header>
 
       {/* Floating Bantuan Pill Button — Mirip referensi di pojok kanan bawah */}
-      <button
-        type="button"
-        onClick={() => setActiveModal('help')}
-        aria-label="Buka bantuan"
-        style={{
-          position: 'fixed',
-          bottom: 'calc(var(--space-5) + env(safe-area-inset-bottom))',
-          right: 'var(--space-4)',
-          zIndex: 40,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '8px 14px',
-          borderRadius: 'var(--radius-full)',
-          backgroundColor: 'var(--color-accent)',
-          color: 'var(--color-accent-text)',
-          border: 'none',
-          boxShadow: 'var(--shadow-lg)',
-          fontSize: '0.78rem',
-          fontWeight: 700,
-          cursor: 'pointer',
-          transition: 'transform var(--duration-fast)',
-        }}
-      >
-        <HelpCircle size={14} />
-        Bantuan
-      </button>
+      {!activeModal && (
+        <button
+          type="button"
+          onClick={() => setActiveModal('help')}
+          aria-label="Buka bantuan"
+          style={{
+            position: 'fixed',
+            bottom: 'calc(var(--space-5) + env(safe-area-inset-bottom))',
+            right: 'var(--space-4)',
+            zIndex: 40,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 14px',
+            borderRadius: 'var(--radius-full)',
+            backgroundColor: 'var(--color-accent)',
+            color: 'var(--color-accent-text)',
+            border: 'none',
+            boxShadow: 'var(--shadow-lg)',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'transform var(--duration-fast)',
+            touchAction: 'manipulation',
+          }}
+        >
+          <HelpCircle size={14} />
+          Bantuan
+        </button>
+      )}
 
       {/* Modal: Pengaturan */}
-      {activeModal === 'settings' && (
+      {mounted && activeModal === 'settings' && createPortal(
         <div
           className="animate-fade-in"
           style={{
@@ -334,7 +353,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 60,
+            zIndex: 9999,
             padding: 'var(--space-4)',
           }}
           onClick={() => setActiveModal(null)}
@@ -472,11 +491,12 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
               Tutup
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal: Bantuan */}
-      {activeModal === 'help' && (
+      {mounted && activeModal === 'help' && createPortal(
         <div
           className="animate-fade-in"
           style={{
@@ -487,7 +507,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 60,
+            zIndex: 9999,
             padding: 'var(--space-4)',
           }}
           onClick={() => setActiveModal(null)}
@@ -585,11 +605,12 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
               Mengerti
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal: Beri Masukan */}
-      {activeModal === 'feedback' && (
+      {mounted && activeModal === 'feedback' && createPortal(
         <div
           className="animate-fade-in"
           style={{
@@ -600,7 +621,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 60,
+            zIndex: 9999,
             padding: 'var(--space-4)',
           }}
           onClick={() => setActiveModal(null)}
@@ -694,7 +715,8 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
               </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

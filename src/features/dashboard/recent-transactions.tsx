@@ -109,6 +109,15 @@ export function RecentTransactions({
     setMounted(true)
   }, [])
 
+  useEffect(() => {
+    if (filterModalOpen) {
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+      }
+    }
+  }, [filterModalOpen])
+
   // Draft filter states inside modal
   const [draftQuickDate, setDraftQuickDate] = useState<QuickDateOption>('all')
   const [draftCategory, setDraftCategory] = useState<string | null>(null)
@@ -887,7 +896,8 @@ export function RecentTransactions({
               borderTopLeftRadius: 'var(--radius-xl)',
               borderTopRightRadius: 'var(--radius-xl)',
               borderTop: '1px solid var(--color-border)',
-              padding: 'var(--space-5)',
+              padding: 'var(--space-4) var(--space-5)',
+              paddingBottom: 'calc(var(--space-5) + env(safe-area-inset-bottom, 0px))',
               width: '100%',
               maxWidth: '430px',
               maxHeight: '85vh',
@@ -899,6 +909,18 @@ export function RecentTransactions({
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Grabber handle bar for iOS bottom sheet */}
+            <div
+              style={{
+                width: '36px',
+                height: '4px',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: 'var(--color-border)',
+                margin: '0 auto',
+                flexShrink: 0,
+              }}
+            />
+
             {/* Header Modal */}
             <div
               style={{
@@ -918,12 +940,19 @@ export function RecentTransactions({
               <button
                 type="button"
                 onClick={() => setFilterModalOpen(false)}
+                aria-label="Tutup filter"
                 style={{
                   border: 'none',
                   backgroundColor: 'transparent',
                   color: 'var(--color-text-muted)',
                   cursor: 'pointer',
-                  padding: '4px',
+                  width: '44px',
+                  height: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 'var(--radius-md)',
+                  margin: '-8px -8px -8px 0',
                 }}
               >
                 <X size={20} />
@@ -965,18 +994,19 @@ export function RecentTransactions({
                         }
                       }}
                       style={{
-                        minHeight: '40px',
-                        padding: '6px 8px',
+                        minHeight: '44px',
+                        padding: '8px 10px',
                         borderRadius: 'var(--radius-md)',
                         border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
                         backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
                         color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
-                        fontSize: '0.78rem',
+                        fontSize: '0.8rem',
                         fontWeight: isSelected ? 700 : 500,
                         cursor: 'pointer',
                         textAlign: 'center',
                         transition: 'all var(--duration-fast)',
                         fontFamily: 'inherit',
+                        touchAction: 'manipulation',
                       }}
                     >
                       {opt.label}
@@ -1117,16 +1147,18 @@ export function RecentTransactions({
                   type="button"
                   onClick={() => setDraftCategory(null)}
                   style={{
-                    padding: '6px 12px',
+                    minHeight: '40px',
+                    padding: '8px 14px',
                     borderRadius: 'var(--radius-full)',
                     border: draftCategory === null ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
                     backgroundColor: draftCategory === null ? 'var(--color-accent)' : 'var(--color-surface-raised)',
                     color: draftCategory === null ? 'var(--color-accent-text)' : 'var(--color-text)',
-                    fontSize: '0.76rem',
+                    fontSize: '0.78rem',
                     fontWeight: draftCategory === null ? 700 : 500,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     transition: 'all var(--duration-fast)',
+                    touchAction: 'manipulation',
                   }}
                 >
                   Semua Kategori
@@ -1139,16 +1171,18 @@ export function RecentTransactions({
                       type="button"
                       onClick={() => setDraftCategory(cat)}
                       style={{
-                        padding: '6px 12px',
+                        minHeight: '40px',
+                        padding: '8px 14px',
                         borderRadius: 'var(--radius-full)',
                         border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
                         backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
                         color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
-                        fontSize: '0.76rem',
+                        fontSize: '0.78rem',
                         fontWeight: isSelected ? 700 : 500,
                         cursor: 'pointer',
                         fontFamily: 'inherit',
                         transition: 'all var(--duration-fast)',
+                        touchAction: 'manipulation',
                       }}
                     >
                       {cat}

@@ -3,6 +3,7 @@
 import { ExternalLink, ShieldAlert, Smartphone, Sparkles, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ShortcutOnboardingModalProps {
   hasActiveDevice: boolean
@@ -15,6 +16,20 @@ export function ShortcutOnboardingModal({
 }: ShortcutOnboardingModalProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+      }
+    }
+  }, [isOpen])
 
   useEffect(() => {
     // Jika sudah ada perangkat aktif, tidak perlu menampilkan onboarding
@@ -38,11 +53,11 @@ export function ShortcutOnboardingModal({
     router.push('/pair')
   }
 
-  if (!isOpen) return null
+  if (!isOpen || !mounted) return null
 
   const firstName = userName?.split(' ')[0] ?? 'Kamu'
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -256,6 +271,7 @@ export function ShortcutOnboardingModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
