@@ -12,21 +12,21 @@
 
 ---
 
-## 📱 Tampilan Antarmuka (UI Preview)
+## 📱 Tampilan Antarmuka Aplikasi (UI Showcase)
 
 <div align="center">
 
-| 📊 Ringkasan Bulanan | ⚡ Riwayat Transaksi Realtime |
-| :---: | :---: |
-| <img src="docs/images/dashboard-overview.png" width="330" alt="Ringkasan Bulanan" /> | <img src="docs/images/dashboard-transactions.png" width="330" alt="Riwayat Transaksi" /> |
-| *Visualisasi MTD, rata-rata harian, & breakdown kategori* | *Status real-time dengan badge [Baru] dari Back Tap* |
+| 📊 Ringkasan Bulanan | ⚡ Riwayat Transaksi | 🔍 Filter & Rentang Tanggal |
+| :---: | :---: | :---: |
+| <img src="docs/images/01-dashboard-ringkasan.png" width="245" alt="Ringkasan Bulanan" /> | <img src="docs/images/02-dashboard-transaksi.png" width="245" alt="Riwayat Transaksi" /> | <img src="docs/images/03-filter-transaksi.png" width="245" alt="Filter Transaksi" /> |
+| *Total MTD, rata-rata /hari, & kategori* | *Status transaksi realtime & badge [Baru]* | *Filter multi-kategori & rentang tanggal* |
 
 <br/>
 
-| 📲 Sambungkan iPhone (1-Klik) | 🍎 Apple Shortcut iOS |
-| :---: | :---: |
-| <img src="docs/images/device-pairing.png" width="330" alt="Sambungkan iPhone" /> | <img src="docs/images/ios-shortcut.png" width="330" alt="Apple Shortcut iOS" /> |
-| *Pairing otomatis tanpa input token manual ke iCloud* | *Shortcut otomatis membaca token & kirim struk* |
+| ✍️ Catat Pengeluaran Manual | ⚙️ Pengaturan & Google Sheet | 🍎 Apple Shortcut Back Tap |
+| :---: | :---: | :---: |
+| <img src="docs/images/04-catat-manual.png" width="245" alt="Catat Pengeluaran Manual" /> | <img src="docs/images/05-pengaturan-akun.png" width="245" alt="Pengaturan Akun" /> | <img src="docs/images/06-apple-shortcut-ios.png" width="245" alt="Apple Shortcut iOS" /> |
+| *Input pengeluaran tanpa struk* | *Akses spreadsheet & pairing ulang* | *Pintasan otomatis membaca token* |
 
 </div>
 
