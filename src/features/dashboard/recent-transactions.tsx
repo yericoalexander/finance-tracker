@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Receipt, Search, X } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Calendar, Receipt, RotateCcw, Search, X } from 'lucide-react'
 
 import { formatRupiah } from '@/lib/ai/currency'
 
@@ -21,6 +21,36 @@ interface RecentTransactionsProps {
   onNavigateToAdd?: () => void
 }
 
+type DateFilterMode = 'all' | 'today' | 'month' | 'week' | 'custom'
+
+function formatDateLabel(dateStr: string): string {
+  try {
+    const [year, month, day] = dateStr.split('-').map(Number)
+    if (!year || !month || !day) return dateStr
+    const d = new Date(year, month - 1, day)
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(d)
+  } catch {
+    return dateStr
+  }
+}
+
+function getTodayJakartaString(): string {
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date())
+  } catch {
+    return new Date().toISOString().slice(0, 10)
+  }
+}
+
 export function RecentTransactions({
   transactions,
   selectedCategory,
@@ -28,41 +58,105 @@ export function RecentTransactions({
   onNavigateToAdd,
 }: RecentTransactionsProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [dateFilter, setDateFilter] = useState<'all' | 'month' | 'week'>('all')
+  const [dateFilter, setDateFilter] = useState<DateFilterMode>('all')
+  const [customDate, setCustomDate] = useState<string>('')
+  const [showDatePicker, setShowDatePicker] = useState(false)
 
-  const now = new Date()
-  const currentMonthPrefix = now.toISOString().slice(0, 7)
-  const sevenDaysAgoStr = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const todayStr = useMemo(() => getTodayJakartaString(), [])
+  const currentMonthPrefix = todayStr.slice(0, 7)
+  const sevenDaysAgoStr = useMemo(() => {
+    return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  }, [])
 
-  // Filter transaksi berdasarkan kategori, tanggal, dan pencarian live
-  const filtered = transactions.filter((tx) => {
-    const matchesCategory =
-      !selectedCategory || (tx.category && tx.category.toLowerCase() === selectedCategory.toLowerCase())
-
-    const dateVal = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
-    let matchesDate = true
-    if (dateFilter === 'month') {
-      matchesDate = dateVal.startsWith(currentMonthPrefix)
-    } else if (dateFilter === 'week') {
-      matchesDate = dateVal >= sevenDaysAgoStr
+  // Tanggal unik dari riwayat transaksi (terbaru ke terlama)
+  const availableDates = useMemo(() => {
+    const dates = new Set<string>()
+    for (const tx of transactions) {
+      const d = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
+      if (d) dates.add(d)
     }
+    return Array.from(dates).sort().reverse()
+  }, [transactions])
 
-    const query = searchQuery.trim().toLowerCase()
-    const matchesQuery =
-      !query ||
-      (tx.merchant && tx.merchant.toLowerCase().includes(query)) ||
-      (tx.txDate && tx.txDate.includes(query)) ||
-      (tx.category && tx.category.toLowerCase().includes(query))
+  // 1. Filter periode / tanggal tertentu
+  const dateFilteredTransactions = useMemo(() => {
+    return transactions.filter((tx) => {
+      const dateVal = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
+      if (dateFilter === 'today') {
+        return dateVal === todayStr
+      }
+      if (dateFilter === 'month') {
+        return dateVal.startsWith(currentMonthPrefix)
+      }
+      if (dateFilter === 'week') {
+        return dateVal >= sevenDaysAgoStr
+      }
+      if (dateFilter === 'custom' && customDate) {
+        return dateVal === customDate
+      }
+      return true
+    })
+  }, [transactions, dateFilter, customDate, todayStr, currentMonthPrefix, sevenDaysAgoStr])
 
-    return matchesCategory && matchesDate && matchesQuery
-  })
+  // 2. Kategori yang tersedia pada periode terpilih
+  const categoriesInPeriod = useMemo(() => {
+    const map = new Map<string, { count: number; total: number }>()
+    for (const tx of dateFilteredTransactions) {
+      const cat = tx.category || 'Lainnya'
+      const existing = map.get(cat) || { count: 0, total: 0 }
+      map.set(cat, {
+        count: existing.count + 1,
+        total: existing.total + (tx.amountIdr ?? 0),
+      })
+    }
+    return Array.from(map.entries()).map(([category, stats]) => ({
+      category,
+      count: stats.count,
+      total: stats.total,
+    }))
+  }, [dateFilteredTransactions])
 
-  const totalFiltered = filtered.reduce((acc, tx) => acc + (tx.amountIdr ?? 0), 0)
+  // 3. Filter akhir berdasarkan kategori dan query pencarian
+  const filtered = useMemo(() => {
+    return dateFilteredTransactions.filter((tx) => {
+      const matchesCategory =
+        !selectedCategory ||
+        (tx.category && tx.category.toLowerCase() === selectedCategory.toLowerCase())
 
-  // Ambil daftar kategori unik yang ada di transaksi
-  const existingCategories = Array.from(
-    new Set(transactions.map((tx) => tx.category).filter(Boolean)),
-  ) as string[]
+      const query = searchQuery.trim().toLowerCase()
+      const matchesQuery =
+        !query ||
+        (tx.merchant && tx.merchant.toLowerCase().includes(query)) ||
+        (tx.txDate && tx.txDate.includes(query)) ||
+        (tx.category && tx.category.toLowerCase().includes(query))
+
+      return matchesCategory && matchesQuery
+    })
+  }, [dateFilteredTransactions, selectedCategory, searchQuery])
+
+  const totalFiltered = useMemo(() => {
+    return filtered.reduce((acc, tx) => acc + (tx.amountIdr ?? 0), 0)
+  }, [filtered])
+
+  const hasActiveFilters = Boolean(
+    searchQuery.trim() !== '' ||
+    selectedCategory !== null ||
+    dateFilter !== 'all' ||
+    customDate !== ''
+  )
+
+  const handleResetFilters = () => {
+    setSearchQuery('')
+    setDateFilter('all')
+    setCustomDate('')
+    onSelectCategory(null)
+    setShowDatePicker(false)
+  }
+
+  const handleSelectCustomDate = (date: string) => {
+    setCustomDate(date)
+    setDateFilter('custom')
+  }
 
   return (
     <section
@@ -78,7 +172,7 @@ export function RecentTransactions({
         gap: 'var(--space-4)',
       }}
     >
-      {/* Header & Counter */}
+      {/* Header & Reset Button */}
       <div
         style={{
           display: 'flex',
@@ -86,25 +180,57 @@ export function RecentTransactions({
           justifyContent: 'space-between',
         }}
       >
-        <h2
-          style={{
-            fontSize: '1rem',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            margin: 0,
-          }}
-        >
-          Riwayat Transaksi
-        </h2>
-        <span
-          style={{
-            fontSize: '0.78rem',
-            color: 'var(--color-text-muted)',
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
-          {filtered.length} transaksi
-        </span>
+        <div>
+          <h2
+            style={{
+              fontSize: '1rem',
+              fontWeight: 700,
+              color: 'var(--color-text)',
+              margin: 0,
+            }}
+          >
+            Riwayat Transaksi
+          </h2>
+          <p
+            style={{
+              margin: '2px 0 0 0',
+              fontSize: '0.74rem',
+              color: 'var(--color-text-muted)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {hasActiveFilters
+              ? `${filtered.length} dari ${transactions.length} transaksi`
+              : `${filtered.length} transaksi`}
+          </p>
+        </div>
+
+        {hasActiveFilters ? (
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            aria-label="Atur ulang semua filter"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              minHeight: '34px',
+              padding: '4px 12px',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface-raised)',
+              color: 'var(--color-accent)',
+              fontSize: '0.76rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'all var(--duration-fast)',
+            }}
+          >
+            <RotateCcw size={12} />
+            Reset Filter
+          </button>
+        ) : null}
       </div>
 
       {/* Input Pencarian Live */}
@@ -122,7 +248,7 @@ export function RecentTransactions({
         />
         <input
           type="text"
-          placeholder="Cari toko atau tanggal..."
+          placeholder="Cari toko, tanggal, atau kategori..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{
@@ -135,6 +261,7 @@ export function RecentTransactions({
             backgroundColor: 'var(--color-bg)',
             color: 'var(--color-text)',
             fontSize: '0.85rem',
+            fontFamily: 'inherit',
           }}
         />
         {searchQuery ? (
@@ -162,13 +289,22 @@ export function RecentTransactions({
         ) : null}
       </div>
 
-      {/* Filter Periode Cepat */}
-      <div style={{ display: 'flex', gap: '6px' }}>
+      {/* Button Filter Tanggal & Periode (Web App Style) */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '6px',
+          overflowX: 'auto',
+          paddingBottom: '2px',
+          scrollbarWidth: 'none',
+        }}
+      >
         {(
           [
-            { id: 'all', label: 'Semua Waktu' },
-            { id: 'month', label: 'Bulan Ini' },
-            { id: 'week', label: '7 Hari Terakhir' },
+            { id: 'all' as const, label: 'Semua Waktu' },
+            { id: 'today' as const, label: 'Hari Ini' },
+            { id: 'month' as const, label: 'Bulan Ini' },
+            { id: 'week' as const, label: '7 Hari Terakhir' },
           ] as const
         ).map((item) => {
           const isSelected = dateFilter === item.id
@@ -176,84 +312,223 @@ export function RecentTransactions({
             <button
               key={item.id}
               type="button"
-              onClick={() => setDateFilter(item.id)}
+              onClick={() => {
+                setDateFilter(item.id)
+                setCustomDate('')
+                setShowDatePicker(false)
+              }}
               style={{
-                flex: 1,
-                minHeight: '36px',
-                padding: '4px 8px',
+                whiteSpace: 'nowrap',
+                minHeight: '34px',
+                padding: '4px 12px',
                 borderRadius: 'var(--radius-md)',
                 border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
                 backgroundColor: isSelected ? 'var(--color-accent-subtle)' : 'var(--color-surface-raised)',
                 color: isSelected ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                fontSize: '0.74rem',
+                fontSize: '0.75rem',
                 fontWeight: isSelected ? 600 : 500,
                 cursor: 'pointer',
                 transition: 'all var(--duration-fast) var(--ease-default)',
+                fontFamily: 'inherit',
               }}
             >
               {item.label}
             </button>
           )
         })}
+
+        {/* Tombol Filter Tanggal Tertentu */}
+        <button
+          type="button"
+          onClick={() => setShowDatePicker((prev) => !prev)}
+          style={{
+            whiteSpace: 'nowrap',
+            minHeight: '34px',
+            padding: '4px 12px',
+            borderRadius: 'var(--radius-md)',
+            border: dateFilter === 'custom' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+            backgroundColor: dateFilter === 'custom' ? 'var(--color-accent-subtle)' : 'var(--color-surface-raised)',
+            color: dateFilter === 'custom' ? 'var(--color-accent)' : 'var(--color-text-muted)',
+            fontSize: '0.75rem',
+            fontWeight: dateFilter === 'custom' ? 600 : 500,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'all var(--duration-fast) var(--ease-default)',
+            fontFamily: 'inherit',
+          }}
+        >
+          <Calendar size={13} />
+          {dateFilter === 'custom' && customDate ? formatDateLabel(customDate) : 'Pilih Tanggal'}
+        </button>
       </div>
 
-      {/* Chips Filter Kategori */}
-      {existingCategories.length > 0 ? (
+      {/* Panel Pemilih Tanggal Tertentu */}
+      {(showDatePicker || dateFilter === 'custom') && (
         <div
           style={{
             display: 'flex',
-            gap: '6px',
-            overflowX: 'auto',
-            paddingBottom: '2px',
-            scrollbarWidth: 'none',
+            flexDirection: 'column',
+            gap: 'var(--space-2)',
+            padding: 'var(--space-3)',
+            backgroundColor: 'var(--color-surface-raised)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--color-border)',
           }}
         >
-          <button
-            type="button"
-            onClick={() => onSelectCategory(null)}
-            style={{
-              whiteSpace: 'nowrap',
-              minHeight: '32px',
-              padding: '0 12px',
-              borderRadius: 'var(--radius-full)',
-              border: !selectedCategory ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-              backgroundColor: !selectedCategory ? 'var(--color-accent)' : 'var(--color-surface-raised)',
-              color: !selectedCategory ? 'var(--color-accent-text)' : 'var(--color-text)',
-              fontSize: '0.74rem',
-              fontWeight: !selectedCategory ? 600 : 400,
-              cursor: 'pointer',
-            }}
-          >
-            Semua
-          </button>
-          {existingCategories.map((cat) => {
-            const isSelected = selectedCategory === cat
-            return (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--color-text)' }}>
+              Pilih Tanggal Transaksi:
+            </span>
+            {customDate ? (
               <button
-                key={cat}
                 type="button"
-                onClick={() => onSelectCategory(isSelected ? null : cat)}
+                onClick={() => {
+                  setCustomDate('')
+                  setDateFilter('all')
+                  setShowDatePicker(false)
+                }}
                 style={{
-                  whiteSpace: 'nowrap',
-                  minHeight: '32px',
-                  padding: '0 12px',
-                  borderRadius: 'var(--radius-full)',
-                  border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                  backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
-                  color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
-                  fontSize: '0.74rem',
-                  fontWeight: isSelected ? 600 : 400,
+                  fontSize: '0.72rem',
+                  color: 'var(--color-accent)',
+                  backgroundColor: 'transparent',
+                  border: 'none',
                   cursor: 'pointer',
+                  fontWeight: 600,
                 }}
               >
-                {cat}
+                Hapus filter tanggal
               </button>
-            )
-          })}
-        </div>
-      ) : null}
+            ) : null}
+          </div>
 
-      {/* Baris Total Terfilter */}
+          {/* Quick Date Chips dari Transaksi Nyata */}
+          {availableDates.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                gap: '6px',
+                overflowX: 'auto',
+                paddingBottom: '2px',
+                scrollbarWidth: 'none',
+              }}
+            >
+              {availableDates.map((d) => {
+                const isDateSelected = dateFilter === 'custom' && customDate === d
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => handleSelectCustomDate(d)}
+                    style={{
+                      whiteSpace: 'nowrap',
+                      minHeight: '30px',
+                      padding: '2px 10px',
+                      borderRadius: 'var(--radius-full)',
+                      border: isDateSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                      backgroundColor: isDateSelected ? 'var(--color-accent)' : 'var(--color-surface)',
+                      color: isDateSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
+                      fontSize: '0.72rem',
+                      fontWeight: isDateSelected ? 600 : 500,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {formatDateLabel(d)}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Input Date Kalender */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="date"
+              value={customDate}
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleSelectCustomDate(e.target.value)
+                }
+              }}
+              style={{
+                minHeight: '36px',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-bg)',
+                color: 'var(--color-text)',
+                fontSize: '0.78rem',
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+              }}
+            />
+            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+              atau cari tanggal bebas di kalender
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Chips Filter Kategori (Dinamis sesuai periode terpilih) */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '6px',
+          overflowX: 'auto',
+          paddingBottom: '2px',
+          scrollbarWidth: 'none',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => onSelectCategory(null)}
+          style={{
+            whiteSpace: 'nowrap',
+            minHeight: '32px',
+            padding: '0 12px',
+            borderRadius: 'var(--radius-full)',
+            border: !selectedCategory ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+            backgroundColor: !selectedCategory ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+            color: !selectedCategory ? 'var(--color-accent-text)' : 'var(--color-text)',
+            fontSize: '0.74rem',
+            fontWeight: !selectedCategory ? 600 : 400,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          Semua ({dateFilteredTransactions.length})
+        </button>
+
+        {categoriesInPeriod.map((cat) => {
+          const isSelected = selectedCategory === cat.category
+          return (
+            <button
+              key={cat.category}
+              type="button"
+              onClick={() => onSelectCategory(isSelected ? null : cat.category)}
+              style={{
+                whiteSpace: 'nowrap',
+                minHeight: '32px',
+                padding: '0 12px',
+                borderRadius: 'var(--radius-full)',
+                border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+                color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
+                fontSize: '0.74rem',
+                fontWeight: isSelected ? 600 : 400,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {cat.category} ({cat.count})
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Baris Total Terfilter & Badge Status */}
       <div
         style={{
           display: 'flex',
@@ -263,24 +538,74 @@ export function RecentTransactions({
           backgroundColor: 'var(--color-surface-raised)',
           borderRadius: 'var(--radius-md)',
           border: '1px solid var(--color-border)',
+          gap: '8px',
         }}
       >
-        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-          {filtered.length} Transaksi Terpilih
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+            {filtered.length} Transaksi Terpilih
+          </span>
+
+          {dateFilter === 'today' && (
+            <span
+              style={{
+                fontSize: '0.7rem',
+                padding: '1px 6px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-accent-subtle)',
+                color: 'var(--color-accent)',
+                fontWeight: 600,
+              }}
+            >
+              Hari Ini
+            </span>
+          )}
+
+          {dateFilter === 'custom' && customDate && (
+            <span
+              style={{
+                fontSize: '0.7rem',
+                padding: '1px 6px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-accent-subtle)',
+                color: 'var(--color-accent)',
+                fontWeight: 600,
+              }}
+            >
+              {formatDateLabel(customDate)}
+            </span>
+          )}
+
+          {selectedCategory && (
+            <span
+              style={{
+                fontSize: '0.7rem',
+                padding: '1px 6px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-accent-subtle)',
+                color: 'var(--color-accent)',
+                fontWeight: 600,
+              }}
+            >
+              {selectedCategory}
+            </span>
+          )}
+        </div>
+
         <span
           style={{
             fontSize: '0.88rem',
             fontWeight: 700,
             color: 'var(--color-text)',
             fontVariantNumeric: 'tabular-nums',
+            whiteSpace: 'nowrap',
           }}
         >
           {formatRupiah(totalFiltered)}
         </span>
       </div>
 
-      {/* Daftar Transaksi */}
+      {/* Daftar Transaksi (HANYA menampilkan transaksi yang cocok dengan filter) */}
       {filtered.length === 0 ? (
         <div
           style={{
@@ -295,29 +620,33 @@ export function RecentTransactions({
         >
           <Receipt size={30} strokeWidth={1.5} />
           <p style={{ margin: 0, fontSize: '0.84rem' }}>
-            {searchQuery || selectedCategory || dateFilter !== 'all'
-              ? 'Tidak ada transaksi yang cocok dengan filter.'
+            {hasActiveFilters
+              ? 'Tidak ada transaksi yang cocok dengan filter yang dipilih.'
               : 'Belum ada transaksi tersinkronisasi.'}
           </p>
-          {(searchQuery || selectedCategory || dateFilter !== 'all') ? (
+          {hasActiveFilters ? (
             <button
               type="button"
-              onClick={() => {
-                setSearchQuery('')
-                onSelectCategory(null)
-                setDateFilter('all')
-              }}
+              onClick={handleResetFilters}
               style={{
-                marginTop: 'var(--space-1)',
-                backgroundColor: 'transparent',
-                color: 'var(--color-accent)',
+                marginTop: 'var(--space-2)',
+                padding: 'var(--space-2) var(--space-4)',
+                minHeight: '44px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-text)',
                 border: 'none',
-                fontSize: '0.78rem',
+                fontSize: '0.82rem',
                 fontWeight: 600,
                 cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontFamily: 'inherit',
               }}
             >
-              Reset filter
+              <RotateCcw size={14} />
+              Reset Filter
             </button>
           ) : onNavigateToAdd ? (
             <button
@@ -334,6 +663,7 @@ export function RecentTransactions({
                 fontSize: '0.82rem',
                 fontWeight: 600,
                 cursor: 'pointer',
+                fontFamily: 'inherit',
               }}
             >
               Catat Transaksi Pertama
@@ -389,7 +719,7 @@ export function RecentTransactions({
                     {tx.category || 'Lainnya'}
                   </span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    {tx.txDate || new Date(tx.createdAt).toISOString().slice(0, 10)}
+                    {formatDateLabel(tx.txDate || new Date(tx.createdAt).toISOString().slice(0, 10))}
                   </span>
                 </div>
               </div>
