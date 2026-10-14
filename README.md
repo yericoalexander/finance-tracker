@@ -12,99 +12,23 @@
 
 ---
 
-## 📱 Contoh Tampilan Halaman (Page Preview)
+## 📱 Tampilan Antarmuka (UI Preview)
 
-### 1. Dashboard Utama — Ringkasan Bulan Berjalan & Navigasi
-Tampilan mobile-first yang bersih, elegan, dan kaya data. Menampilkan total pengeluaran per bulan, rata-rata harian, akses ke Google Sheets pribadi, serta visualisasi kategori transaksi.
+<div align="center">
 
-```text
-┌──────────────────────────────────────────────┐
-│ FINANCE.                              🌙 (👤)│
-│ Halo, Yerico 👋                              │
-│                                              │
-│ ┌───────────────┬──────────────┬───────────┐ │
-│ │   Ringkasan   │   Transaksi  │  + Catat  │ │
-│ └───────────────┴──────────────┴───────────┘ │
-│                                              │
-│ Tersinkron ke Sheets             🔄 Segarkan │
-│                                              │
-│ ┌──────────────────────────────────────────┐ │
-│ │ ‹            September 2026            › │ │
-│ └──────────────────────────────────────────┘ │
-│                                              │
-│ ┌──────────────────────────────────────────┐ │
-│ │ ↙ PENGELUARAN BULAN INI     [Total] /Hari│ │
-│ │ Rp 76.000                                │ │
-│ │ 1 transaksi tercatat                     │ │
-│ └──────────────────────────────────────────┘ │
-│                                              │
-│ ┌──────────────────────────────────────────┐ │
-│ │ 📊 Spreadsheet Google Sheets Pribadi   → │ │
-│ └──────────────────────────────────────────┘ │
-│                                              │
-│ Kategori Pengeluaran                         │
-│ • Makanan & Minuman          Rp 76.000 (100%)│
-│   ████████████████████████████████████████   │
-└──────────────────────────────────────────────┘
-```
+| 📊 Ringkasan Bulanan | ⚡ Riwayat Transaksi Realtime |
+| :---: | :---: |
+| <img src="docs/images/dashboard-overview.png" width="330" alt="Ringkasan Bulanan" /> | <img src="docs/images/dashboard-transactions.png" width="330" alt="Riwayat Transaksi" /> |
+| *Visualisasi MTD, rata-rata harian, & breakdown kategori* | *Status real-time dengan badge [Baru] dari Back Tap* |
 
----
+<br/>
 
-### 2. Tab Riwayat Transaksi — Realtime & Filter Kategori
-Pembaruan data instan saat struk selesai diekstrak. Transaksi baru otomatis mendapatkan lencana **Baru** dan banner konfirmasi.
+| 📲 Sambungkan iPhone (1-Klik) | 🍎 Apple Shortcut iOS |
+| :---: | :---: |
+| <img src="docs/images/device-pairing.png" width="330" alt="Sambungkan iPhone" /> | <img src="docs/images/ios-shortcut.png" width="330" alt="Apple Shortcut iOS" /> |
+| *Pairing otomatis tanpa input token manual ke iCloud* | *Shortcut otomatis membaca token & kirim struk* |
 
-```text
-┌──────────────────────────────────────────────┐
-│ FINANCE.                              🌙 (👤)│
-│ ┌───────────────┬──────────────┬───────────┐ │
-│ │   Ringkasan   │  [Transaksi] │  + Catat  │ │
-│ └───────────────┴──────────────┴───────────┘ │
-│                                              │
-│ Semua Transaksi                              │
-│ 15 transaksi tercatat                        │
-│                                              │
-│ ┌─────────────────────────────┐ ┌──────────┐ │
-│ │ 🔍 Cari transaksi...        │ │ 🎛 Filter │ │
-│ └─────────────────────────────┘ └──────────┘ │
-│                                              │
-│ ┌──────────────────────────────────────────┐ │
-│ │ 🍽️  YOSHINOYA PLAZA FES   [Baru]          │ │
-│ │     Makanan & Minuman · 30 Sep   -Rp 76k │ │
-│ └──────────────────────────────────────────┘ │
-│ ┌──────────────────────────────────────────┐ │
-│ │ ☕  FORE TIS SQUARE                      │ │
-│ │     Makanan & Minuman · 12 Okt   -Rp 29k │ │
-│ └──────────────────────────────────────────┘ │
-│ ┌──────────────────────────────────────────┐ │
-│ │ 🛒  Photomatics                          │ │
-│ │     Belanja · 11 Okt             -Rp 35k │ │
-│ └──────────────────────────────────────────┘ │
-└──────────────────────────────────────────────┘
-```
-
----
-
-### 3. Setup Perangkat iPhone — 1-Click Instant Pairing
-Menghubungkan iPhone tanpa input token manual. Menggunakan URL scheme Apple Shortcuts native `shortcuts://run-shortcut`.
-
-```text
-┌──────────────────────────────────────────────┐
-│ 📲 Sambungkan iPhone Kamu                    │
-│                                              │
-│ Cukup 1 kali klik tombol di bawah untuk      │
-│ memasang shortcut resmi dan menghubungkan    │
-│ iPhone Anda secara otomatis:                 │
-│                                              │
-│ ┌──────────────────────────────────────────┐ │
-│ │ ⚡ Hubungkan Otomatis ke iPhone          │ │
-│ └──────────────────────────────────────────┘ │
-│                                              │
-│  Langkah otomatis:                           │
-│  1. Token aman disimpan ke folder iCloud     │
-│  2. Aktifkan Back Tap (Ketuk Belakang 2x)    │
-│  3. Selesai! Siap pakai di aplikasi apa pun  │
-└──────────────────────────────────────────────┘
-```
+</div>
 
 ---
 
