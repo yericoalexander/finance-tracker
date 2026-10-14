@@ -31,7 +31,7 @@ export function SetupGate({ user, icloudShortcutUrl, onSignOut }: SetupGateProps
   const defaultIcloudUrl =
     icloudShortcutUrl ||
     process.env.NEXT_PUBLIC_SHORTCUT_ICLOUD_URL ||
-    'https://www.icloud.com/shortcuts/'
+    'https://www.icloud.com/shortcuts/829aa46d8e254e1683b528945e1749c9'
 
   const deviceLabel = `iPhone ${firstName}`
   const [step1Done, setStep1Done] = useState(false)

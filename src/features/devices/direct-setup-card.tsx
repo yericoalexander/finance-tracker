@@ -123,6 +123,51 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
 
       {!result ? (
         <>
+          {/* Banner Tambahkan Pintasan jika belum ada */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 'var(--space-3) var(--space-4)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)',
+              gap: 'var(--space-2)',
+            }}
+          >
+            <div>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: '0.84rem', color: 'var(--color-text)' }}>
+                Belum Punya Pintasannya?
+              </p>
+              <p style={{ margin: '2px 0 0 0', fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
+                Pasang sekali ke iPhone via iCloud resmi Apple.
+              </p>
+            </div>
+            <a
+              href="https://www.icloud.com/shortcuts/829aa46d8e254e1683b528945e1749c9"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-text)',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                textDecoration: 'none',
+                minHeight: '44px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span>+ Pasang Pintasan</span>
+              <ExternalLink size={13} />
+            </a>
+          </div>
+
           <p
             style={{
               fontSize: '0.84rem',
@@ -330,8 +375,31 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             </div>
             <p style={{ fontSize: '0.73rem', color: 'var(--color-text-muted)', margin: 0 }}>
               ⚠️ Jika muncul <em>&quot;Could not find the shortcut&quot;</em>, pilih nama yang sesuai dengan
-              kotak pintasan di aplikasi Shortcuts iPhone kamu.
+              kotak pintasan di iPhone kamu, atau pasang pintasannya terlebih dahulu:
             </p>
+            <a
+              href="https://www.icloud.com/shortcuts/829aa46d8e254e1683b528945e1749c9"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: 'var(--space-2)',
+                backgroundColor: 'var(--color-surface)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-accent)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                minHeight: '40px',
+              }}
+            >
+              <span>+ Pasang Pintasan &quot;Finance Tracker&quot; via iCloud</span>
+              <ExternalLink size={14} />
+            </a>
           </div>
 
           {/* PERINGATAN KRUSIAL: Selalu Izinkan */}

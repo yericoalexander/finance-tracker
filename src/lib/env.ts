@@ -46,6 +46,9 @@ const envSchema = z.object({
 
   // Auth.js v5 — percaya pada proxy header X-Forwarded-Host di deploy
   AUTH_TRUST_HOST: z.string().optional(),
+
+  // Tautan resmi iCloud Apple Shortcuts untuk penambahan pintasan 1-klik
+  NEXT_PUBLIC_SHORTCUT_ICLOUD_URL: z.string().url().optional(),
 })
 
 const parsed = envSchema.safeParse(process.env)
