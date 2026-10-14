@@ -39,6 +39,28 @@ function formatDateLabel(dateStr: string): string {
   }
 }
 
+function formatCompactRange(startStr: string, endStr: string): string {
+  try {
+    const [y1, m1, d1] = startStr.split('-').map(Number)
+    const [y2, m2, d2] = endStr.split('-').map(Number)
+    if (!y1 || !m1 || !d1 || !y2 || !m2 || !d2) {
+      return `${formatDateLabel(startStr)} – ${formatDateLabel(endStr)}`
+    }
+    if (y1 === y2 && m1 === m2) {
+      const monthName = new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(new Date(y1, m1 - 1, 1))
+      return `${d1}–${d2} ${monthName} ${y1}`
+    }
+    if (y1 === y2) {
+      const m1Name = new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(new Date(y1, m1 - 1, 1))
+      const m2Name = new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(new Date(y2, m2 - 1, 1))
+      return `${d1} ${m1Name} – ${d2} ${m2Name}`
+    }
+    return `${formatDateLabel(startStr)} – ${formatDateLabel(endStr)}`
+  } catch {
+    return `${formatDateLabel(startStr)} – ${formatDateLabel(endStr)}`
+  }
+}
+
 function getTodayJakartaString(): string {
   try {
     return new Intl.DateTimeFormat('en-CA', {
@@ -199,7 +221,7 @@ export function RecentTransactions({
     if (startDate && endDate) {
       const start = startDate <= endDate ? startDate : endDate
       const end = startDate <= endDate ? endDate : startDate
-      return `${formatDateLabel(start)} – ${formatDateLabel(end)}`
+      return formatCompactRange(start, end)
     }
     if (startDate) return `≥ ${formatDateLabel(startDate)}`
     if (endDate) return `≤ ${formatDateLabel(endDate)}`
@@ -337,14 +359,13 @@ export function RecentTransactions({
         ) : null}
       </div>
 
-      {/* Button Filter Tanggal & Periode (Web App Style) */}
+      {/* Button Filter Tanggal & Periode (Web App Style - Full Width Grid) */}
       <div
         style={{
-          display: 'flex',
-          gap: '6px',
-          overflowX: 'auto',
-          paddingBottom: '2px',
-          scrollbarWidth: 'none',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gap: '8px',
+          width: '100%',
         }}
       >
         {(
@@ -363,18 +384,25 @@ export function RecentTransactions({
                 setShowDatePicker(false)
               }}
               style={{
-                whiteSpace: 'nowrap',
-                minHeight: '34px',
-                padding: '4px 12px',
+                width: '100%',
+                minHeight: '40px',
+                padding: '0 8px',
                 borderRadius: 'var(--radius-md)',
-                border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                backgroundColor: isSelected ? 'var(--color-accent-subtle)' : 'var(--color-surface-raised)',
-                color: isSelected ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                fontSize: '0.75rem',
+                border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
+                backgroundColor: isSelected ? 'var(--color-surface)' : 'var(--color-surface-raised)',
+                color: isSelected ? 'var(--color-text)' : 'var(--color-text-muted)',
+                fontSize: '0.78rem',
                 fontWeight: isSelected ? 600 : 500,
                 cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                whiteSpace: 'nowrap',
                 transition: 'all var(--duration-fast) var(--ease-default)',
                 fontFamily: 'inherit',
+                boxSizing: 'border-box',
+                boxShadow: isSelected ? 'var(--shadow-sm)' : 'none',
               }}
             >
               {item.label}
@@ -394,25 +422,38 @@ export function RecentTransactions({
             }
           }}
           style={{
-            whiteSpace: 'nowrap',
-            minHeight: '34px',
-            padding: '4px 12px',
+            width: '100%',
+            minHeight: '40px',
+            padding: '0 8px',
             borderRadius: 'var(--radius-md)',
-            border: dateFilter === 'custom' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-            backgroundColor: dateFilter === 'custom' ? 'var(--color-accent-subtle)' : 'var(--color-surface-raised)',
-            color: dateFilter === 'custom' ? 'var(--color-accent)' : 'var(--color-text-muted)',
-            fontSize: '0.75rem',
+            border: dateFilter === 'custom' ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
+            backgroundColor: dateFilter === 'custom' ? 'var(--color-surface)' : 'var(--color-surface-raised)',
+            color: dateFilter === 'custom' ? 'var(--color-text)' : 'var(--color-text-muted)',
+            fontSize: '0.78rem',
             fontWeight: dateFilter === 'custom' ? 600 : 500,
             cursor: 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
             gap: '6px',
             transition: 'all var(--duration-fast) var(--ease-default)',
             fontFamily: 'inherit',
+            boxSizing: 'border-box',
+            boxShadow: dateFilter === 'custom' ? 'var(--shadow-sm)' : 'none',
+            overflow: 'hidden',
           }}
         >
-          <Calendar size={13} />
-          {dateButtonLabel}
+          <Calendar size={13} style={{ flexShrink: 0 }} />
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {dateButtonLabel}
+          </span>
         </button>
       </div>
 
