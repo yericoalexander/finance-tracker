@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, ChevronUp, ExternalLink, Layers, Sparkles } from 'lucide-react'
+import { ChevronDown, ChevronUp, Layers, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 
 export function ShortcutGuideCard() {
@@ -62,39 +62,18 @@ export function ShortcutGuideCard() {
           >
             1
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
-              Tambahkan Pintasan ke iPhone
+              Tekan Tombol &quot;Pasang &amp; Hubungkan Pintasan&quot; di Atas
             </p>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Ketuk tombol di bawah untuk langsung membuka sheet <strong>&quot;Tambahkan Pintasan&quot;</strong> di iPhone Anda:
+              Cukup ketuk tombol hitam di atas sekali saja. iPhone Anda otomatis membuka layar resmi{' '}
+              <strong>&quot;Tambahkan Pintasan&quot;</strong>.
             </p>
-            <a
-              href="https://www.icloud.com/shortcuts/829aa46d8e254e1683b528945e1749c9"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-accent)',
-                color: 'var(--color-accent-text)',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-                minHeight: '44px',
-                marginTop: '4px',
-              }}
-            >
-              <span>Tambahkan Pintasan &quot;Finance Tracker&quot;</span>
-              <ExternalLink size={14} />
-            </a>
           </div>
         </div>
 
-        {/* Step 2: Hubungkan 1-Klik */}
+        {/* Step 2: Selalu Izinkan */}
         <div
           style={{
             display: 'flex',
@@ -124,11 +103,11 @@ export function ShortcutGuideCard() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
-              Ketuk Tombol Hubungkan di Atas
+              Pilih &quot;Selalu Izinkan&quot; (Always Allow)
             </p>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Tekan tombol hijau di atas. Pilih <strong>Selalu Izinkan</strong> saat iOS meminta izin
-              koneksi server.
+              Saat pertama kali pintasan dipakai di iPhone, iOS meminta izin jaringan: wajib pilih{' '}
+              <strong>Selalu Izinkan</strong> agar pengiriman struk belanja tidak terblokir.
             </p>
           </div>
         </div>
