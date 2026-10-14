@@ -28,11 +28,6 @@ const nextConfig: NextConfig = {
         source: '/manifest.json',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
       },
-      // Cache untuk Next.js static chunks
-      {
-        source: '/_next/static/(.*)',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
-      },
       // Dashboard: selalu fresh karena data real-time
       {
         source: '/dashboard',
