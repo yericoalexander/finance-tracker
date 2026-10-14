@@ -23,7 +23,7 @@ interface SetupResult {
   endpoint: string
 }
 
-const ICLOUD_SHORTCUT_URL = 'https://www.icloud.com/shortcuts/829aa46d8e254e1683b528945e1749c9'
+const ICLOUD_SHORTCUT_URL = 'https://www.icloud.com/shortcuts/4d6a9040bd104b02b91f2a198b0d8bef'
 const SHORTCUT_NAME = 'Finance Tracker'
 
 function buildShortcutsUrl(endpoint: string, token: string): string {
