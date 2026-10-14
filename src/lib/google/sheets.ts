@@ -102,14 +102,23 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   ],
   // Row 10: Spacer
   [''],
-  // Row 11: Section 3 Header (Category breakdown: Today vs Range)
-  ['📂 Rincian Kategori Hari Ini', '', '', '', '🔍 Rincian Kategori pada Rentang Filter', '', '', ''],
+  // Row 11: Section 3 Header (Category breakdown: Filter Date vs Range)
+  [
+    '=IF(ISBLANK(B4); "📂 Rincian Kategori Tanggal Tertentu"; IF(B4=TODAY(); "📂 Rincian Kategori Hari Ini"; "📂 Rincian Kategori (" & TEXT(B4; "yyyy-mm-dd") & ")"))',
+    '',
+    '',
+    '',
+    '🔍 Rincian Kategori pada Rentang Filter',
+    '',
+    '',
+    '',
+  ],
   // Row 12: Category Table Headers
-  ['Kategori', 'Total Hari Ini', '% Porsi', '', 'Kategori', 'Total di Rentang', 'Jumlah Tx', '% Porsi'],
+  ['Kategori', 'Total Tanggal Ini', '% Porsi', '', 'Kategori', 'Total di Rentang', 'Jumlah Tx', '% Porsi'],
   // Row 13: Makanan & Minuman
   [
     'Makanan & Minuman',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A13; Transaksi!A:A; TODAY())',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A13; Transaksi!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B13/B$20)',
     '',
     'Makanan & Minuman',
@@ -120,7 +129,7 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 14: Transportasi
   [
     'Transportasi',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A14; Transaksi!A:A; TODAY())',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A14; Transaksi!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B14/B$20)',
     '',
     'Transportasi',
@@ -131,7 +140,7 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 15: Belanja
   [
     'Belanja',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A15; Transaksi!A:A; TODAY())',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A15; Transaksi!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B15/B$20)',
     '',
     'Belanja',
@@ -142,7 +151,7 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 16: Tagihan & Utilitas
   [
     'Tagihan & Utilitas',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A16; Transaksi!A:A; TODAY())',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A16; Transaksi!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B16/B$20)',
     '',
     'Tagihan & Utilitas',
@@ -153,7 +162,7 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 17: Hiburan
   [
     'Hiburan',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A17; Transaksi!A:A; TODAY())',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A17; Transaksi!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B17/B$20)',
     '',
     'Hiburan',
@@ -164,7 +173,7 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 18: Kesehatan
   [
     'Kesehatan',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A18; Transaksi!A:A; TODAY())',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A18; Transaksi!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B18/B$20)',
     '',
     'Kesehatan',
@@ -175,7 +184,7 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 19: Lainnya
   [
     'Lainnya',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A19; Transaksi!A:A; TODAY())',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A19; Transaksi!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B19/B$20)',
     '',
     'Lainnya',
