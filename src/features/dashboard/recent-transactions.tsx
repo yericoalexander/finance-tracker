@@ -34,6 +34,7 @@ interface RecentTransactionsProps {
   selectedCategory: string | null
   onSelectCategory: (category: string | null) => void
   onNavigateToAdd?: () => void
+  stickyOffset?: number
 }
 
 type QuickDateOption = 'all' | 'today' | 'yesterday' | '7days' | 'month' | 'range'
@@ -94,6 +95,7 @@ export function RecentTransactions({
   selectedCategory,
   onSelectCategory,
   onNavigateToAdd,
+  stickyOffset,
 }: RecentTransactionsProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [quickDate, setQuickDate] = useState<QuickDateOption>('all')
@@ -277,14 +279,28 @@ export function RecentTransactions({
         gap: 'var(--space-4)',
       }}
     >
-      {/* Header Bagian: Semua transaksi & Jumlah tercatat — Identik dengan referensi */}
+      {/* Sticky Transaksi Sub-Header — Sesuai Gambar ke-2 */}
       <div
         style={{
+          position: 'sticky',
+          top: stickyOffset ? `${stickyOffset}px` : 'calc(136px + env(safe-area-inset-top, 0px))',
+          zIndex: 25,
+          backgroundColor: 'var(--color-bg)',
+          paddingTop: 'var(--space-2)',
+          paddingBottom: 'var(--space-3)',
           display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
+          gap: 'var(--space-3)',
         }}
       >
+        {/* Header Bagian: Semua transaksi & Jumlah tercatat — Identik dengan referensi */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+          }}
+        >
         <div>
           <h2
             style={{
@@ -569,6 +585,7 @@ export function RecentTransactions({
           )}
         </div>
       )}
+      </div>
 
       {/* Rincian Kategori Dinamis dari Hasil Filter */}
       {hasActiveFilters && filtered.length > 0 && dynamicCategoryBreakdown.length > 0 && (

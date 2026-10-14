@@ -29,7 +29,7 @@ export default async function DashboardPage() {
       style={{
         minHeight: '100svh',
         backgroundColor: 'var(--color-bg)',
-        paddingTop: 'calc(var(--space-5) + env(safe-area-inset-top))',
+        paddingTop: 0,
         paddingBottom: 'calc(var(--space-10) + env(safe-area-inset-bottom))',
         paddingLeft: 'var(--space-5)',
         paddingRight: 'var(--space-5)',
@@ -37,21 +37,23 @@ export default async function DashboardPage() {
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--space-5)',
       }}
     >
-      <DashboardHeader
-        user={user}
+      <DashboardView
+        data={dashboardData}
         sheetId={currentSheetId}
-        onSignOut={async () => {
-          'use server'
-          await signOut({ redirectTo: '/login' })
-        }}
+        header={
+          <DashboardHeader
+            user={user}
+            sheetId={currentSheetId}
+            onSignOut={async () => {
+              'use server'
+              await signOut({ redirectTo: '/login' })
+            }}
+          />
+        }
+        banner={!currentSheetId ? <RetrySheetCard /> : null}
       />
-
-      {!currentSheetId ? <RetrySheetCard /> : null}
-
-      <DashboardView data={dashboardData} sheetId={currentSheetId} />
     </main>
   )
 }

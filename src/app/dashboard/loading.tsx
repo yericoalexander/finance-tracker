@@ -4,7 +4,7 @@ export default function DashboardLoading() {
       style={{
         minHeight: '100svh',
         backgroundColor: 'var(--color-bg)',
-        paddingTop: 'calc(var(--space-5) + env(safe-area-inset-top))',
+        paddingTop: 0,
         paddingBottom: 'calc(var(--space-10) + env(safe-area-inset-bottom))',
         paddingLeft: 'var(--space-5)',
         paddingRight: 'var(--space-5)',
@@ -12,84 +12,94 @@ export default function DashboardLoading() {
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--space-5)',
       }}
       aria-busy="true"
       aria-label="Memuat dashboard..."
     >
-      {/* Header Skeleton */}
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingBottom: 'var(--space-2)',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div
-            style={{
-              width: '120px',
-              height: '24px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'var(--color-border)',
-              animation: 'pulse 1.5s ease-in-out infinite',
-            }}
-          />
-          <div
-            style={{
-              width: '80px',
-              height: '14px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'var(--color-border-subtle)',
-              animation: 'pulse 1.5s ease-in-out infinite',
-            }}
-          />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--color-border-subtle)',
-              animation: 'pulse 1.5s ease-in-out infinite',
-            }}
-          />
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--color-border)',
-              animation: 'pulse 1.5s ease-in-out infinite',
-            }}
-          />
-        </div>
-      </header>
-
-      {/* Segmented Tab Skeleton */}
+      {/* Top Header Skeleton Container */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          backgroundColor: 'var(--color-surface)',
-          padding: '4px',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--color-border)',
-          gap: '4px',
-          height: '48px',
+          paddingTop: 'calc(var(--space-4) + env(safe-area-inset-top, 0px))',
+          paddingBottom: 'var(--space-3)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-3)',
         }}
       >
+        {/* Header Skeleton */}
+        <header
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingBottom: 'var(--space-2)',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div
+              style={{
+                width: '120px',
+                height: '24px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-border)',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            />
+            <div
+              style={{
+                width: '80px',
+                height: '14px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-border-subtle)',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--color-border-subtle)',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            />
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-border)',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            />
+          </div>
+        </header>
+
+        {/* Segmented Tab Skeleton */}
         <div
           style={{
-            borderRadius: 'calc(var(--radius-xl) - 4px)',
-            backgroundColor: 'var(--color-accent)',
-            opacity: 0.15,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            backgroundColor: 'var(--color-surface)',
+            padding: '4px',
+            borderRadius: 'var(--radius-xl)',
+            border: '1px solid var(--color-border)',
+            gap: '4px',
+            height: '48px',
           }}
-        />
-        <div style={{ borderRadius: 'calc(var(--radius-xl) - 4px)' }} />
-        <div style={{ borderRadius: 'calc(var(--radius-xl) - 4px)' }} />
+        >
+          <div
+            style={{
+              borderRadius: 'calc(var(--radius-xl) - 4px)',
+              backgroundColor: 'var(--color-accent)',
+              opacity: 0.15,
+            }}
+          />
+          <div style={{ borderRadius: 'calc(var(--radius-xl) - 4px)' }} />
+          <div style={{ borderRadius: 'calc(var(--radius-xl) - 4px)' }} />
+        </div>
       </div>
 
       {/* Sync Status Skeleton */}

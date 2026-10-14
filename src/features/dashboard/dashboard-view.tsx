@@ -15,15 +15,37 @@ type TabType = 'overview' | 'transactions' | 'add'
 interface DashboardViewProps {
   data: DashboardData
   sheetId?: string | null
+  header?: React.ReactNode
+  banner?: React.ReactNode
 }
 
-export function DashboardView({ data, sheetId }: DashboardViewProps) {
+export function DashboardView({ data, sheetId, header, banner }: DashboardViewProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [newTxAlert, setNewTxAlert] = useState<string | null>(null)
   const prevFirstTxId = useRef<string | null>(data.recentTransactions[0]?.id ?? null)
+  const headerContainerRef = useRef<HTMLDivElement>(null)
+  const [stickyOffset, setStickyOffset] = useState<number>(136)
+
+  // Ukur tinggi pasti sticky header agar sub-header di tab transaksi menempel tepat di bawahnya tanpa gap
+  useEffect(() => {
+    const el = headerContainerRef.current
+    if (!el) return
+
+    const updateHeight = () => {
+      if (headerContainerRef.current) {
+        setStickyOffset(headerContainerRef.current.offsetHeight)
+      }
+    }
+
+    updateHeight()
+    const ro = new ResizeObserver(updateHeight)
+    ro.observe(el)
+
+    return () => ro.disconnect()
+  }, [])
 
   const handleRefresh = () => {
     setIsRefreshing(true)
@@ -83,90 +105,111 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-      {/* Notifikasi Transaksi Baru Masuk */}
-      {newTxAlert ? (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: 'var(--space-2) var(--space-4)',
-            backgroundColor: 'var(--color-accent)',
-            color: 'var(--color-accent-text)',
-            borderRadius: 'var(--radius-lg)',
-            boxShadow: 'var(--shadow-md)',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-          }}
-        >
-          <span>✨ {newTxAlert}</span>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('transactions')
-              setNewTxAlert(null)
-            }}
-            style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-              color: 'var(--color-accent-text)',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              padding: 0,
-            }}
-          >
-            Lihat Transaksi
-          </button>
-        </div>
-      ) : null}
-      {/* Segmented Tab Control — clean, mirip referensi */}
-      <nav
-        aria-label="Pilihan tampilan dashboard"
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Sticky Top Header (FINANCE. + Toggle/Avatar + Segmented Tabs) */}
+      <div
+        ref={headerContainerRef}
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          backgroundColor: 'var(--color-surface)',
-          padding: '4px',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--color-border)',
-          gap: '4px',
+          position: 'sticky',
+          top: 0,
+          zIndex: 35,
+          backgroundColor: 'var(--color-bg)',
+          paddingTop: 'calc(var(--space-4) + env(safe-area-inset-top, 0px))',
+          paddingBottom: 'var(--space-3)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-3)',
         }}
       >
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id
-          return (
+        {header}
+
+        {/* Notifikasi Transaksi Baru Masuk */}
+        {newTxAlert ? (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 'var(--space-2) var(--space-4)',
+              backgroundColor: 'var(--color-accent)',
+              color: 'var(--color-accent-text)',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: 'var(--shadow-md)',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+            }}
+          >
+            <span>✨ {newTxAlert}</span>
             <button
-              key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab('transactions')
+                setNewTxAlert(null)
+              }}
               style={{
-                minHeight: '40px',
-                borderRadius: 'calc(var(--radius-xl) - 4px)',
+                backgroundColor: 'transparent',
                 border: 'none',
-                backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
-                color: isActive ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
-                fontSize: '0.82rem',
-                fontWeight: isActive ? 700 : 500,
+                color: 'var(--color-accent-text)',
+                fontSize: '0.74rem',
+                fontWeight: 700,
                 cursor: 'pointer',
-                transition: 'all var(--duration-fast) var(--ease-default)',
-                fontFamily: 'inherit',
-                letterSpacing: isActive ? '-0.01em' : '0',
+                textDecoration: 'underline',
+                padding: 0,
               }}
             >
-              {tab.label}
+              Lihat Transaksi
             </button>
-          )
-        })}
-      </nav>
+          </div>
+        ) : null}
+
+        {/* Segmented Tab Control — clean, mirip referensi */}
+        <nav
+          aria-label="Pilihan tampilan dashboard"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            backgroundColor: 'var(--color-surface)',
+            padding: '4px',
+            borderRadius: 'var(--radius-xl)',
+            border: '1px solid var(--color-border)',
+            gap: '4px',
+          }}
+        >
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  minHeight: '40px',
+                  borderRadius: 'calc(var(--radius-xl) - 4px)',
+                  border: 'none',
+                  backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
+                  color: isActive ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
+                  fontSize: '0.82rem',
+                  fontWeight: isActive ? 700 : 500,
+                  cursor: 'pointer',
+                  transition: 'all var(--duration-fast) var(--ease-default)',
+                  fontFamily: 'inherit',
+                  letterSpacing: isActive ? '-0.01em' : '0',
+                }}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
+        </nav>
+      </div>
+
+      {banner ? <div style={{ margin: 'var(--space-2) 0 var(--space-4) 0' }}>{banner}</div> : null}
 
       {/* Tab: Ringkasan */}
       {activeTab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingTop: 'var(--space-1)' }}>
           {/* Sync status & refresh */}
           <div
             style={{
@@ -311,12 +354,15 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
           onNavigateToAdd={() => setActiveTab('add')}
+          stickyOffset={stickyOffset}
         />
       )}
 
       {/* Tab: Catat */}
       {activeTab === 'add' && (
-        <ManualEntryCard onSuccess={() => setActiveTab('transactions')} />
+        <div style={{ paddingTop: 'var(--space-2)' }}>
+          <ManualEntryCard onSuccess={() => setActiveTab('transactions')} />
+        </div>
       )}
     </div>
   )
