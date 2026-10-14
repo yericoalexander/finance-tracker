@@ -67,9 +67,38 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
     }))
   }, [data.mtdTotal, data.txCount, data.categoryBreakdown, currentMonthPrefix])
 
+  const refreshMonthSummary = async (month: string) => {
+    if (month === currentMonthPrefix) return
+    try {
+      const res = await getMonthSummaryAction(month)
+      if (res.ok && res.data) {
+        setMonthCache((prev) => ({
+          ...prev,
+          [month]: {
+            total: res.data!.total,
+            txCount: res.data!.txCount,
+            categoryBreakdown: res.data!.categoryBreakdown,
+          },
+        }))
+      }
+    } catch (err) {
+      console.warn('[Dashboard] Gagal memuat data bulan:', err)
+    }
+  }
+
+  // Sinkronisasi data bulan terpilih saat ada transaksi baru yang masuk
+  useEffect(() => {
+    if (selectedMonth !== currentMonthPrefix) {
+      void refreshMonthSummary(selectedMonth)
+    }
+  }, [data.recentTransactions, selectedMonth, currentMonthPrefix])
+
   const handleMonthChange = async (newMonth: string) => {
     setSelectedMonth(newMonth)
-    if (monthCache[newMonth]) return
+    if (monthCache[newMonth]) {
+      void refreshMonthSummary(newMonth)
+      return
+    }
 
     setIsMonthLoading(true)
     try {
@@ -126,45 +155,74 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
     return () => ro.disconnect()
   }, [])
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true)
     router.refresh()
-    setTimeout(() => setIsRefreshing(false), 600)
+    if (selectedMonth !== currentMonthPrefix) {
+      await refreshMonthSummary(selectedMonth)
+    }
+    setTimeout(() => setIsRefreshing(false), 500)
   }
 
-  // Auto-refresh hemat daya saat aplikasi dibuka kembali (di-throttle agar ringan di ponsel)
+  // Auto-refresh pintar & realtime:
+  // 1. Langsung refresh saat kembali ke aplikasi (window focus / visibilitychange)
+  // 2. Fast burst di +1.5s dan +3.5s untuk menangkap transaksi yang baru selesai diekstrak AI
+  // 3. Polling aktif setiap 4 detik saat tab terbuka dan terlihat
+  // 4. Nol konsumsi daya saat layar mati / tab di background
   useEffect(() => {
     let lastRefresh = 0
 
     const triggerRefresh = () => {
       const now = Date.now()
-      if (now - lastRefresh < 4000) return
+      if (now - lastRefresh < 2000) return
       lastRefresh = now
       router.refresh()
-    }
-
-    const handleRevalidate = () => {
-      if (document.visibilityState === 'visible') {
-        triggerRefresh()
+      if (selectedMonth !== currentMonthPrefix) {
+        void refreshMonthSummary(selectedMonth)
       }
     }
 
-    document.addEventListener('visibilitychange', handleRevalidate)
-    window.addEventListener('focus', triggerRefresh)
+    const handleFocusOrVisible = () => {
+      if (document.visibilityState === 'visible') {
+        triggerRefresh()
+        const t1 = setTimeout(triggerRefresh, 1500)
+        const t2 = setTimeout(triggerRefresh, 3500)
+        return () => {
+          clearTimeout(t1)
+          clearTimeout(t2)
+        }
+      }
+    }
 
-    // Polling berkala yang ramah baterai (25 detik) saat layar aktif
+    let cancelBurst: (() => void) | undefined
+
+    const onVisibilityChange = () => {
+      cancelBurst?.()
+      cancelBurst = handleFocusOrVisible()
+    }
+
+    const onFocus = () => {
+      cancelBurst?.()
+      cancelBurst = handleFocusOrVisible()
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('focus', onFocus)
+
+    // Polling aktif 4 detik hanya saat layar aktif
     const intervalTimer = setInterval(() => {
       if (document.visibilityState === 'visible') {
         triggerRefresh()
       }
-    }, 25000)
+    }, 4000)
 
     return () => {
-      document.removeEventListener('visibilitychange', handleRevalidate)
-      window.removeEventListener('focus', triggerRefresh)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('focus', onFocus)
       clearInterval(intervalTimer)
+      cancelBurst?.()
     }
-  }, [router])
+  }, [router, selectedMonth, currentMonthPrefix])
 
   // Deteksi transaksi baru yang baru saja masuk
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { createHash } from 'crypto'
 import { and, eq } from 'drizzle-orm'
+import { revalidatePath } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
 
 import { formatRupiah } from '@/lib/ai/currency'
@@ -41,14 +42,15 @@ async function syncToGoogleSheets(
   captureId: string,
   extraction: TransactionExtraction,
 ) {
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-    columns: { sheetId: true },
-  })
-
-  const tokenRecord = await db.query.googleTokens.findFirst({
-    where: eq(googleTokens.userId, userId),
-  })
+  const [user, tokenRecord] = await Promise.all([
+    db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { sheetId: true },
+    }),
+    db.query.googleTokens.findFirst({
+      where: eq(googleTokens.userId, userId),
+    }),
+  ])
 
   if (!tokenRecord) {
     throw new Error('GOOGLE_AUTH_MISSING')
@@ -218,6 +220,8 @@ export async function POST(request: NextRequest) {
       txDate: extraction.date,
     })
 
+    revalidatePath('/dashboard')
+
     return NextResponse.json({
       status: 'needs_review',
       merchant: extraction.merchant,
@@ -246,6 +250,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: 'failed', message: 'Gagal menyimpan transaksi ke database' })
   }
 
+  // Invalidate server cache seketika agar dashboard langsung menampilkan transaksi baru
+  revalidatePath('/dashboard')
+
   // Tulis ke Google Sheets
   try {
     await syncToGoogleSheets(device.userId, newCapture.id, extraction)
@@ -253,6 +260,8 @@ export async function POST(request: NextRequest) {
       .update(captures)
       .set({ sheetRowId: newCapture.id })
       .where(eq(captures.id, newCapture.id))
+
+    revalidatePath('/dashboard')
 
     return NextResponse.json({
       status: 'ok',
@@ -272,6 +281,8 @@ export async function POST(request: NextRequest) {
         errorCode: isGoogleAuthError ? 'GOOGLE_AUTH_EXPIRED' : 'SHEETS_SYNC_ERROR',
       })
       .where(eq(captures.id, newCapture.id))
+
+    revalidatePath('/dashboard')
 
     if (isGoogleAuthError) {
       return NextResponse.json({

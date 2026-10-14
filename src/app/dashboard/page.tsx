@@ -2,6 +2,9 @@ import { eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 
 import { auth, signOut } from '@/auth'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import { DashboardHeader } from '@/features/dashboard/dashboard-header'
 import { DashboardView } from '@/features/dashboard/dashboard-view'
 import { getDashboardData } from '@/features/dashboard/actions'

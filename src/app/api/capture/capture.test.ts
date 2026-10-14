@@ -3,6 +3,10 @@ import { createHash } from 'crypto'
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+}))
+
 const mockDeviceFindFirst = vi.fn()
 const mockCaptureFindFirst = vi.fn()
 const mockUserFindFirst = vi.fn()
