@@ -557,7 +557,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   📱 Pasang di Layar Utama (Add to Home Screen)
                 </p>
                 <p style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', margin: '4px 0 0 0', lineHeight: 1.5 }}>
-                  Buka di Safari iPhone $\rightarrow$ tekan tombol Share $\rightarrow$ pilih &quot;Tambah ke Layar Utama&quot; untuk pengalaman aplikasi native.
+                  Buka di Safari iPhone → tekan tombol Share → pilih &quot;Tambah ke Layar Utama&quot; untuk pengalaman aplikasi native.
                 </p>
               </div>
             </div>
