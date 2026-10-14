@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FileSpreadsheet, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
+import { FileSpreadsheet, ArrowDownLeft } from 'lucide-react'
 
 import { formatRupiah } from '@/lib/ai/currency'
 
@@ -18,7 +18,6 @@ interface SummaryCardsProps {
 export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) {
   const [viewMode, setViewMode] = useState<'total' | 'daily'>('total')
 
-
   const now = new Date()
   const dayOfMonth = now.getDate()
   const currentMonthName = new Intl.DateTimeFormat('id-ID', {
@@ -32,169 +31,142 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
 
   return (
     <section aria-label="Ringkasan keuangan">
-      {/* 2-column card grid mirip referensi */}
+      {/* Hero Card: Pengeluaran Utama */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 'var(--space-3)',
+          backgroundColor: 'var(--color-surface)',
+          borderRadius: 'var(--radius-xl)',
+          padding: 'var(--space-5)',
+          border: '1px solid var(--color-border)',
+          boxShadow: 'var(--shadow-sm)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-4)',
           marginBottom: 'var(--space-3)',
         }}
       >
-        {/* Kartu Pengeluaran */}
+        {/* Baris Atas: Label & Badge + Toggle Mode Total / Harian */}
         <div
           style={{
-            backgroundColor: 'var(--color-surface)',
-            borderRadius: 'var(--radius-xl)',
-            padding: 'var(--space-4)',
-            border: '1px solid var(--color-border)',
             display: 'flex',
-            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             gap: 'var(--space-2)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
               style={{
-                width: '28px',
-                height: '28px',
+                width: '32px',
+                height: '32px',
                 borderRadius: 'var(--radius-md)',
                 backgroundColor: 'var(--color-expense-bg)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
-              <ArrowDownLeft size={14} color="var(--color-expense)" />
+              <ArrowDownLeft size={16} color="var(--color-expense)" />
+            </div>
+            <div>
+              <p
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: 'var(--color-text-muted)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  margin: 0,
+                }}
+              >
+                {viewMode === 'total' ? 'Pengeluaran Bulan Ini' : 'Rata-rata Pengeluaran'}
+              </p>
             </div>
           </div>
-          <div>
-            <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-              ↓ Pengeluaran
-            </p>
-            <p
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: 800,
-                color: 'var(--color-text)',
-                fontVariantNumeric: 'tabular-nums',
-                letterSpacing: '-0.03em',
-                lineHeight: 1.2,
-              }}
-            >
-              {formatRupiah(displayedAmount)}
-            </p>
-            <p
-              suppressHydrationWarning
-              style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '2px' }}
-            >
-              {currentMonthName}
-            </p>
+
+          {/* Toggle Total / Harian */}
+          <div
+            style={{
+              display: 'inline-flex',
+              padding: '2px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-border)',
+              gap: '2px',
+            }}
+          >
+            {(['total', 'daily'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setViewMode(mode)}
+                style={{
+                  padding: '4px 12px',
+                  minHeight: '28px',
+                  fontSize: '0.75rem',
+                  fontWeight: viewMode === mode ? 700 : 500,
+                  color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
+                  backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
+                  borderRadius: 'calc(var(--radius-md) - 2px)',
+                  border: 'none',
+                  boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all var(--duration-fast) var(--ease-default)',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {mode === 'total' ? 'Total' : '/ Hari'}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Kartu Pemasukan — placeholder (data belum tersedia, tampilkan Rp0) */}
+        {/* Nilai Utama */}
+        <div>
+          <div
+            style={{
+              fontSize: '2.1rem',
+              fontWeight: 800,
+              color: 'var(--color-text)',
+              fontVariantNumeric: 'tabular-nums',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.15,
+            }}
+          >
+            {formatRupiah(displayedAmount)}
+          </div>
+          <p
+            suppressHydrationWarning
+            style={{
+              fontSize: '0.8rem',
+              color: 'var(--color-text-muted)',
+              marginTop: '6px',
+              margin: '6px 0 0 0',
+            }}
+          >
+            {viewMode === 'total'
+              ? `${currentMonthName} · rata-rata ${formatRupiah(dailyAverage)} / hari`
+              : `Berdasarkan ${dayOfMonth} hari di ${currentMonthName}`}
+          </p>
+        </div>
+
+        {/* Divider & Ringkasan Transaksi */}
         <div
           style={{
-            backgroundColor: 'var(--color-surface)',
-            borderRadius: 'var(--radius-xl)',
-            padding: 'var(--space-4)',
-            border: '1px solid var(--color-border)',
+            borderTop: '1px solid var(--color-border-subtle)',
+            paddingTop: 'var(--space-3)',
             display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-2)',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.78rem',
+            color: 'var(--color-text-muted)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div
-              style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-income-bg)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <ArrowUpRight size={14} color="var(--color-income)" />
-            </div>
-          </div>
-          <div>
-            <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-              ↑ Pemasukan
-            </p>
-            <p
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: 800,
-                color: 'var(--color-text)',
-                fontVariantNumeric: 'tabular-nums',
-                letterSpacing: '-0.03em',
-                lineHeight: 1.2,
-              }}
-            >
-              {formatRupiah(0)}
-            </p>
-            <p
-              suppressHydrationWarning
-              style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '2px' }}
-            >
-              {currentMonthName}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Baris konteks: jumlah transaksi + toggle total/harian */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--color-border)',
-          padding: 'var(--space-3) var(--space-4)',
-        }}
-      >
-        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-          {txCount} transaksi tercatat
-        </span>
-
-        <div
-          style={{
-            display: 'inline-flex',
-            padding: '2px',
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'var(--color-surface-raised)',
-            border: '1px solid var(--color-border)',
-            gap: '2px',
-          }}
-        >
-          {(['total', 'daily'] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => setViewMode(mode)}
-              style={{
-                padding: '3px 10px',
-                minHeight: '28px',
-                fontSize: '0.72rem',
-                fontWeight: viewMode === mode ? 700 : 500,
-                color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
-                backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
-                borderRadius: 'calc(var(--radius-md) - 2px)',
-                border: 'none',
-                boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
-                cursor: 'pointer',
-                transition: 'all var(--duration-fast) var(--ease-default)',
-                fontFamily: 'inherit',
-              }}
-            >
-              {mode === 'total' ? 'Total' : '/ Hari'}
-            </button>
-          ))}
+          <span>{txCount} transaksi tercatat</span>
+          <span style={{ fontWeight: 500, color: 'var(--color-text-subtle)' }}>
+            Expense Tracker Otomatis
+          </span>
         </div>
       </div>
 
