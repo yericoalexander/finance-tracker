@@ -28,11 +28,14 @@ const nextConfig: NextConfig = {
         source: '/manifest.json',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
       },
-      // Dashboard: selalu fresh karena data real-time
+      // Dashboard: selalu fresh karena data real-time & bersihkan cache browser
       {
         source: '/dashboard',
         headers: [
-          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+          { key: 'Clear-Site-Data', value: '"cache"' },
         ],
       },
     ]
