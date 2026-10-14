@@ -19,10 +19,27 @@ async function authenticateDevice(authHeader: string | null) {
     return { ok: false, error: 'Token perangkat tidak ditemukan' } as const
   }
 
-  const token = authHeader.slice(7).trim()
+  let token = authHeader.slice(7).trim()
   if (!token) {
     return { ok: false, error: 'Token perangkat kosong' } as const
   }
+
+  // Tangani kemungkinan token tersimpan sebagai JSON dari setup Shortcut
+  if (token.startsWith('{') && token.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(token) as Record<string, unknown>
+      if (typeof parsed.token === 'string') {
+        token = parsed.token.trim()
+      } else if (typeof parsed.deviceToken === 'string') {
+        token = parsed.deviceToken.trim()
+      }
+    } catch {
+      // Abaikan error parse, gunakan string apa adanya
+    }
+  }
+
+  // Bersihkan tanda kutip yang mungkin tersimpan secara tidak sengaja
+  token = token.replace(/^["']|["']$/g, '').trim()
 
   const tokenHash = createHash('sha256').update(token).digest('hex')
   const device = await db.query.devices.findFirst({

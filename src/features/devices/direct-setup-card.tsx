@@ -26,13 +26,8 @@ interface SetupResult {
 const ICLOUD_SHORTCUT_URL = 'https://www.icloud.com/shortcuts/4d6a9040bd104b02b91f2a198b0d8bef'
 const SHORTCUT_NAME = 'Finance Tracker'
 
-function buildShortcutsUrl(endpoint: string, token: string): string {
-  const payload = JSON.stringify({
-    action: 'setup',
-    endpoint,
-    token,
-  })
-  return `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}&input=text&text=${encodeURIComponent(payload)}`
+function buildShortcutsUrl(token: string): string {
+  return `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}&input=text&text=${encodeURIComponent(token)}`
 }
 
 export function DirectSetupCard({ userName }: DirectSetupCardProps) {
@@ -64,7 +59,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
 
       // Token berhasil dibuat
       const endpoint = `${window.location.origin}/api/capture`
-      const shortcutsUrl = buildShortcutsUrl(endpoint, res.deviceToken)
+      const shortcutsUrl = buildShortcutsUrl(res.deviceToken)
 
       setResult({
         token: res.deviceToken,

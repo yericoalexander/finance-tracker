@@ -135,6 +135,39 @@ describe('POST /api/capture', () => {
     expect(json.message).toContain('akses telah dicabut')
   })
 
+  it('berhasil memvalidasi token jika terbungkus JSON payload dari shortcut setup', async () => {
+    mockDeviceFindFirst.mockResolvedValueOnce({
+      id: 'dev-1',
+      userId: 'user-1',
+      tokenHash: validTokenHash,
+      revokedAt: null,
+    })
+
+    const jsonWrappedToken = JSON.stringify({ action: 'setup', token: validToken })
+    const req = createMultipartRequest(jsonWrappedToken, Buffer.from('bukan-gambar'))
+    const res = await POST(req)
+    // Lewat auth perangkat (status 400 karena buffer bukan gambar, bukan 401)
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.message).toContain('Format gambar')
+  })
+
+  it('berhasil memvalidasi token jika memiliki kutip ganda atau tunggal', async () => {
+    mockDeviceFindFirst.mockResolvedValueOnce({
+      id: 'dev-1',
+      userId: 'user-1',
+      tokenHash: validTokenHash,
+      revokedAt: null,
+    })
+
+    const quotedToken = `"${validToken}"`
+    const req = createMultipartRequest(quotedToken, Buffer.from('bukan-gambar'))
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.message).toContain('Format gambar')
+  })
+
   it('mengembalikan status 400 jika field image kosong atau format bukan gambar valid', async () => {
     mockDeviceFindFirst.mockResolvedValueOnce({
       id: 'dev-1',
