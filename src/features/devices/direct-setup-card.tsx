@@ -9,6 +9,7 @@ import {
   RotateCcw,
   ShieldCheck,
   Smartphone,
+  Sparkles,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -24,24 +25,25 @@ interface SetupResult {
   endpoint: string
 }
 
-function buildShortcutsUrl(endpoint: string, token: string, shortcutName: string): string {
+const ICLOUD_SHORTCUT_URL = 'https://www.icloud.com/shortcuts/829aa46d8e254e1683b528945e1749c9'
+const SHORTCUT_NAME = 'Finance Tracker'
+
+function buildShortcutsUrl(endpoint: string, token: string): string {
   const payload = JSON.stringify({
     action: 'setup',
     endpoint,
     token,
   })
-  const trimmedName = shortcutName.trim() || 'Finance Tracker'
-  return `shortcuts://run-shortcut?name=${encodeURIComponent(trimmedName)}&input=text&text=${encodeURIComponent(payload)}`
+  return `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}&input=text&text=${encodeURIComponent(payload)}`
 }
 
 export function DirectSetupCard({ userName }: DirectSetupCardProps) {
   const defaultLabel = `iPhone ${userName?.split(' ')[0] ?? 'Saya'}`
   const [deviceLabel, setDeviceLabel] = useState(defaultLabel)
-  const [shortcutName, setShortcutName] = useState('Finance Tracker')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<SetupResult | null>(null)
-  const [copiedType, setCopiedType] = useState<'url' | 'token' | 'endpoint' | null>(null)
+  const [copiedType, setCopiedType] = useState<'token' | 'endpoint' | null>(null)
   const [showManualDetails, setShowManualDetails] = useState(false)
 
   async function handleDirectSetup() {
@@ -55,7 +57,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
       }
 
       const endpoint = `${window.location.origin}/api/capture`
-      const shortcutsUrl = buildShortcutsUrl(endpoint, res.deviceToken, shortcutName)
+      const shortcutsUrl = buildShortcutsUrl(endpoint, res.deviceToken)
 
       setResult({
         token: res.deviceToken,
@@ -63,8 +65,8 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
         endpoint,
       })
 
-      // Otomatis buka aplikasi Pintasan di iPhone
-      window.location.href = shortcutsUrl
+      // Langsung buka link resmi iCloud untuk menambahkan pintasan Finance Tracker di iPhone
+      window.open(ICLOUD_SHORTCUT_URL, '_blank')
     } catch {
       setError('Terjadi kendala jaringan saat menghubungkan')
     } finally {
@@ -72,18 +74,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
     }
   }
 
-  function handleSwitchShortcutName(newName: string) {
-    setShortcutName(newName)
-    if (result) {
-      const updatedUrl = buildShortcutsUrl(result.endpoint, result.token, newName)
-      setResult({
-        ...result,
-        shortcutsUrl: updatedUrl,
-      })
-    }
-  }
-
-  function handleCopy(text: string, type: 'url' | 'token' | 'endpoint') {
+  function handleCopy(text: string, type: 'token' | 'endpoint') {
     navigator.clipboard.writeText(text)
     setCopiedType(type)
     setTimeout(() => setCopiedType(null), 2000)
@@ -123,51 +114,6 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
 
       {!result ? (
         <>
-          {/* Banner Tambahkan Pintasan jika belum ada */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: 'var(--space-3) var(--space-4)',
-              backgroundColor: 'var(--color-surface-raised)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--color-border)',
-              gap: 'var(--space-2)',
-            }}
-          >
-            <div>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: '0.84rem', color: 'var(--color-text)' }}>
-                Belum Punya Pintasannya?
-              </p>
-              <p style={{ margin: '2px 0 0 0', fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
-                Pasang sekali ke iPhone via iCloud resmi Apple.
-              </p>
-            </div>
-            <a
-              href="https://www.icloud.com/shortcuts/829aa46d8e254e1683b528945e1749c9"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-accent)',
-                color: 'var(--color-accent-text)',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                textDecoration: 'none',
-                minHeight: '44px',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <span>+ Pasang Pintasan</span>
-              <ExternalLink size={13} />
-            </a>
-          </div>
-
           <p
             style={{
               fontSize: '0.84rem',
@@ -176,51 +122,8 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               margin: 0,
             }}
           >
-            Pasang koneksi langsung ke aplikasi Pintasan iPhone tanpa perlu mengetik atau menyalin kode
-            secara manual.
+            Pasang pintasan <strong>Finance Tracker</strong> langsung ke iPhone Anda dengan 1 kali klik.
           </p>
-
-          {/* Pilihan Nama Pintasan di iPhone */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-            <label
-              htmlFor="shortcut-name-select"
-              style={{
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                color: 'var(--color-text-muted)',
-              }}
-            >
-              Nama Pintasan di iPhone Anda
-            </label>
-            <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-              {(['Finance Tracker', 'Catat Pengeluaran'] as const).map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => setShortcutName(name)}
-                  style={{
-                    padding: 'var(--space-2) var(--space-3)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor:
-                      shortcutName === name ? 'var(--color-accent)' : 'var(--color-surface-raised)',
-                    color:
-                      shortcutName === name ? 'var(--color-accent-text)' : 'var(--color-text)',
-                    fontSize: '0.82rem',
-                    fontWeight: shortcutName === name ? 700 : 500,
-                    cursor: 'pointer',
-                    minHeight: '44px',
-                    transition: 'all var(--duration-fast)',
-                  }}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
-            <p style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', margin: 0 }}>
-              💡 Samakan dengan nama pintasan di aplikasi Shortcuts iPhone kamu.
-            </p>
-          </div>
 
           {/* Nama Perangkat */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
@@ -269,8 +172,8 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             <ShieldCheck size={18} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
               <strong style={{ color: 'var(--color-text)' }}>Izin Pemilik Akun:</strong> Dengan menekan
-              tombol di bawah, Anda mengizinkan pintasan di perangkat ini untuk mengakses akun dan mencatat
-              pengeluaran secara otomatis ke Google Sheets Anda.
+              tombol di bawah, pintasan <em>Finance Tracker</em> akan terpasang di iPhone Anda dan diizinkan
+              mencatat struk otomatis ke Google Sheets pribadi Anda.
             </div>
           </div>
 
@@ -284,7 +187,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             type="button"
             onClick={handleDirectSetup}
             disabled={loading}
-            aria-label="Izinkan dan hubungkan iPhone ini"
+            aria-label="Pasang dan hubungkan pintasan ke iPhone"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -297,19 +200,20 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               color: 'var(--color-accent-text)',
               border: 'none',
               borderRadius: 'var(--radius-md)',
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: '0.92rem',
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.7 : 1,
               transition: 'opacity var(--duration-fast)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             {loading ? (
               <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
             ) : (
-              <ExternalLink size={18} />
+              <Sparkles size={18} />
             )}
-            <span>{loading ? 'Menghubungkan...' : `Izinkan & Buka "${shortcutName}" (1-Klik)`}</span>
+            <span>{loading ? 'Menghubungkan...' : 'Pasang & Hubungkan Pintasan (1-Klik)'}</span>
           </button>
         </>
       ) : (
@@ -333,75 +237,6 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             <span>Pintasan Telah Dikirim ke iPhone!</span>
           </div>
 
-          {/* Pilihan Nama Pintasan Saat Ini */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-2)',
-              padding: 'var(--space-3)',
-              backgroundColor: 'var(--color-surface-raised)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-            }}
-          >
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-              Target Nama Pintasan di iPhone Anda:
-            </span>
-            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-              {(['Finance Tracker', 'Catat Pengeluaran'] as const).map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => handleSwitchShortcutName(name)}
-                  style={{
-                    flex: 1,
-                    minHeight: '44px',
-                    padding: 'var(--space-2)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor:
-                      shortcutName === name ? 'var(--color-accent)' : 'var(--color-surface)',
-                    color:
-                      shortcutName === name ? 'var(--color-accent-text)' : 'var(--color-text)',
-                    fontSize: '0.82rem',
-                    fontWeight: shortcutName === name ? 700 : 500,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
-            <p style={{ fontSize: '0.73rem', color: 'var(--color-text-muted)', margin: 0 }}>
-              ⚠️ Jika muncul <em>&quot;Could not find the shortcut&quot;</em>, pilih nama yang sesuai dengan
-              kotak pintasan di iPhone kamu, atau pasang pintasannya terlebih dahulu:
-            </p>
-            <a
-              href="https://www.icloud.com/shortcuts/829aa46d8e254e1683b528945e1749c9"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: 'var(--space-2)',
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-accent)',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-                minHeight: '40px',
-              }}
-            >
-              <span>+ Pasang Pintasan &quot;Finance Tracker&quot; via iCloud</span>
-              <ExternalLink size={14} />
-            </a>
-          </div>
-
           {/* PERINGATAN KRUSIAL: Selalu Izinkan */}
           <div
             style={{
@@ -417,53 +252,36 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
               <Info size={18} style={{ color: 'var(--color-accent)' }} />
               <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
-                Langkah Wajib di Layar iPhone:
+                Langkah di Layar iPhone:
               </strong>
             </div>
-            <p
+            <ol
               style={{
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 color: 'var(--color-text-muted)',
                 lineHeight: 1.5,
                 margin: 0,
+                paddingLeft: 'var(--space-4)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
               }}
             >
-              Saat Pintasan berjalan di iPhone, iOS akan memunculkan dialog keamanan:
-            </p>
-            <div
-              style={{
-                padding: 'var(--space-2) var(--space-3)',
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px dashed var(--color-border)',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                color: 'var(--color-text)',
-                textAlign: 'center',
-              }}
-            >
-              «Izinkan &quot;{shortcutName}&quot; untuk terhubung?»
-              <br />
-              👉 <span style={{ color: 'var(--color-accent)' }}>Pilih: Selalu Izinkan (Always Allow)</span>
-            </div>
-            <p
-              style={{
-                fontSize: '0.76rem',
-                color: 'var(--color-text-muted)',
-                lineHeight: 1.4,
-                margin: 0,
-              }}
-            >
-              Izin ini hanya muncul sekali agar iPhone dapat mengirim tangkapan layar otomatis ke sistem
-              keuangan Anda.
-            </p>
+              <li>
+                Ketuk tombol biru <strong>&quot;Tambahkan Pintasan&quot; (Add Shortcut)</strong> di layar iPhone.
+              </li>
+              <li>
+                Saat pertama kali dijalankan, iPhone akan memunculkan izin koneksi:{' '}
+                <strong style={{ color: 'var(--color-accent)' }}>Pilih: Selalu Izinkan (Always Allow)</strong>.
+              </li>
+            </ol>
           </div>
 
-          {/* Tombol Aksi Buka Ulang & Salin Link */}
+          {/* Tombol Aksi Buka Ulang */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
             <a
               href={result.shortcutsUrl}
-              aria-label={`Buka di aplikasi Pintasan (${shortcutName})`}
+              aria-label="Buka aplikasi Pintasan"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -480,32 +298,8 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               }}
             >
               <ExternalLink size={16} />
-              <span>Buka Pintasan &quot;{shortcutName}&quot;</span>
+              <span>Buka di Aplikasi Pintasan</span>
             </a>
-
-            <button
-              type="button"
-              onClick={() => handleCopy(result.shortcutsUrl, 'url')}
-              aria-label="Salin tautan pintasan"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 'var(--space-2)',
-                minHeight: '44px',
-                width: '100%',
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                fontWeight: 500,
-                fontSize: '0.84rem',
-                cursor: 'pointer',
-              }}
-            >
-              {copiedType === 'url' ? <Check size={16} /> : <Copy size={16} />}
-              <span>{copiedType === 'url' ? 'Tautan Tersalin!' : 'Salin Tautan Pintasan'}</span>
-            </button>
           </div>
 
           {/* Toggle Detail Manual */}

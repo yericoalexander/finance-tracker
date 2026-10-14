@@ -168,7 +168,7 @@ export function ShortcutGuideCard() {
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
               Buka <strong>Pengaturan iPhone</strong> → <strong>Aksesibilitas</strong> →{' '}
               <strong>Sentuh</strong> → <strong>Ketuk Bagian Belakang</strong> → Pilih{' '}
-              <strong>Catat Pengeluaran</strong> pada Ketuk Dua Kali.
+              <strong>Finance Tracker</strong> pada Ketuk Dua Kali.
             </p>
           </div>
         </div>
@@ -222,7 +222,7 @@ export function ShortcutGuideCard() {
             }}
           >
             <p style={{ margin: 0, fontWeight: 600, color: 'var(--color-text)' }}>
-              Alur Pintasan &quot;Catat Pengeluaran&quot;:
+              Alur Pintasan &quot;Finance Tracker&quot;:
             </p>
             <ol style={{ margin: 0, paddingLeft: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <li>
