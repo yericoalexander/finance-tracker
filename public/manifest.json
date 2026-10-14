@@ -4,8 +4,8 @@
   "description": "Catat pengeluaran dari screenshot iPhone ke Google Sheets",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0d131f",
-  "theme_color": "#0d131f",
+  "background_color": "#f7f7f5",
+  "theme_color": "#f7f7f5",
   "orientation": "portrait",
   "icons": [
     {
