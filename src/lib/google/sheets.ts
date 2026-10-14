@@ -1,6 +1,9 @@
-import { google } from 'googleapis'
-
 import { buildOAuth2Client } from './auth'
+
+async function getSheetsClient(auth: ReturnType<typeof buildOAuth2Client>) {
+  const { google } = await import('googleapis')
+  return google.sheets({ version: 'v4', auth })
+}
 
 export type SheetStep =
   | 'create spreadsheet'
@@ -334,7 +337,7 @@ export async function ensureSpreadsheet(
   if (existingSheetId) return existingSheetId
 
   const auth = buildOAuth2Client(refreshToken)
-  const sheetsClient = google.sheets({ version: 'v4', auth })
+  const sheetsClient = await getSheetsClient(auth)
 
   let spreadsheetId: string
 
@@ -654,7 +657,7 @@ export async function formatSpreadsheet(
   spreadsheetId: string,
 ): Promise<void> {
   const auth = buildOAuth2Client(refreshToken)
-  const sheetsClient = google.sheets({ version: 'v4', auth })
+  const sheetsClient = await getSheetsClient(auth)
 
   try {
     const meta = await sheetsClient.spreadsheets.get({ spreadsheetId })
@@ -711,7 +714,7 @@ export async function appendTransactionRow(
   data: TransactionRowData,
 ): Promise<void> {
   const auth = buildOAuth2Client(refreshToken)
-  const sheetsClient = google.sheets({ version: 'v4', auth })
+  const sheetsClient = await getSheetsClient(auth)
 
   const rowValues = [
     data.date,
@@ -781,7 +784,7 @@ export async function refreshSummarySheet(
   spreadsheetId: string,
 ): Promise<void> {
   const auth = buildOAuth2Client(refreshToken)
-  const sheetsClient = google.sheets({ version: 'v4', auth })
+  const sheetsClient = await getSheetsClient(auth)
 
   // Hapus isi lama agar tidak ada residu formula usang
   await sheetsClient.spreadsheets.values.clear({

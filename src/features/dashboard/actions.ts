@@ -141,6 +141,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
           sql`${captures.txDate} IS NOT NULL`,
         ),
       )
+      .limit(12)
       .catch(() => []),
   ])
 

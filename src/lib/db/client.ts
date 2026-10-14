@@ -14,19 +14,16 @@ const connectionString = rawUrl.includes('pooler.supabase.com:5432')
   ? rawUrl.replace(':5432', ':6543')
   : rawUrl
 
-// Singleton pada globalThis agar Hot Module Reloading di Next.js tidak membuat koneksi baru berulang kali
-const client =
-  globalThis._postgresClient ??
-  postgres(connectionString, {
+// Singleton pada globalThis agar koneksi DB tetap hangat (warm) dan tidak membuat koneksi baru
+// baik di environment development (HMR) maupun serverless production (Vercel)
+if (!globalThis._postgresClient) {
+  globalThis._postgresClient = postgres(connectionString, {
     ssl: 'require',
     prepare: false, // Wajib untuk Supabase Transaction Pooler (port 6543)
-    max: 1, // 1 koneksi dengan native pipelining — mencegah burst TLS handshake & error limit koneksi Supabase
+    max: 5, // Izinkan hingga 5 koneksi konkuren agar query paralel dashboard tidak antre
     idle_timeout: 20,
     connect_timeout: 10,
   })
-
-if (process.env.NODE_ENV !== 'production') {
-  globalThis._postgresClient = client
 }
 
-export const db = drizzle(client, { schema })
+export const db = drizzle(globalThis._postgresClient, { schema })

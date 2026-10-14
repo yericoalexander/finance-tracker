@@ -165,16 +165,17 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
   }
 
   // Auto-refresh pintar & realtime:
-  // 1. Langsung refresh saat kembali ke aplikasi (window focus / visibilitychange)
-  // 2. Fast burst di +1.5s dan +3.5s untuk menangkap transaksi yang baru selesai diekstrak AI
-  // 3. Polling aktif setiap 4 detik saat tab terbuka dan terlihat
+  // 1. Data awal dari server sudah 100% segar (tidak ada refresh ganda saat buka aplikasi)
+  // 2. Langsung refresh saat kembali ke aplikasi dari Back Tap / Shortcut (visibilitychange)
+  // 3. Polling tenang setiap 12 detik saat aplikasi dibiarkan terbuka
   // 4. Nol konsumsi daya saat layar mati / tab di background
   useEffect(() => {
-    let lastRefresh = 0
+    // Inisialisasi dengan timestamp saat ini agar tidak memicu refresh ganda saat baru dimount
+    let lastRefresh = Date.now()
 
     const triggerRefresh = () => {
       const now = Date.now()
-      if (now - lastRefresh < 2000) return
+      if (now - lastRefresh < 3000) return
       lastRefresh = now
       router.refresh()
       if (selectedMonth !== currentMonthPrefix) {
@@ -182,45 +183,39 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
       }
     }
 
-    const handleFocusOrVisible = () => {
+    const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        triggerRefresh()
-        const t1 = setTimeout(triggerRefresh, 1500)
-        const t2 = setTimeout(triggerRefresh, 3500)
-        return () => {
-          clearTimeout(t1)
-          clearTimeout(t2)
+        const now = Date.now()
+        // Hanya refresh jika sudah lebih dari 4 detik sejak refresh terakhir
+        if (now - lastRefresh >= 4000) {
+          triggerRefresh()
+          // Fast follow-up 2.5s untuk menangkap transaksi yang baru selesai diekstrak Gemini AI
+          const t = setTimeout(triggerRefresh, 2500)
+          return () => clearTimeout(t)
         }
       }
     }
 
-    let cancelBurst: (() => void) | undefined
+    let cancelFollowUp: (() => void) | undefined
 
     const onVisibilityChange = () => {
-      cancelBurst?.()
-      cancelBurst = handleFocusOrVisible()
-    }
-
-    const onFocus = () => {
-      cancelBurst?.()
-      cancelBurst = handleFocusOrVisible()
+      cancelFollowUp?.()
+      cancelFollowUp = handleVisibilityChange()
     }
 
     document.addEventListener('visibilitychange', onVisibilityChange)
-    window.addEventListener('focus', onFocus)
 
-    // Polling aktif 4 detik hanya saat layar aktif
+    // Polling aktif 12 detik saat tab terbuka dan terlihat
     const intervalTimer = setInterval(() => {
       if (document.visibilityState === 'visible') {
         triggerRefresh()
       }
-    }, 4000)
+    }, 12000)
 
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
-      window.removeEventListener('focus', onFocus)
       clearInterval(intervalTimer)
-      cancelBurst?.()
+      cancelFollowUp?.()
     }
   }, [router, selectedMonth, currentMonthPrefix])
 

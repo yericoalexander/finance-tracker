@@ -13,6 +13,10 @@ export const authConfig: NextAuthConfig = {
         nextUrl.pathname.startsWith('/pair')
       const isAuthPath = nextUrl.pathname.startsWith('/login')
 
+      if (nextUrl.pathname === '/') {
+        return Response.redirect(new URL(isLoggedIn ? '/dashboard' : '/login', nextUrl))
+      }
+
       if (isProtected && !isLoggedIn) {
         return false
       }

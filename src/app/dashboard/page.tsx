@@ -24,14 +24,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const { user } = session
   const params = await searchParams
 
+  // Gunakan sheetId dari sesi JWT jika sudah ada untuk menghindari query database tambahan
   const [dbUser, dashboardData] = await Promise.all([
-    db.query.users.findFirst({
-      where: eq(users.id, user.id),
-      columns: { sheetId: true },
-    }),
+    user.sheetId
+      ? Promise.resolve(null)
+      : db.query.users.findFirst({
+          where: eq(users.id, user.id),
+          columns: { sheetId: true },
+        }),
     getDashboardData(user.id),
   ])
-  const currentSheetId = dbUser?.sheetId ?? user.sheetId
+  const currentSheetId = user.sheetId ?? dbUser?.sheetId ?? null
 
   // Jika belum ada perangkat iPhone terhubung, wajibkan setup terlebih dahulu
   if (!dashboardData.activeDevice && params.skip !== 'true') {
