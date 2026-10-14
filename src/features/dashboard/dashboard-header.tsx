@@ -456,7 +456,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
               onClick={() => setActiveModal(null)}
               style={{
                 width: '100%',
-                minHeight: '42px',
+                minHeight: '44px',
                 borderRadius: 'var(--radius-md)',
                 border: 'none',
                 backgroundColor: 'var(--color-accent)',
@@ -557,7 +557,9 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   📱 Pasang di Layar Utama (Add to Home Screen)
                 </p>
                 <p style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', margin: '4px 0 0 0', lineHeight: 1.5 }}>
-                  Buka di Safari iPhone → tekan tombol Share → pilih &quot;Tambah ke Layar Utama&quot; untuk pengalaman aplikasi native.
+                  1. Buka website ini di Safari iPhone.<br />
+                  2. Ketuk ikon Bagikan (Share).<br />
+                  3. Pilih &quot;Tambah ke Layar Utama&quot; (Add to Home Screen).
                 </p>
               </div>
             </div>
@@ -567,7 +569,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
               onClick={() => setActiveModal(null)}
               style={{
                 width: '100%',
-                minHeight: '42px',
+                minHeight: '44px',
                 borderRadius: 'var(--radius-md)',
                 border: 'none',
                 backgroundColor: 'var(--color-accent)',
@@ -674,7 +676,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   type="submit"
                   style={{
                     width: '100%',
-                    minHeight: '42px',
+                    minHeight: '44px',
                     borderRadius: 'var(--radius-md)',
                     border: 'none',
                     backgroundColor: 'var(--color-accent)',
