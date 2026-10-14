@@ -233,6 +233,26 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             </button>
           </div>
 
+          {/* Pengingat Penting: Atur Back Tap */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 'var(--space-3)',
+              padding: 'var(--space-3) var(--space-4)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-accent)',
+            }}
+          >
+            <Smartphone size={20} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+              <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '2px' }}>
+                💡 Jangan Lupa: Atur Back Tap di iPhone
+              </strong>
+              Buka <strong>Pengaturan</strong> &gt; <strong>Aksesibilitas</strong> &gt; <strong>Sentuh</strong> &gt; <strong>Ketuk Bagian Belakang</strong> &gt; pilih <strong>Finance Tracker</strong> pada Ketuk 2x.
+            </div>
+          </div>
+
           {/* Tombol Lanjut ke Dashboard */}
           <button
             type="button"
