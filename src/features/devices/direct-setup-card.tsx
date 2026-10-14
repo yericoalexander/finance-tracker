@@ -3,7 +3,6 @@
 import {
   Check,
   Copy,
-  ExternalLink,
   Info,
   Loader2,
   RotateCcw,
@@ -54,6 +53,14 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
       if (!res.ok || !res.deviceToken) {
         setError(res.error ?? 'Gagal membuat akses perangkat')
         return
+      }
+
+      // Otomatis salin token pribadi ke clipboard pengguna
+      try {
+        await navigator.clipboard.writeText(res.deviceToken)
+        setCopiedType('token')
+      } catch {
+        // Fallback jika browser membatasi izin clipboard
       }
 
       const endpoint = `${window.location.origin}/api/capture`
@@ -173,8 +180,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             <ShieldCheck size={18} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
               <strong style={{ color: 'var(--color-text)' }}>Izin Pemilik Akun:</strong> Dengan menekan
-              tombol di bawah, pintasan <em>Finance Tracker</em> akan terpasang di iPhone Anda dan diizinkan
-              mencatat struk otomatis ke Google Sheets pribadi Anda.
+              tombol di bawah, pintasan <em>Finance Tracker</em> akan terhubung secara privat ke Google Sheets pribadi Anda.
             </div>
           </div>
 
@@ -236,10 +242,76 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             }}
           >
             <Check size={18} style={{ color: 'var(--color-accent)' }} />
-            <span>Pintasan Telah Dikirim ke iPhone!</span>
+            <span>Pintasan Dibuka di Layar iPhone!</span>
           </div>
 
-          {/* PERINGATAN KRUSIAL: Selalu Izinkan */}
+          {/* Kartu Token Pribadi — Kunci Isolasi Akun */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-2)',
+              padding: 'var(--space-4)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <strong style={{ fontSize: '0.86rem', color: 'var(--color-text)' }}>
+                🔑 Token Pribadi Anda
+              </strong>
+              <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                Khusus akun Anda
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+              <input
+                readOnly
+                value={result.token}
+                style={{
+                  flex: 1,
+                  minHeight: '40px',
+                  padding: '0 var(--space-3)',
+                  fontSize: '0.78rem',
+                  fontFamily: 'monospace',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  color: 'var(--color-text)',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => handleCopy(result.token, 'token')}
+                style={{
+                  minHeight: '40px',
+                  padding: '0 var(--space-3)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  border: 'none',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {copiedType === 'token' ? <Check size={14} /> : <Copy size={14} />}
+                <span>{copiedType === 'token' ? 'Tersalin!' : 'Salin'}</span>
+              </button>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+              {copiedType === 'token'
+                ? '✅ Token sudah otomatis disalin ke papan klip!'
+                : 'Salin token ini untuk menghubungkan iPhone Anda secara privat.'}
+            </p>
+          </div>
+
+          {/* Langkah Jelas di iPhone */}
           <div
             style={{
               display: 'flex',
@@ -259,49 +331,29 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             </div>
             <ol
               style={{
-                fontSize: '0.8rem',
-                color: 'var(--color-text-muted)',
+                fontSize: '0.82rem',
+                color: 'var(--color-text)',
                 lineHeight: 1.5,
                 margin: 0,
                 paddingLeft: 'var(--space-4)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '4px',
+                gap: '6px',
               }}
             >
               <li>
-                Ketuk tombol biru <strong>&quot;Tambahkan Pintasan&quot; (Add Shortcut)</strong> di layar iPhone.
+                Ketuk tombol biru <strong>&quot;Tambahkan Pintasan&quot;</strong> di iPhone.
               </li>
               <li>
-                Saat pertama kali dijalankan, iPhone akan memunculkan izin koneksi:{' '}
-                <strong style={{ color: 'var(--color-accent)' }}>Pilih: Selalu Izinkan (Always Allow)</strong>.
+                Buka aplikasi <strong>Pintasan</strong> di iPhone → ketuk titik tiga <code>...</code> pada <strong>Finance Tracker</strong> → di bagian <em>Headers Authorization</em>, pastikan terisi <strong>Token Pribadi Anda</strong> di atas.
+              </li>
+              <li>
+                Saat pertama kali scan struk, pilih <strong>Selalu Izinkan (Always Allow)</strong>.
               </li>
             </ol>
-          </div>
-
-          {/* Tombol Aksi Buka Ulang */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-            <a
-              href={result.shortcutsUrl}
-              aria-label="Buka aplikasi Pintasan"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 'var(--space-2)',
-                minHeight: '44px',
-                width: '100%',
-                backgroundColor: 'var(--color-accent)',
-                color: 'var(--color-accent-text)',
-                textDecoration: 'none',
-                borderRadius: 'var(--radius-md)',
-                fontWeight: 600,
-                fontSize: '0.88rem',
-              }}
-            >
-              <ExternalLink size={16} />
-              <span>Buka di Aplikasi Pintasan</span>
-            </a>
+            <p style={{ margin: 'var(--space-1) 0 0 0', fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
+              🔒 Transaksi Anda dijamin 100% hanya masuk ke Google Sheets pribadi akun Anda.
+            </p>
           </div>
 
           {/* Toggle Detail Manual */}
