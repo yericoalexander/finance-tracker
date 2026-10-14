@@ -21,7 +21,7 @@ interface RecentTransactionsProps {
   onNavigateToAdd?: () => void
 }
 
-type DateFilterMode = 'all' | 'today' | 'month' | 'custom'
+type DateFilterMode = 'all' | 'today' | 'custom'
 type DateCustomMode = 'single' | 'range'
 
 function formatDateLabel(dateStr: string): string {
@@ -67,7 +67,6 @@ export function RecentTransactions({
   const [showDatePicker, setShowDatePicker] = useState(false)
 
   const todayStr = useMemo(() => getTodayJakartaString(), [])
-  const currentMonthPrefix = todayStr.slice(0, 7)
 
   // Tanggal unik dari riwayat transaksi (terbaru ke terlama)
   const availableDates = useMemo(() => {
@@ -85,9 +84,6 @@ export function RecentTransactions({
       const dateVal = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
       if (dateFilter === 'today') {
         return dateVal === todayStr
-      }
-      if (dateFilter === 'month') {
-        return dateVal.startsWith(currentMonthPrefix)
       }
       if (dateFilter === 'custom') {
         if (customMode === 'single') {
@@ -110,7 +106,7 @@ export function RecentTransactions({
       }
       return true
     })
-  }, [transactions, dateFilter, customMode, customDate, startDate, endDate, todayStr, currentMonthPrefix])
+  }, [transactions, dateFilter, customMode, customDate, startDate, endDate, todayStr])
 
   // 2. Kategori yang tersedia pada periode terpilih
   const categoriesInPeriod = useMemo(() => {
@@ -355,7 +351,6 @@ export function RecentTransactions({
           [
             { id: 'all' as const, label: 'Semua Waktu' },
             { id: 'today' as const, label: 'Hari Ini' },
-            { id: 'month' as const, label: 'Bulan Ini' },
           ] as const
         ).map((item) => {
           const isSelected = dateFilter === item.id
