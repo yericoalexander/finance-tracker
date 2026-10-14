@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Calendar,
   RotateCcw,
@@ -102,6 +103,11 @@ export function RecentTransactions({
   const [startDate, setStartDate] = useState<string>('')
   const [endDate, setEndDate] = useState<string>('')
   const [filterModalOpen, setFilterModalOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Draft filter states inside modal
   const [draftQuickDate, setDraftQuickDate] = useState<QuickDateOption>('all')
@@ -858,8 +864,8 @@ export function RecentTransactions({
         </div>
       )}
 
-      {/* Modal / Bottom Drawer Filter (Identik dengan referensi) */}
-      {filterModalOpen && (
+      {/* Modal / Bottom Drawer Filter (Portaled ke document.body agar fix ke layar) */}
+      {mounted && filterModalOpen && createPortal(
         <div
           className="animate-fade-in"
           style={{
@@ -870,7 +876,7 @@ export function RecentTransactions({
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',
-            zIndex: 60,
+            zIndex: 9999,
           }}
           onClick={() => setFilterModalOpen(false)}
         >
@@ -1205,7 +1211,8 @@ export function RecentTransactions({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   )
