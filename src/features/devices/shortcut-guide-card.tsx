@@ -64,11 +64,10 @@ export function ShortcutGuideCard() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
-              Beri Nama Pintasan &quot;Catat Pengeluaran&quot;
+              Beri Nama Pintasan &quot;Finance Tracker&quot; atau &quot;Catat Pengeluaran&quot;
             </p>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Pastikan nama pintasan di aplikasi <strong>Pintasan (Shortcuts)</strong> iPhone Anda adalah{' '}
-              <strong style={{ color: 'var(--color-text)' }}>Catat Pengeluaran</strong>.
+              Pastikan nama pintasan di aplikasi <strong>Pintasan (Shortcuts)</strong> iPhone Anda cocok dengan nama yang Anda pilih di atas (contoh: <strong style={{ color: 'var(--color-text)' }}>Finance Tracker</strong>).
             </p>
           </div>
         </div>

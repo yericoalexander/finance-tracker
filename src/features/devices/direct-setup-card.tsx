@@ -24,18 +24,20 @@ interface SetupResult {
   endpoint: string
 }
 
-function buildShortcutsUrl(endpoint: string, token: string): string {
+function buildShortcutsUrl(endpoint: string, token: string, shortcutName: string): string {
   const payload = JSON.stringify({
     action: 'setup',
     endpoint,
     token,
   })
-  return `shortcuts://run-shortcut?name=${encodeURIComponent('Catat Pengeluaran')}&input=text&text=${encodeURIComponent(payload)}`
+  const trimmedName = shortcutName.trim() || 'Finance Tracker'
+  return `shortcuts://run-shortcut?name=${encodeURIComponent(trimmedName)}&input=text&text=${encodeURIComponent(payload)}`
 }
 
 export function DirectSetupCard({ userName }: DirectSetupCardProps) {
   const defaultLabel = `iPhone ${userName?.split(' ')[0] ?? 'Saya'}`
   const [deviceLabel, setDeviceLabel] = useState(defaultLabel)
+  const [shortcutName, setShortcutName] = useState('Finance Tracker')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<SetupResult | null>(null)
@@ -53,7 +55,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
       }
 
       const endpoint = `${window.location.origin}/api/capture`
-      const shortcutsUrl = buildShortcutsUrl(endpoint, res.deviceToken)
+      const shortcutsUrl = buildShortcutsUrl(endpoint, res.deviceToken, shortcutName)
 
       setResult({
         token: res.deviceToken,
@@ -67,6 +69,17 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
       setError('Terjadi kendala jaringan saat menghubungkan')
     } finally {
       setLoading(false)
+    }
+  }
+
+  function handleSwitchShortcutName(newName: string) {
+    setShortcutName(newName)
+    if (result) {
+      const updatedUrl = buildShortcutsUrl(result.endpoint, result.token, newName)
+      setResult({
+        ...result,
+        shortcutsUrl: updatedUrl,
+      })
     }
   }
 
@@ -122,6 +135,49 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             secara manual.
           </p>
 
+          {/* Pilihan Nama Pintasan di iPhone */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <label
+              htmlFor="shortcut-name-select"
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              Nama Pintasan di iPhone Anda
+            </label>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+              {(['Finance Tracker', 'Catat Pengeluaran'] as const).map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setShortcutName(name)}
+                  style={{
+                    padding: 'var(--space-2) var(--space-3)',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor:
+                      shortcutName === name ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+                    color:
+                      shortcutName === name ? 'var(--color-accent-text)' : 'var(--color-text)',
+                    fontSize: '0.82rem',
+                    fontWeight: shortcutName === name ? 700 : 500,
+                    cursor: 'pointer',
+                    minHeight: '44px',
+                    transition: 'all var(--duration-fast)',
+                  }}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+            <p style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', margin: 0 }}>
+              💡 Samakan dengan nama pintasan di aplikasi Shortcuts iPhone kamu.
+            </p>
+          </div>
+
+          {/* Nama Perangkat */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
             <label
               htmlFor="device-label-input"
@@ -131,7 +187,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
                 color: 'var(--color-text-muted)',
               }}
             >
-              Nama Perangkat
+              Label Perangkat
             </label>
             <input
               id="device-label-input"
@@ -208,7 +264,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             ) : (
               <ExternalLink size={18} />
             )}
-            <span>{loading ? 'Menghubungkan...' : 'Izinkan & Buka di Pintasan (1-Klik)'}</span>
+            <span>{loading ? 'Menghubungkan...' : `Izinkan & Buka "${shortcutName}" (1-Klik)`}</span>
           </button>
         </>
       ) : (
@@ -230,6 +286,52 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
           >
             <Check size={18} style={{ color: 'var(--color-accent)' }} />
             <span>Pintasan Telah Dikirim ke iPhone!</span>
+          </div>
+
+          {/* Pilihan Nama Pintasan Saat Ini */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-2)',
+              padding: 'var(--space-3)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+              Target Nama Pintasan di iPhone Anda:
+            </span>
+            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+              {(['Finance Tracker', 'Catat Pengeluaran'] as const).map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => handleSwitchShortcutName(name)}
+                  style={{
+                    flex: 1,
+                    minHeight: '44px',
+                    padding: 'var(--space-2)',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor:
+                      shortcutName === name ? 'var(--color-accent)' : 'var(--color-surface)',
+                    color:
+                      shortcutName === name ? 'var(--color-accent-text)' : 'var(--color-text)',
+                    fontSize: '0.82rem',
+                    fontWeight: shortcutName === name ? 700 : 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+            <p style={{ fontSize: '0.73rem', color: 'var(--color-text-muted)', margin: 0 }}>
+              ⚠️ Jika muncul <em>&quot;Could not find the shortcut&quot;</em>, pilih nama yang sesuai dengan
+              kotak pintasan di aplikasi Shortcuts iPhone kamu.
+            </p>
           </div>
 
           {/* PERINGATAN KRUSIAL: Selalu Izinkan */}
@@ -272,7 +374,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
                 textAlign: 'center',
               }}
             >
-              «Izinkan &quot;Catat Pengeluaran&quot; untuk terhubung?»
+              «Izinkan &quot;{shortcutName}&quot; untuk terhubung?»
               <br />
               👉 <span style={{ color: 'var(--color-accent)' }}>Pilih: Selalu Izinkan (Always Allow)</span>
             </div>
@@ -293,7 +395,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
             <a
               href={result.shortcutsUrl}
-              aria-label="Buka ulang di aplikasi Pintasan"
+              aria-label={`Buka di aplikasi Pintasan (${shortcutName})`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -310,7 +412,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               }}
             >
               <ExternalLink size={16} />
-              <span>Buka Ulang di Pintasan</span>
+              <span>Buka Pintasan &quot;{shortcutName}&quot;</span>
             </a>
 
             <button
