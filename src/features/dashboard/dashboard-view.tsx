@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Smartphone, RefreshCw } from 'lucide-react'
+import { RefreshCw, Receipt } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CategoryBreakdown } from './category-breakdown'
@@ -213,34 +213,32 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
             activeDevice={data.activeDevice}
           />
 
-          <CategoryBreakdown
-            categories={data.categoryBreakdown}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            onViewCategoryInTransactions={handleCategoryJump}
-          />
-
-          {/* Card Transaksi — style seperti referensi */}
-          <a
-            href="/pair"
+          {/* Card Transaksi — Identik dengan referensi Image 1 */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('transactions')}
+            aria-label="Lihat semua transaksi"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 'var(--space-3)',
               minHeight: '64px',
-              padding: 'var(--space-3) var(--space-3)',
+              padding: 'var(--space-3) var(--space-4)',
               backgroundColor: 'var(--color-surface-raised)',
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-xl)',
-              textDecoration: 'none',
-              transition: 'opacity var(--duration-fast)',
+              cursor: 'pointer',
+              textAlign: 'left',
+              width: '100%',
+              fontFamily: 'inherit',
+              transition: 'opacity var(--duration-fast), transform var(--duration-fast)',
             }}
           >
             {/* Ikon kiri */}
             <div
               style={{
-                width: '44px',
-                height: '44px',
+                width: '40px',
+                height: '40px',
                 borderRadius: 'var(--radius-lg)',
                 backgroundColor: 'var(--color-surface)',
                 display: 'flex',
@@ -250,14 +248,14 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
                 border: '1px solid var(--color-border)',
               }}
             >
-              <Smartphone size={20} color="var(--color-text-muted)" />
+              <Receipt size={18} color="var(--color-text-muted)" />
             </div>
 
             {/* Teks tengah */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <p
                 style={{
-                  fontSize: '0.9rem',
+                  fontSize: '0.88rem',
                   fontWeight: 700,
                   color: 'var(--color-text)',
                   margin: 0,
@@ -268,10 +266,9 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
               </p>
               <p
                 style={{
-                  fontSize: '0.76rem',
+                  fontSize: '0.74rem',
                   color: 'var(--color-text-muted)',
-                  margin: 0,
-                  marginTop: '2px',
+                  margin: '2px 0 0 0',
                 }}
               >
                 Lihat semua catatan keuangan
@@ -281,8 +278,8 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
             {/* Panah kanan — bulat */}
             <div
               style={{
-                width: '36px',
-                height: '36px',
+                width: '32px',
+                height: '32px',
                 borderRadius: '50%',
                 backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
@@ -290,13 +287,20 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
-                fontSize: '1rem',
+                fontSize: '0.9rem',
                 color: 'var(--color-text)',
               }}
             >
               →
             </div>
-          </a>
+          </button>
+
+          <CategoryBreakdown
+            categories={data.categoryBreakdown}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+            onViewCategoryInTransactions={handleCategoryJump}
+          />
         </div>
       )}
 

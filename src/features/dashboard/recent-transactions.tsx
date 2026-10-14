@@ -1,8 +1,23 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Calendar, Receipt, RotateCcw, Search, X } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import {
+  Calendar,
+  RotateCcw,
+  Search,
+  SlidersHorizontal,
+  X,
+  Utensils,
+  Car,
+  ShoppingBag,
+  Zap,
+  Film,
+  HeartPulse,
+  Tag,
+  Check,
+} from 'lucide-react'
 
+import { CATEGORIES } from '@/lib/ai/types'
 import { formatRupiah } from '@/lib/ai/currency'
 
 interface TransactionItem {
@@ -21,8 +36,7 @@ interface RecentTransactionsProps {
   onNavigateToAdd?: () => void
 }
 
-type DateFilterMode = 'all' | 'today' | 'custom'
-type DateCustomMode = 'single' | 'range'
+type QuickDateOption = 'all' | 'today' | 'yesterday' | '7days' | 'month' | 'range'
 
 function formatDateLabel(dateStr: string): string {
   try {
@@ -39,38 +53,39 @@ function formatDateLabel(dateStr: string): string {
   }
 }
 
-function formatCompactRange(startStr: string, endStr: string): string {
+function getJakartaDateOffset(offsetDays = 0): string {
   try {
-    const [y1, m1, d1] = startStr.split('-').map(Number)
-    const [y2, m2, d2] = endStr.split('-').map(Number)
-    if (!y1 || !m1 || !d1 || !y2 || !m2 || !d2) {
-      return `${formatDateLabel(startStr)} – ${formatDateLabel(endStr)}`
-    }
-    if (y1 === y2 && m1 === m2) {
-      const monthName = new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(new Date(y1, m1 - 1, 1))
-      return `${d1}–${d2} ${monthName} ${y1}`
-    }
-    if (y1 === y2) {
-      const m1Name = new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(new Date(y1, m1 - 1, 1))
-      const m2Name = new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(new Date(y2, m2 - 1, 1))
-      return `${d1} ${m1Name} – ${d2} ${m2Name}`
-    }
-    return `${formatDateLabel(startStr)} – ${formatDateLabel(endStr)}`
-  } catch {
-    return `${formatDateLabel(startStr)} – ${formatDateLabel(endStr)}`
-  }
-}
-
-function getTodayJakartaString(): string {
-  try {
+    const d = new Date()
+    d.setDate(d.getDate() + offsetDays)
     return new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Jakarta',
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
-    }).format(new Date())
+    }).format(d)
   } catch {
-    return new Date().toISOString().slice(0, 10)
+    const d = new Date()
+    d.setDate(d.getDate() + offsetDays)
+    return d.toISOString().slice(0, 10)
+  }
+}
+
+function getCategoryIcon(cat: string | null) {
+  switch (cat) {
+    case 'Makanan & Minuman':
+      return <Utensils size={18} color="var(--color-accent)" />
+    case 'Transportasi':
+      return <Car size={18} color="var(--color-accent)" />
+    case 'Belanja':
+      return <ShoppingBag size={18} color="var(--color-accent)" />
+    case 'Tagihan & Utilitas':
+      return <Zap size={18} color="var(--color-accent)" />
+    case 'Hiburan':
+      return <Film size={18} color="var(--color-accent)" />
+    case 'Kesehatan':
+      return <HeartPulse size={18} color="var(--color-accent)" />
+    default:
+      return <Tag size={18} color="var(--color-accent)" />
   }
 }
 
@@ -81,172 +96,192 @@ export function RecentTransactions({
   onNavigateToAdd,
 }: RecentTransactionsProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [dateFilter, setDateFilter] = useState<DateFilterMode>('all')
-  const [customMode, setCustomMode] = useState<DateCustomMode>('single')
-  const [customDate, setCustomDate] = useState<string>('')
+  const [quickDate, setQuickDate] = useState<QuickDateOption>('all')
   const [startDate, setStartDate] = useState<string>('')
   const [endDate, setEndDate] = useState<string>('')
-  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
 
-  const todayStr = useMemo(() => getTodayJakartaString(), [])
+  // Draft filter states inside modal
+  const [draftQuickDate, setDraftQuickDate] = useState<QuickDateOption>('all')
+  const [draftCategory, setDraftCategory] = useState<string | null>(null)
+  const [draftStartDate, setDraftStartDate] = useState<string>('')
+  const [draftEndDate, setDraftEndDate] = useState<string>('')
 
-  // Tanggal unik dari riwayat transaksi (terbaru ke terlama)
-  const availableDates = useMemo(() => {
-    const dates = new Set<string>()
-    for (const tx of transactions) {
-      const d = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
-      if (d) dates.add(d)
+  // Sync draft states when opening modal
+  const handleOpenFilterModal = () => {
+    setDraftQuickDate(quickDate)
+    setDraftCategory(selectedCategory)
+    setDraftStartDate(startDate)
+    setDraftEndDate(endDate)
+    setFilterModalOpen(true)
+  }
+
+  // Close on escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && filterModalOpen) {
+        setFilterModalOpen(false)
+      }
     }
-    return Array.from(dates).sort().reverse()
-  }, [transactions])
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [filterModalOpen])
 
-  // 1. Filter periode / tanggal tertentu / rentang tanggal
-  const dateFilteredTransactions = useMemo(() => {
+  const todayStr = useMemo(() => getJakartaDateOffset(0), [])
+  const yesterdayStr = useMemo(() => getJakartaDateOffset(-1), [])
+  const sevenDaysAgoStr = useMemo(() => getJakartaDateOffset(-7), [])
+  const currentMonthPrefix = useMemo(() => todayStr.slice(0, 7), [todayStr])
+
+  // Count active filters for badge
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (quickDate !== 'all') count += 1
+    if (selectedCategory !== null) count += 1
+    if (searchQuery.trim() !== '') count += 1
+    return count
+  }, [quickDate, selectedCategory, searchQuery])
+
+  const hasActiveFilters = activeFilterCount > 0
+
+  // Apply filters
+  const filtered = useMemo(() => {
     return transactions.filter((tx) => {
-      const dateVal = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
-      if (dateFilter === 'today') {
-        return dateVal === todayStr
+      // 1. Kategori
+      if (selectedCategory !== null && tx.category !== selectedCategory) {
+        return false
       }
-      if (dateFilter === 'custom') {
-        if (customMode === 'single') {
-          return customDate ? dateVal === customDate : true
-        }
-        if (customMode === 'range') {
-          if (!startDate && !endDate) return true
-          const start = startDate && endDate ? (startDate <= endDate ? startDate : endDate) : startDate
-          const end = startDate && endDate ? (startDate <= endDate ? endDate : startDate) : endDate
-          if (start && end) {
-            return dateVal >= start && dateVal <= end
-          }
-          if (start) {
-            return dateVal >= start
-          }
-          if (end) {
-            return dateVal <= end
-          }
+
+      // 2. Waktu / Tanggal
+      const txDate = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
+
+      if (quickDate === 'today') {
+        if (txDate !== todayStr) return false
+      } else if (quickDate === 'yesterday') {
+        if (txDate !== yesterdayStr) return false
+      } else if (quickDate === '7days') {
+        if (txDate < sevenDaysAgoStr || txDate > todayStr) return false
+      } else if (quickDate === 'month') {
+        if (!txDate.startsWith(currentMonthPrefix)) return false
+      } else if (quickDate === 'range') {
+        if (startDate && endDate) {
+          const s = startDate <= endDate ? startDate : endDate
+          const e = startDate <= endDate ? endDate : startDate
+          if (txDate < s || txDate > e) return false
+        } else if (startDate) {
+          if (txDate < startDate) return false
+        } else if (endDate) {
+          if (txDate > endDate) return false
         }
       }
+
+      // 3. Pencarian Live
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim()
+        const merchantMatch = (tx.merchant ?? '').toLowerCase().includes(query)
+        const categoryMatch = (tx.category ?? '').toLowerCase().includes(query)
+        const dateMatch = (tx.txDate ?? '').includes(query)
+        if (!merchantMatch && !categoryMatch && !dateMatch) {
+          return false
+        }
+      }
+
       return true
     })
-  }, [transactions, dateFilter, customMode, customDate, startDate, endDate, todayStr])
+  }, [
+    transactions,
+    selectedCategory,
+    quickDate,
+    startDate,
+    endDate,
+    searchQuery,
+    todayStr,
+    yesterdayStr,
+    sevenDaysAgoStr,
+    currentMonthPrefix,
+  ])
 
-  // 2. Kategori yang tersedia pada periode terpilih
-  const categoriesInPeriod = useMemo(() => {
-    const map = new Map<string, { count: number; total: number }>()
-    for (const tx of dateFilteredTransactions) {
-      const cat = tx.category || 'Lainnya'
-      const existing = map.get(cat) || { count: 0, total: 0 }
-      map.set(cat, {
-        count: existing.count + 1,
-        total: existing.total + (tx.amountIdr ?? 0),
-      })
+  // Rincian kategori dinamis dari hasil filter
+  const dynamicCategoryBreakdown = useMemo(() => {
+    const totals: Record<string, number> = {}
+    let overallSum = 0
+    for (const tx of filtered) {
+      const cat = tx.category ?? 'Lainnya'
+      const amt = tx.amountIdr ?? 0
+      totals[cat] = (totals[cat] ?? 0) + amt
+      overallSum += amt
     }
-    return Array.from(map.entries()).map(([category, stats]) => ({
-      category,
-      count: stats.count,
-      total: stats.total,
-    }))
-  }, [dateFilteredTransactions])
 
-  // 3. Filter akhir berdasarkan kategori dan query pencarian
-  const filtered = useMemo(() => {
-    return dateFilteredTransactions.filter((tx) => {
-      const matchesCategory =
-        !selectedCategory ||
-        (tx.category && tx.category.toLowerCase() === selectedCategory.toLowerCase())
-
-      const query = searchQuery.trim().toLowerCase()
-      const matchesQuery =
-        !query ||
-        (tx.merchant && tx.merchant.toLowerCase().includes(query)) ||
-        (tx.txDate && tx.txDate.includes(query)) ||
-        (tx.category && tx.category.toLowerCase().includes(query))
-
-      return matchesCategory && matchesQuery
-    })
-  }, [dateFilteredTransactions, selectedCategory, searchQuery])
-
-  const totalFiltered = useMemo(() => {
-    return filtered.reduce((acc, tx) => acc + (tx.amountIdr ?? 0), 0)
+    return Object.entries(totals)
+      .map(([cat, total]) => ({
+        category: cat,
+        total,
+        percentage: overallSum > 0 ? Math.round((total / overallSum) * 100) : 0,
+      }))
+      .sort((a, b) => b.total - a.total)
   }, [filtered])
 
-  const hasActiveFilters = Boolean(
-    searchQuery.trim() !== '' ||
-    selectedCategory !== null ||
-    dateFilter !== 'all' ||
-    customDate !== '' ||
-    startDate !== '' ||
-    endDate !== ''
-  )
+  const totalFilteredAmount = useMemo(() => {
+    return filtered.reduce((sum, tx) => sum + (tx.amountIdr ?? 0), 0)
+  }, [filtered])
 
+  // Reset all filters
   const handleResetFilters = () => {
     setSearchQuery('')
-    setDateFilter('all')
-    setCustomDate('')
+    setQuickDate('all')
     setStartDate('')
     setEndDate('')
     onSelectCategory(null)
-    setShowDatePicker(false)
   }
 
-  const handleSelectCustomDate = (date: string) => {
-    setCustomDate(date)
-    setCustomMode('single')
-    setDateFilter('custom')
+  // Commit filters from modal
+  const handleApplyFilterModal = () => {
+    setQuickDate(draftQuickDate)
+    onSelectCategory(draftCategory)
+    setStartDate(draftStartDate)
+    setEndDate(draftEndDate)
+    setFilterModalOpen(false)
   }
 
-  const handleClearDateFilter = () => {
-    setCustomDate('')
-    setStartDate('')
-    setEndDate('')
-    setDateFilter('all')
-    setShowDatePicker(false)
+  const handleResetFilterModal = () => {
+    setDraftQuickDate('all')
+    setDraftCategory(null)
+    setDraftStartDate('')
+    setDraftEndDate('')
   }
 
-  const handleSwitchCustomMode = (mode: DateCustomMode) => {
-    setCustomMode(mode)
-    setDateFilter('custom')
-    if (mode === 'range' && !startDate && customDate) {
-      setStartDate(customDate)
-    } else if (mode === 'single' && !customDate && startDate) {
-      setCustomDate(startDate)
+  const quickDateLabels: Record<QuickDateOption, string> = {
+    all: 'Semua Waktu',
+    today: 'Hari Ini',
+    yesterday: 'Kemarin',
+    '7days': '7 Hari Terakhir',
+    month: 'Bulan Ini',
+    range: 'Rentang Tanggal',
+  }
+
+  // Cek transaksi baru (< 2 menit lalu)
+  const isRecentNew = (createdAt: Date) => {
+    try {
+      const diffMs = Date.now() - new Date(createdAt).getTime()
+      return diffMs >= 0 && diffMs < 120000
+    } catch {
+      return false
     }
   }
-
-  const dateButtonLabel = useMemo(() => {
-    if (dateFilter !== 'custom') return 'Pilih Tanggal'
-    if (customMode === 'single') {
-      return customDate ? formatDateLabel(customDate) : 'Pilih Tanggal'
-    }
-    if (startDate && endDate) {
-      const start = startDate <= endDate ? startDate : endDate
-      const end = startDate <= endDate ? endDate : startDate
-      return formatCompactRange(start, end)
-    }
-    if (startDate) return `≥ ${formatDateLabel(startDate)}`
-    if (endDate) return `≤ ${formatDateLabel(endDate)}`
-    return 'Pilih Rentang'
-  }, [dateFilter, customMode, customDate, startDate, endDate])
 
   return (
     <section
-      aria-label="Riwayat transaksi terbaru"
+      aria-label="Semua transaksi"
       style={{
-        backgroundColor: 'var(--color-surface)',
-        borderRadius: 'var(--radius-xl)',
-        padding: 'var(--space-6)',
-        border: '1px solid var(--color-border)',
-        boxShadow: 'var(--shadow-sm)',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-4)',
       }}
     >
-      {/* Header & Reset Button */}
+      {/* Header Bagian: Semua transaksi & Jumlah tercatat — Identik dengan referensi */}
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'baseline',
           justifyContent: 'space-between',
         }}
       >
@@ -257,808 +292,837 @@ export function RecentTransactions({
               fontWeight: 700,
               color: 'var(--color-text)',
               margin: 0,
+              letterSpacing: '-0.01em',
             }}
           >
-            Riwayat Transaksi
+            Semua transaksi
           </h2>
           <p
             style={{
               margin: '2px 0 0 0',
-              fontSize: '0.74rem',
+              fontSize: '0.78rem',
               color: 'var(--color-text-muted)',
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {hasActiveFilters
-              ? `${filtered.length} dari ${transactions.length} transaksi`
-              : `${filtered.length} transaksi`}
+            {transactions.length === 0
+              ? '0 transaksi tercatat'
+              : hasActiveFilters
+                ? `${filtered.length} dari ${transactions.length} transaksi`
+                : `${transactions.length} transaksi tercatat`}
           </p>
         </div>
 
-        {hasActiveFilters ? (
+        {hasActiveFilters && (
           <button
             type="button"
             onClick={handleResetFilters}
-            aria-label="Atur ulang semua filter"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '5px',
-              minHeight: '34px',
-              padding: '4px 12px',
+              gap: '4px',
+              padding: '4px 10px',
               borderRadius: 'var(--radius-full)',
               border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface-raised)',
-              color: 'var(--color-accent)',
-              fontSize: '0.76rem',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-text-muted)',
+              fontSize: '0.74rem',
               fontWeight: 600,
               cursor: 'pointer',
               fontFamily: 'inherit',
-              transition: 'all var(--duration-fast)',
             }}
           >
-            <RotateCcw size={12} />
-            Reset Filter
+            <RotateCcw size={11} />
+            Reset
           </button>
-        ) : null}
+        )}
       </div>
 
-      {/* Input Pencarian Live */}
+      {/* Baris Pencarian & Tombol Filter (Persis seperti referensi Image 1 & 3) */}
       <div
         style={{
-          position: 'relative',
           display: 'flex',
           alignItems: 'center',
-        }}
-      >
-        <Search
-          size={16}
-          color="var(--color-text-muted)"
-          style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }}
-        />
-        <input
-          type="text"
-          placeholder="Cari toko, tanggal, atau kategori..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            minHeight: '44px',
-            paddingLeft: '38px',
-            paddingRight: searchQuery ? '38px' : '14px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-            backgroundColor: 'var(--color-bg)',
-            color: 'var(--color-text)',
-            fontSize: '0.85rem',
-            fontFamily: 'inherit',
-          }}
-        />
-        {searchQuery ? (
-          <button
-            type="button"
-            onClick={() => setSearchQuery('')}
-            aria-label="Hapus pencarian"
-            style={{
-              position: 'absolute',
-              right: '8px',
-              width: '28px',
-              height: '28px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '50%',
-              border: 'none',
-              backgroundColor: 'var(--color-surface-raised)',
-              color: 'var(--color-text-muted)',
-              cursor: 'pointer',
-            }}
-          >
-            <X size={14} />
-          </button>
-        ) : null}
-      </div>
-
-      {/* Button Filter Tanggal & Periode (Web App Style - Full Width Grid) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
           gap: '8px',
           width: '100%',
         }}
       >
-        {(
-          [
-            { id: 'all' as const, label: 'Semua Waktu' },
-            { id: 'today' as const, label: 'Hari Ini' },
-          ] as const
-        ).map((item) => {
-          const isSelected = dateFilter === item.id
-          return (
+        {/* Input Pencarian dengan ikon search */}
+        <div
+          style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            flex: 1,
+          }}
+        >
+          <Search
+            size={16}
+            color="var(--color-text-placeholder)"
+            style={{ position: 'absolute', left: '14px', pointerEvents: 'none' }}
+          />
+          <input
+            type="text"
+            placeholder="Cari transaksi"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              minHeight: '44px',
+              paddingLeft: '38px',
+              paddingRight: searchQuery ? '36px' : '14px',
+              borderRadius: 'var(--radius-xl)',
+              border: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface-raised)',
+              color: 'var(--color-text)',
+              fontSize: '0.84rem',
+              fontFamily: 'inherit',
+              outline: 'none',
+              transition: 'border-color var(--duration-fast)',
+            }}
+          />
+          {searchQuery && (
             <button
-              key={item.id}
               type="button"
-              onClick={() => {
-                setDateFilter(item.id)
-                setShowDatePicker(false)
-              }}
+              onClick={() => setSearchQuery('')}
+              aria-label="Hapus pencarian"
               style={{
-                width: '100%',
-                minHeight: '40px',
-                padding: '0 8px',
-                borderRadius: 'var(--radius-md)',
-                border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
-                backgroundColor: isSelected ? 'var(--color-surface)' : 'var(--color-surface-raised)',
-                color: isSelected ? 'var(--color-text)' : 'var(--color-text-muted)',
-                fontSize: '0.78rem',
-                fontWeight: isSelected ? 600 : 500,
-                cursor: 'pointer',
-                display: 'inline-flex',
+                position: 'absolute',
+                right: '10px',
+                width: '24px',
+                height: '24px',
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                textAlign: 'center',
-                whiteSpace: 'nowrap',
-                transition: 'all var(--duration-fast) var(--ease-default)',
-                fontFamily: 'inherit',
-                boxSizing: 'border-box',
-                boxShadow: isSelected ? 'var(--shadow-sm)' : 'none',
+                borderRadius: '50%',
+                border: 'none',
+                backgroundColor: 'var(--color-border)',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer',
+                padding: 0,
               }}
             >
-              {item.label}
+              <X size={13} />
             </button>
-          )
-        })}
+          )}
+        </div>
 
-        {/* Tombol Filter Tanggal / Rentang Tertentu */}
+        {/* Tombol Filter — Pill Button dengan SlidersHorizontal (Persis Image 3) */}
         <button
           type="button"
-          onClick={() => {
-            if (dateFilter !== 'custom') {
-              setDateFilter('custom')
-              setShowDatePicker(true)
-            } else {
-              setShowDatePicker((prev) => !prev)
-            }
-          }}
+          onClick={handleOpenFilterModal}
+          aria-label="Buka filter transaksi"
           style={{
-            width: '100%',
-            minHeight: '40px',
-            padding: '0 8px',
-            borderRadius: 'var(--radius-md)',
-            border: dateFilter === 'custom' ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
-            backgroundColor: dateFilter === 'custom' ? 'var(--color-surface)' : 'var(--color-surface-raised)',
-            color: dateFilter === 'custom' ? 'var(--color-text)' : 'var(--color-text-muted)',
-            fontSize: '0.78rem',
-            fontWeight: dateFilter === 'custom' ? 600 : 500,
+            minHeight: '44px',
+            padding: '0 16px',
+            borderRadius: 'var(--radius-full)',
+            border: hasActiveFilters ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
+            backgroundColor: hasActiveFilters ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+            color: hasActiveFilters ? 'var(--color-accent-text)' : 'var(--color-text)',
+            fontSize: '0.84rem',
+            fontWeight: 700,
             cursor: 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            gap: '6px',
-            transition: 'all var(--duration-fast) var(--ease-default)',
+            gap: '8px',
             fontFamily: 'inherit',
-            boxSizing: 'border-box',
-            boxShadow: dateFilter === 'custom' ? 'var(--shadow-sm)' : 'none',
-            overflow: 'hidden',
+            flexShrink: 0,
+            transition: 'all var(--duration-fast)',
+            boxShadow: hasActiveFilters ? 'var(--shadow-sm)' : 'none',
           }}
         >
-          <Calendar size={13} style={{ flexShrink: 0 }} />
-          <span
-            style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {dateButtonLabel}
-          </span>
+          <SlidersHorizontal size={15} />
+          <span>Filter</span>
+          {activeFilterCount > 0 && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                backgroundColor: hasActiveFilters ? 'var(--color-accent-text)' : 'var(--color-accent)',
+                color: hasActiveFilters ? 'var(--color-accent)' : 'var(--color-accent-text)',
+                fontSize: '0.68rem',
+                fontWeight: 800,
+              }}
+            >
+              {activeFilterCount}
+            </span>
+          )}
         </button>
       </div>
 
-      {/* Panel Pemilih Tanggal Tertentu & Rentang Tanggal */}
-      {(showDatePicker || dateFilter === 'custom') && (
+      {/* Active Filter Tags Bar (Jika ada filter aktif) */}
+      {hasActiveFilters && (
         <div
+          className="animate-fade-in"
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-3)',
-            padding: 'var(--space-3)',
-            backgroundColor: 'var(--color-surface-raised)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--color-border)',
+            flexWrap: 'wrap',
+            gap: '6px',
+            alignItems: 'center',
           }}
         >
-          {/* Header Panel */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}>
-              Filter Tanggal Transaksi:
-            </span>
-            {customDate || startDate || endDate ? (
+          {quickDate !== 'all' && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: 'var(--color-text)',
+              }}
+            >
+              <Calendar size={11} color="var(--color-text-muted)" />
+              {quickDate === 'range' && startDate && endDate
+                ? `${formatDateLabel(startDate)} – ${formatDateLabel(endDate)}`
+                : quickDateLabels[quickDate]}
               <button
                 type="button"
-                onClick={handleClearDateFilter}
+                onClick={() => setQuickDate('all')}
                 style={{
-                  fontSize: '0.72rem',
-                  color: 'var(--color-accent)',
-                  backgroundColor: 'transparent',
                   border: 'none',
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-muted)',
                   cursor: 'pointer',
-                  fontWeight: 600,
+                  padding: 0,
+                  display: 'flex',
                 }}
               >
-                Hapus filter tanggal
+                <X size={12} />
               </button>
-            ) : null}
-          </div>
-
-          {/* Mode Tab Switcher: Satu Tanggal vs Rentang Tanggal */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '4px',
-              backgroundColor: 'var(--color-bg)',
-              padding: '3px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => handleSwitchCustomMode('single')}
-              style={{
-                flex: 1,
-                minHeight: '32px',
-                borderRadius: 'var(--radius-sm)',
-                border: 'none',
-                backgroundColor: customMode === 'single' ? 'var(--color-surface-raised)' : 'transparent',
-                color: customMode === 'single' ? 'var(--color-text)' : 'var(--color-text-muted)',
-                fontWeight: customMode === 'single' ? 600 : 500,
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                boxShadow: customMode === 'single' ? 'var(--shadow-sm)' : 'none',
-                transition: 'all var(--duration-fast)',
-              }}
-            >
-              Satu Tanggal
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSwitchCustomMode('range')}
-              style={{
-                flex: 1,
-                minHeight: '32px',
-                borderRadius: 'var(--radius-sm)',
-                border: 'none',
-                backgroundColor: customMode === 'range' ? 'var(--color-surface-raised)' : 'transparent',
-                color: customMode === 'range' ? 'var(--color-text)' : 'var(--color-text-muted)',
-                fontWeight: customMode === 'range' ? 600 : 500,
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                boxShadow: customMode === 'range' ? 'var(--shadow-sm)' : 'none',
-                transition: 'all var(--duration-fast)',
-              }}
-            >
-              Rentang Tanggal
-            </button>
-          </div>
-
-          {/* Konten Mode: Satu Tanggal */}
-          {customMode === 'single' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              {availableDates.length > 0 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '6px',
-                    overflowX: 'auto',
-                    paddingBottom: '2px',
-                    scrollbarWidth: 'none',
-                  }}
-                >
-                  {availableDates.map((d) => {
-                    const isDateSelected = dateFilter === 'custom' && customDate === d
-                    return (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => handleSelectCustomDate(d)}
-                        style={{
-                          whiteSpace: 'nowrap',
-                          minHeight: '30px',
-                          padding: '2px 10px',
-                          borderRadius: 'var(--radius-full)',
-                          border: isDateSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                          backgroundColor: isDateSelected ? 'var(--color-accent)' : 'var(--color-surface)',
-                          color: isDateSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
-                          fontSize: '0.72rem',
-                          fontWeight: isDateSelected ? 600 : 500,
-                          cursor: 'pointer',
-                          fontFamily: 'inherit',
-                        }}
-                      >
-                        {formatDateLabel(d)}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <input
-                  type="date"
-                  aria-label="Pilih tanggal transaksi"
-                  value={customDate}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      handleSelectCustomDate(e.target.value)
-                    }
-                  }}
-                  style={{
-                    minHeight: '38px',
-                    padding: '4px 10px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-bg)',
-                    color: 'var(--color-text)',
-                    fontSize: '0.78rem',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                  }}
-                />
-                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-                  atau cari tanggal bebas di kalender
-                </span>
-              </div>
-            </div>
+            </span>
           )}
 
-          {/* Konten Mode: Rentang Tanggal */}
-          {customMode === 'range' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              {/* Quick Range Shortcut bila ada riwayat tanggal */}
-              {availableDates.length >= 2 && availableDates[0] && availableDates[availableDates.length - 1] ? (
-                (() => {
-                  const earliest = availableDates[availableDates.length - 1] as string
-                  const latest = availableDates[0] as string
-                  return (
-                    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStartDate(earliest)
-                          setEndDate(latest)
-                          setDateFilter('custom')
-                        }}
-                        style={{
-                          whiteSpace: 'nowrap',
-                          minHeight: '30px',
-                          padding: '2px 10px',
-                          borderRadius: 'var(--radius-full)',
-                          border: '1px dashed var(--color-accent)',
-                          backgroundColor: 'var(--color-accent-subtle)',
-                          color: 'var(--color-accent)',
-                          fontSize: '0.72rem',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontFamily: 'inherit',
-                        }}
-                      >
-                        Rentang Semua Transaksi ({formatDateLabel(earliest)} – {formatDateLabel(latest)})
-                      </button>
-                    </div>
-                  )
-                })()
-              ) : null}
-
-              {/* Input Rentang: Dari & Sampai Tanggal */}
-              <div
+          {selectedCategory !== null && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: 'var(--color-text)',
+              }}
+            >
+              <Tag size={11} color="var(--color-text-muted)" />
+              {selectedCategory}
+              <button
+                type="button"
+                onClick={() => onSelectCategory(null)}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                  gap: '8px',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-muted)',
+                  cursor: 'pointer',
+                  padding: 0,
+                  display: 'flex',
                 }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label
-                    htmlFor="start-date-input"
-                    style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600 }}
-                  >
-                    Dari Tanggal:
-                  </label>
-                  <input
-                    id="start-date-input"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => {
-                      setStartDate(e.target.value)
-                      setDateFilter('custom')
-                    }}
-                    style={{
-                      minHeight: '38px',
-                      padding: '4px 10px',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-bg)',
-                      color: 'var(--color-text)',
-                      fontSize: '0.8rem',
-                      fontFamily: 'inherit',
-                      cursor: 'pointer',
-                      width: '100%',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
+                <X size={12} />
+              </button>
+            </span>
+          )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label
-                    htmlFor="end-date-input"
-                    style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600 }}
-                  >
-                    Sampai Tanggal:
-                  </label>
-                  <input
-                    id="end-date-input"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => {
-                      setEndDate(e.target.value)
-                      setDateFilter('custom')
-                    }}
-                    style={{
-                      minHeight: '38px',
-                      padding: '4px 10px',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-bg)',
-                      color: 'var(--color-text)',
-                      fontSize: '0.8rem',
-                      fontFamily: 'inherit',
-                      cursor: 'pointer',
-                      width: '100%',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Keterangan Status Rentang */}
-              {startDate && endDate ? (
-                <div
-                  style={{
-                    fontSize: '0.72rem',
-                    color: 'var(--color-accent)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontWeight: 500,
-                  }}
-                >
-                  ✓ Menampilkan {formatDateLabel(startDate <= endDate ? startDate : endDate)} s/d {formatDateLabel(startDate <= endDate ? endDate : startDate)}
-                </div>
-              ) : (
-                <div style={{ fontSize: '0.71rem', color: 'var(--color-text-muted)' }}>
-                  {startDate
-                    ? `Menampilkan transaksi mulai dari ${formatDateLabel(startDate)}`
-                    : endDate
-                    ? `Menampilkan transaksi sampai ${formatDateLabel(endDate)}`
-                    : 'Pilih tanggal awal dan akhir untuk menyaring transaksi.'}
-                </div>
-              )}
-            </div>
+          {searchQuery && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: 'var(--color-text)',
+              }}
+            >
+              &ldquo;{searchQuery}&rdquo;
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                style={{
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-muted)',
+                  cursor: 'pointer',
+                  padding: 0,
+                  display: 'flex',
+                }}
+              >
+                <X size={12} />
+              </button>
+            </span>
           )}
         </div>
       )}
 
-      {/* Chips Filter Kategori (Dinamis sesuai periode terpilih) */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '6px',
-          overflowX: 'auto',
-          paddingBottom: '2px',
-          scrollbarWidth: 'none',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => onSelectCategory(null)}
+      {/* Rincian Kategori Dinamis dari Hasil Filter */}
+      {hasActiveFilters && filtered.length > 0 && dynamicCategoryBreakdown.length > 0 && (
+        <div
+          className="animate-slide-up"
           style={{
-            whiteSpace: 'nowrap',
-            minHeight: '32px',
-            padding: '0 12px',
-            borderRadius: 'var(--radius-full)',
-            border: !selectedCategory ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-            backgroundColor: !selectedCategory ? 'var(--color-accent)' : 'var(--color-surface-raised)',
-            color: !selectedCategory ? 'var(--color-accent-text)' : 'var(--color-text)',
-            fontSize: '0.74rem',
-            fontWeight: !selectedCategory ? 600 : 400,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
+            backgroundColor: 'var(--color-surface)',
+            borderRadius: 'var(--radius-xl)',
+            padding: 'var(--space-4)',
+            border: '1px solid var(--color-border)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-3)',
           }}
         >
-          Semua ({dateFilteredTransactions.length})
-        </button>
-
-        {categoriesInPeriod.map((cat) => {
-          const isSelected = selectedCategory === cat.category
-          return (
-            <button
-              key={cat.category}
-              type="button"
-              onClick={() => onSelectCategory(isSelected ? null : cat.category)}
-              style={{
-                whiteSpace: 'nowrap',
-                minHeight: '32px',
-                padding: '0 12px',
-                borderRadius: 'var(--radius-full)',
-                border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
-                color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
-                fontSize: '0.74rem',
-                fontWeight: isSelected ? 600 : 400,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              {cat.category} ({cat.count})
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Baris Total Terfilter & Badge Status */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 'var(--space-2) var(--space-3)',
-          backgroundColor: 'var(--color-surface-raised)',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--color-border)',
-          gap: '8px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-            {filtered.length} Transaksi Terpilih
-          </span>
-
-          {dateFilter === 'today' && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
+              Rincian Kategori Hasil Filter
+            </p>
             <span
               style={{
-                fontSize: '0.7rem',
-                padding: '1px 6px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-accent-subtle)',
-                color: 'var(--color-accent)',
-                fontWeight: 600,
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                color: 'var(--color-expense)',
+                fontVariantNumeric: 'tabular-nums',
               }}
             >
-              Hari Ini
+              {formatRupiah(totalFilteredAmount)}
             </span>
-          )}
+          </div>
 
-          {dateFilter === 'custom' && (
-            customMode === 'single' && customDate ? (
-              <span
-                style={{
-                  fontSize: '0.7rem',
-                  padding: '1px 6px',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: 'var(--color-accent-subtle)',
-                  color: 'var(--color-accent)',
-                  fontWeight: 600,
-                }}
-              >
-                {formatDateLabel(customDate)}
-              </span>
-            ) : customMode === 'range' && (startDate || endDate) ? (
-              <span
-                style={{
-                  fontSize: '0.7rem',
-                  padding: '1px 6px',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: 'var(--color-accent-subtle)',
-                  color: 'var(--color-accent)',
-                  fontWeight: 600,
-                }}
-              >
-                {startDate && endDate
-                  ? `${formatDateLabel(startDate <= endDate ? startDate : endDate)} – ${formatDateLabel(startDate <= endDate ? endDate : startDate)}`
-                  : startDate
-                  ? `≥ ${formatDateLabel(startDate)}`
-                  : `≤ ${formatDateLabel(endDate)}`}
-              </span>
-            ) : null
-          )}
-
-          {selectedCategory && (
-            <span
-              style={{
-                fontSize: '0.7rem',
-                padding: '1px 6px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-accent-subtle)',
-                color: 'var(--color-accent)',
-                fontWeight: 600,
-              }}
-            >
-              {selectedCategory}
-            </span>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {dynamicCategoryBreakdown.map((cat) => {
+              const isSelected = selectedCategory === cat.category
+              return (
+                <button
+                  key={cat.category}
+                  type="button"
+                  onClick={() => onSelectCategory(isSelected ? null : cat.category)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    width: '100%',
+                    padding: '6px 8px',
+                    borderRadius: 'var(--radius-md)',
+                    border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid transparent',
+                    backgroundColor: isSelected ? 'var(--color-surface-raised)' : 'transparent',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                      {cat.category}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        color: 'var(--color-text)',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      {formatRupiah(cat.total)} ({cat.percentage}%)
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      height: '4px',
+                      borderRadius: 'var(--radius-full)',
+                      backgroundColor: 'var(--color-border-subtle)',
+                      overflow: 'hidden',
+                      width: '100%',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${cat.percentage}%`,
+                        height: '100%',
+                        backgroundColor: 'var(--color-accent)',
+                      }}
+                    />
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
+      )}
 
-        <span
-          style={{
-            fontSize: '0.88rem',
-            fontWeight: 700,
-            color: 'var(--color-text)',
-            fontVariantNumeric: 'tabular-nums',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {formatRupiah(totalFiltered)}
-        </span>
-      </div>
-
-      {/* Daftar Transaksi (HANYA menampilkan transaksi yang cocok dengan filter) */}
+      {/* Daftar Transaksi atau Status Kosong (Persis referensi Image 1) */}
       {filtered.length === 0 ? (
         <div
           style={{
-            padding: 'var(--space-6) 0',
+            padding: 'var(--space-6)',
+            borderRadius: 'var(--radius-xl)',
+            backgroundColor: 'var(--color-surface-raised)',
+            border: '1px solid var(--color-border-subtle)',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: 'var(--space-2)',
-            color: 'var(--color-text-muted)',
           }}
         >
-          <Receipt size={30} strokeWidth={1.5} />
-          <p style={{ margin: 0, fontSize: '0.84rem' }}>
+          <p
+            style={{
+              fontSize: '0.85rem',
+              color: 'var(--color-text-muted)',
+              fontWeight: 500,
+              margin: 0,
+            }}
+          >
             {hasActiveFilters
-              ? 'Tidak ada transaksi yang cocok dengan filter yang dipilih.'
-              : 'Belum ada transaksi tersinkronisasi.'}
+              ? 'Tidak ada transaksi yang cocok dengan filter.'
+              : 'Belum ada transaksi yang tercatat.'}
           </p>
           {hasActiveFilters ? (
             <button
               type="button"
               onClick={handleResetFilters}
               style={{
-                marginTop: 'var(--space-2)',
-                padding: 'var(--space-2) var(--space-4)',
-                minHeight: '44px',
-                borderRadius: 'var(--radius-md)',
+                marginTop: '6px',
+                padding: '6px 14px',
+                borderRadius: 'var(--radius-full)',
                 backgroundColor: 'var(--color-accent)',
                 color: 'var(--color-accent-text)',
                 border: 'none',
-                fontSize: '0.82rem',
-                fontWeight: 600,
+                fontSize: '0.78rem',
+                fontWeight: 700,
                 cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontFamily: 'inherit',
               }}
             >
-              <RotateCcw size={14} />
-              Reset Filter
+              Hapus Filter
             </button>
-          ) : onNavigateToAdd ? (
-            <button
-              type="button"
-              onClick={onNavigateToAdd}
-              style={{
-                marginTop: 'var(--space-2)',
-                padding: 'var(--space-2) var(--space-4)',
-                minHeight: '44px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-accent)',
-                color: 'var(--color-accent-text)',
-                border: 'none',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              Catat Transaksi Pertama
-            </button>
-          ) : null}
+          ) : (
+            onNavigateToAdd && (
+              <button
+                type="button"
+                onClick={onNavigateToAdd}
+                style={{
+                  marginTop: '6px',
+                  padding: '6px 14px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  border: 'none',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                + Tambah Transaksi Pertama
+              </button>
+            )
+          )}
         </div>
       ) : (
-        <ul
+        <div
           style={{
-            listStyle: 'none',
-            padding: 0,
-            margin: 0,
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--space-2)',
+            gap: '8px',
           }}
         >
           {filtered.map((tx) => {
-            const isVeryRecent =
-              tx.createdAt && Date.now() - new Date(tx.createdAt).getTime() < 120000
+            const isNew = isRecentNew(tx.createdAt)
+            const dateStr = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
+
             return (
-              <li
+              <div
                 key={tx.id}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: 'var(--space-3) 0',
-                  borderBottom: '1px solid var(--color-border-subtle)',
+                  gap: 'var(--space-3)',
+                  padding: 'var(--space-3) var(--space-4)',
+                  backgroundColor: 'var(--color-surface)',
+                  borderRadius: 'var(--radius-xl)',
+                  border: isNew ? '1.5px solid var(--color-success)' : '1px solid var(--color-border)',
+                  boxShadow: 'var(--shadow-sm)',
+                  transition: 'background-color var(--duration-fast)',
                 }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
+                {/* Ikon Kategori */}
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: 'var(--radius-lg)',
+                    backgroundColor: 'var(--color-surface-raised)',
+                    border: '1px solid var(--color-border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {getCategoryIcon(tx.category)}
+                </div>
+
+                {/* Nama Toko & Kategori */}
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span
+                    <p
                       style={{
-                        fontSize: '0.9rem',
-                        fontWeight: 600,
+                        fontSize: '0.88rem',
+                        fontWeight: 700,
                         color: 'var(--color-text)',
-                        whiteSpace: 'nowrap',
+                        margin: 0,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      {tx.merchant || 'Transaksi'}
-                    </span>
-                    {isVeryRecent && (
+                      {tx.merchant ?? 'Pengeluaran'}
+                    </p>
+                    {isNew && (
                       <span
                         style={{
-                          fontSize: '0.66rem',
-                          padding: '1px 5px',
-                          borderRadius: 'var(--radius-sm)',
-                          backgroundColor: 'var(--color-success-subtle)',
-                          color: 'var(--color-success)',
-                          fontWeight: 700,
-                          flexShrink: 0,
+                          fontSize: '0.62rem',
+                          fontWeight: 800,
+                          backgroundColor: 'var(--color-success)',
+                          color: '#ffffff',
+                          padding: '1px 6px',
+                          borderRadius: 'var(--radius-full)',
                         }}
                       >
                         Baru
                       </span>
                     )}
                   </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                  <span
+                  <p
                     style={{
                       fontSize: '0.72rem',
-                      padding: '1px 6px',
-                      borderRadius: 'var(--radius-sm)',
-                      backgroundColor: 'var(--color-surface-raised)',
                       color: 'var(--color-text-muted)',
-                      border: '1px solid var(--color-border)',
+                      margin: '2px 0 0 0',
                     }}
                   >
-                    {tx.category || 'Lainnya'}
-                  </span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    {formatDateLabel(tx.txDate || new Date(tx.createdAt).toISOString().slice(0, 10))}
-                  </span>
+                    {tx.category ?? 'Lainnya'} · {formatDateLabel(dateStr)}
+                  </p>
+                </div>
+
+                {/* Nominal */}
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <p
+                    style={{
+                      fontSize: '0.92rem',
+                      fontWeight: 800,
+                      color: 'var(--color-expense)',
+                      fontVariantNumeric: 'tabular-nums',
+                      letterSpacing: '-0.02em',
+                      margin: 0,
+                    }}
+                  >
+                    -{formatRupiah(tx.amountIdr ?? 0)}
+                  </p>
                 </div>
               </div>
+            )
+          })}
+        </div>
+      )}
 
-              <div
+      {/* Modal / Bottom Drawer Filter (Identik dengan referensi) */}
+      {filterModalOpen && (
+        <div
+          className="animate-fade-in"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            zIndex: 60,
+          }}
+          onClick={() => setFilterModalOpen(false)}
+        >
+          <div
+            className="animate-drawer-up"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderTopLeftRadius: 'var(--radius-xl)',
+              borderTopRightRadius: 'var(--radius-xl)',
+              borderTop: '1px solid var(--color-border)',
+              padding: 'var(--space-5)',
+              width: '100%',
+              maxWidth: '430px',
+              maxHeight: '85vh',
+              overflowY: 'auto',
+              boxShadow: 'var(--shadow-lg)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-4)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Modal */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: 'var(--space-2)',
+                borderBottom: '1px solid var(--color-border)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <SlidersHorizontal size={18} color="var(--color-accent)" />
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
+                  Filter Transaksi
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFilterModalOpen(false)}
                 style={{
-                  fontSize: '0.94rem',
-                  fontWeight: 700,
-                  color: 'var(--color-text)',
-                  fontVariantNumeric: 'tabular-nums',
-                  whiteSpace: 'nowrap',
-                  marginLeft: 'var(--space-3)',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-muted)',
+                  cursor: 'pointer',
+                  padding: '4px',
                 }}
               >
-                {formatRupiah(tx.amountIdr ?? 0)}
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Bagian 1: Periode Waktu */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                Periode Waktu
+              </label>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '6px',
+                }}
+              >
+                {(
+                  [
+                    { id: 'all', label: 'Semua Waktu' },
+                    { id: 'today', label: 'Hari Ini' },
+                    { id: 'yesterday', label: 'Kemarin' },
+                    { id: '7days', label: '7 Hari' },
+                    { id: 'month', label: 'Bulan Ini' },
+                    { id: 'range', label: 'Rentang' },
+                  ] as const
+                ).map((opt) => {
+                  const isSelected = draftQuickDate === opt.id
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setDraftQuickDate(opt.id)}
+                      style={{
+                        minHeight: '38px',
+                        padding: '6px 8px',
+                        borderRadius: 'var(--radius-md)',
+                        border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
+                        backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+                        color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
+                        fontSize: '0.78rem',
+                        fontWeight: isSelected ? 700 : 500,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'all var(--duration-fast)',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  )
+                })}
               </div>
-            </li>
-          )
-        })}
-        </ul>
+
+              {/* Input Rentang Tanggal jika opsi 'range' dipilih */}
+              {draftQuickDate === 'range' && (
+                <div
+                  className="animate-fade-in"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '8px',
+                    marginTop: '6px',
+                    padding: 'var(--space-3)',
+                    backgroundColor: 'var(--color-surface-raised)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  <div>
+                    <label style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'block' }}>
+                      Dari Tanggal
+                    </label>
+                    <input
+                      type="date"
+                      value={draftStartDate}
+                      onChange={(e) => setDraftStartDate(e.target.value)}
+                      style={{
+                        width: '100%',
+                        minHeight: '36px',
+                        padding: '4px 6px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text)',
+                        fontSize: '0.78rem',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'block' }}>
+                      Sampai Tanggal
+                    </label>
+                    <input
+                      type="date"
+                      value={draftEndDate}
+                      onChange={(e) => setDraftEndDate(e.target.value)}
+                      style={{
+                        width: '100%',
+                        minHeight: '36px',
+                        padding: '4px 6px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text)',
+                        fontSize: '0.78rem',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Bagian 2: Kategori */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                Kategori
+              </label>
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '6px',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setDraftCategory(null)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 'var(--radius-full)',
+                    border: draftCategory === null ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
+                    backgroundColor: draftCategory === null ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+                    color: draftCategory === null ? 'var(--color-accent-text)' : 'var(--color-text)',
+                    fontSize: '0.76rem',
+                    fontWeight: draftCategory === null ? 700 : 500,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all var(--duration-fast)',
+                  }}
+                >
+                  Semua Kategori
+                </button>
+                {CATEGORIES.map((cat) => {
+                  const isSelected = draftCategory === cat
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setDraftCategory(cat)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 'var(--radius-full)',
+                        border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
+                        backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+                        color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
+                        fontSize: '0.76rem',
+                        fontWeight: isSelected ? 700 : 500,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        transition: 'all var(--duration-fast)',
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Footer Aksi Modal */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '8px',
+                marginTop: 'var(--space-2)',
+                paddingTop: 'var(--space-3)',
+                borderTop: '1px solid var(--color-border)',
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleResetFilterModal}
+                style={{
+                  flex: 1,
+                  minHeight: '44px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'var(--color-surface-raised)',
+                  color: 'var(--color-text)',
+                  fontWeight: 600,
+                  fontSize: '0.84rem',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyFilterModal}
+                style={{
+                  flex: 2,
+                  minHeight: '44px',
+                  borderRadius: 'var(--radius-md)',
+                  border: 'none',
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  fontWeight: 700,
+                  fontSize: '0.84rem',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Check size={16} />
+                Terapkan Filter
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   )
