@@ -56,28 +56,36 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
     setTimeout(() => setIsRefreshing(false), 600)
   }
 
-  // Auto-refresh saat window focus atau tab aktif kembali, serta polling berkala
+  // Auto-refresh hemat daya saat aplikasi dibuka kembali (di-throttle agar ringan di ponsel)
   useEffect(() => {
+    let lastRefresh = 0
+
+    const triggerRefresh = () => {
+      const now = Date.now()
+      if (now - lastRefresh < 4000) return
+      lastRefresh = now
+      router.refresh()
+    }
+
     const handleRevalidate = () => {
       if (document.visibilityState === 'visible') {
-        router.refresh()
+        triggerRefresh()
       }
     }
-    const handleFocus = () => router.refresh()
 
     document.addEventListener('visibilitychange', handleRevalidate)
-    window.addEventListener('focus', handleFocus)
+    window.addEventListener('focus', triggerRefresh)
 
-    // Polling setiap 12 detik saat tab terbuka agar hemat bandwidth & tidak membebani ponsel
+    // Polling berkala yang ramah baterai (25 detik) saat layar aktif
     const intervalTimer = setInterval(() => {
       if (document.visibilityState === 'visible') {
-        router.refresh()
+        triggerRefresh()
       }
-    }, 12000)
+    }, 25000)
 
     return () => {
       document.removeEventListener('visibilitychange', handleRevalidate)
-      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('focus', triggerRefresh)
       clearInterval(intervalTimer)
     }
   }, [router])

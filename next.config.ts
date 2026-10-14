@@ -2,6 +2,8 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
+  compress: true,
   images: {
     remotePatterns: [{ protocol: 'https', hostname: 'lh3.googleusercontent.com' }],
   },
@@ -19,14 +21,14 @@ const nextConfig: NextConfig = {
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         ],
       },
-      // Cache untuk static assets (icons, fonts, images) dengan revalidasi
+      // Cache untuk static assets (icons, fonts, images) dengan revalidasi efisien
       {
         source: '/icons/(.*)',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
         source: '/manifest.json',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
       },
       // Dashboard: selalu fresh data real-time tanpa cache stale
       {
