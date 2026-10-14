@@ -5,15 +5,21 @@ import { auth, signOut } from '@/auth'
 import { DashboardHeader } from '@/features/dashboard/dashboard-header'
 import { DashboardView } from '@/features/dashboard/dashboard-view'
 import { getDashboardData } from '@/features/dashboard/actions'
+import { SetupGate } from '@/features/devices/setup-gate'
 import { RetrySheetCard } from '@/features/sheets/retry-sheet-card'
 import { db } from '@/lib/db/client'
 import { users } from '@/lib/db/schema'
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{ skip?: string }>
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const session = await auth()
   if (!session?.user?.id) redirect('/login')
 
   const { user } = session
+  const params = await searchParams
 
   const [dbUser, dashboardData] = await Promise.all([
     db.query.users.findFirst({
@@ -23,6 +29,30 @@ export default async function DashboardPage() {
     getDashboardData(user.id),
   ])
   const currentSheetId = dbUser?.sheetId ?? user.sheetId
+
+  // Jika belum ada perangkat iPhone terhubung, wajibkan setup terlebih dahulu
+  if (!dashboardData.activeDevice && params.skip !== 'true') {
+    return (
+      <main
+        style={{
+          minHeight: '100svh',
+          backgroundColor: 'var(--color-bg)',
+          paddingLeft: 'var(--space-5)',
+          paddingRight: 'var(--space-5)',
+          maxWidth: '430px',
+          margin: '0 auto',
+        }}
+      >
+        <SetupGate
+          user={user}
+          onSignOut={async () => {
+            'use server'
+            await signOut({ redirectTo: '/login' })
+          }}
+        />
+      </main>
+    )
+  }
 
   return (
     <main
