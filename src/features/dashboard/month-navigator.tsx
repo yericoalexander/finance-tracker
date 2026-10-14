@@ -63,10 +63,6 @@ export function MonthNavigator({
     }
   }
 
-  const handleResetToCurrent = () => {
-    onChangeMonth(currentMonthPrefix)
-  }
-
   return (
     <div
       style={{
@@ -145,26 +141,7 @@ export function MonthNavigator({
           >
             Bulan Ini
           </span>
-        ) : (
-          <button
-            type="button"
-            onClick={handleResetToCurrent}
-            style={{
-              fontSize: '0.68rem',
-              fontWeight: 600,
-              padding: '2px 9px',
-              minHeight: '26px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--color-accent)',
-              color: '#ffffff',
-              border: 'none',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            Bulan Ini
-          </button>
-        )}
+        ) : null}
 
         {/* Aksesibilitas & Lompat Bulan Cepat: native select transparan */}
         <select
