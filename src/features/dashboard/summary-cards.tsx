@@ -39,6 +39,7 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
   const currentMonthName = new Intl.DateTimeFormat('id-ID', {
     month: 'long',
     year: 'numeric',
+    timeZone: 'Asia/Jakarta',
   }).format(now)
 
   const dailyAverage = dayOfMonth > 0 ? Math.round(mtdTotal / dayOfMonth) : mtdTotal
@@ -98,7 +99,10 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
             >
               {formatRupiah(displayedAmount)}
             </p>
-            <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+            <p
+              suppressHydrationWarning
+              style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '2px' }}
+            >
               {currentMonthName}
             </p>
           </div>
@@ -147,7 +151,10 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
             >
               {formatRupiah(0)}
             </p>
-            <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+            <p
+              suppressHydrationWarning
+              style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '2px' }}
+            >
               {currentMonthName}
             </p>
           </div>
@@ -291,45 +298,21 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
 
       {/* Tombol perbarui format + rumus sheet */}
       {sheetId ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: 'var(--space-1)',
-            paddingLeft: 'var(--space-1)',
-          }}
-        >
+        <div className="sheet-refresh-container" suppressHydrationWarning>
           <button
             type="button"
             onClick={handleRefreshSheet}
             disabled={isRefreshingSheet}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              minHeight: '44px',
-              padding: '0 var(--space-2)',
-              background: 'none',
-              border: 'none',
-              color: 'var(--color-text-muted)',
-              fontSize: '0.78rem',
-              fontWeight: 500,
-              cursor: isRefreshingSheet ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit',
-              opacity: isRefreshingSheet ? 0.6 : 1,
-            }}
+            className="sheet-refresh-btn"
           >
             <RefreshCw size={13} className={isRefreshingSheet ? 'animate-spin' : ''} />
             Perbarui format & rumus sheet
           </button>
           {refreshMsg ? (
             <span
-              style={{
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                color: refreshMsg.startsWith('✓') ? 'var(--color-success)' : 'var(--color-error)',
-              }}
+              className={
+                refreshMsg.startsWith('✓') ? 'sheet-refresh-success' : 'sheet-refresh-error'
+              }
             >
               {refreshMsg}
             </span>
