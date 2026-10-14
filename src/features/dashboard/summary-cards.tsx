@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FileSpreadsheet, ArrowDownLeft, ArrowUpRight, RefreshCw } from 'lucide-react'
+import { FileSpreadsheet, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 
 import { formatRupiah } from '@/lib/ai/currency'
 
@@ -17,22 +17,7 @@ interface SummaryCardsProps {
 
 export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) {
   const [viewMode, setViewMode] = useState<'total' | 'daily'>('total')
-  const [isRefreshingSheet, setIsRefreshingSheet] = useState(false)
-  const [refreshMsg, setRefreshMsg] = useState('')
 
-  const handleRefreshSheet = async () => {
-    setIsRefreshingSheet(true)
-    setRefreshMsg('')
-    try {
-      const res = await fetch('/api/sheets/refresh', { method: 'POST' })
-      setRefreshMsg(res.ok ? '✓ Format sheet diperbarui!' : '✗ Gagal memperbarui')
-    } catch {
-      setRefreshMsg('✗ Gagal memperbarui')
-    } finally {
-      setIsRefreshingSheet(false)
-      setTimeout(() => setRefreshMsg(''), 4000)
-    }
-  }
 
   const now = new Date()
   const dayOfMonth = now.getDate()
@@ -296,29 +281,7 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
         </a>
       ) : null}
 
-      {/* Tombol perbarui format + rumus sheet */}
-      {sheetId ? (
-        <div className="sheet-refresh-container" suppressHydrationWarning>
-          <button
-            type="button"
-            onClick={handleRefreshSheet}
-            disabled={isRefreshingSheet}
-            className="sheet-refresh-btn"
-          >
-            <RefreshCw size={13} className={isRefreshingSheet ? 'animate-spin' : ''} />
-            Perbarui format & rumus sheet
-          </button>
-          {refreshMsg ? (
-            <span
-              className={
-                refreshMsg.startsWith('✓') ? 'sheet-refresh-success' : 'sheet-refresh-error'
-              }
-            >
-              {refreshMsg}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
+
     </section>
   )
 }
