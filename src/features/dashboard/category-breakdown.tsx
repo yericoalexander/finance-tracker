@@ -8,6 +8,7 @@ interface CategoryBreakdownProps {
   selectedCategory: string | null
   onSelectCategory: (category: string | null) => void
   onViewCategoryInTransactions?: (category: string) => void
+  monthLabel?: string
 }
 
 export function CategoryBreakdown({
@@ -15,8 +16,46 @@ export function CategoryBreakdown({
   selectedCategory,
   onSelectCategory,
   onViewCategoryInTransactions,
+  monthLabel,
 }: CategoryBreakdownProps) {
-  if (categories.length === 0) return null
+  const displayTitle = monthLabel ? `Kategori ${monthLabel}` : 'Kategori Bulan Ini'
+
+  if (categories.length === 0) {
+    return (
+      <section
+        aria-label="Pengeluaran per kategori"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderRadius: 'var(--radius-xl)',
+          padding: 'var(--space-6)',
+          border: '1px solid var(--color-border)',
+          boxShadow: 'var(--shadow-sm)',
+          textAlign: 'center',
+        }}
+      >
+        <h2
+          style={{
+            fontSize: '0.95rem',
+            fontWeight: 700,
+            color: 'var(--color-text)',
+            margin: 0,
+          }}
+        >
+          {displayTitle}
+        </h2>
+        <p
+          style={{
+            fontSize: '0.8rem',
+            color: 'var(--color-text-muted)',
+            marginTop: 'var(--space-2)',
+            margin: 'var(--space-2) 0 0 0',
+          }}
+        >
+          Belum ada catatan pengeluaran di periode ini.
+        </p>
+      </section>
+    )
+  }
 
   return (
     <section
@@ -47,7 +86,7 @@ export function CategoryBreakdown({
             margin: 0,
           }}
         >
-          Kategori Bulan Ini
+          {displayTitle}
         </h2>
 
         {selectedCategory ? (

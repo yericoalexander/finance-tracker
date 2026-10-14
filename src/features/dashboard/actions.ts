@@ -52,6 +52,7 @@ export interface DashboardData {
     label: string
     lastSeenAt: Date | null
   } | null
+  availableMonths?: string[]
 }
 
 /**
@@ -61,7 +62,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
   const currentMonthPrefix = new Date().toISOString().slice(0, 7) // 'YYYY-MM'
 
   // Eksekusi semua query secara paralel untuk memangkas waktu tunggu database
-  const [reviewQueue, monthOkCaptures, recentTransactions, activeDeviceList] = await Promise.all([
+  const [reviewQueue, monthOkCaptures, recentTransactions, activeDeviceList, monthRows] = await Promise.all([
     // 1. Antrean review (needs_review)
     db
       .select({
@@ -126,6 +127,21 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
         console.warn('[Dashboard] Info perangkat aktif tidak dapat dimuat:', err)
         return []
       }),
+
+    // 5. Daftar bulan unik yang tercatat di riwayat transaksi
+    db
+      .select({
+        month: sql<string>`DISTINCT SUBSTRING(${captures.txDate}, 1, 7)`,
+      })
+      .from(captures)
+      .where(
+        and(
+          eq(captures.userId, userId),
+          eq(captures.status, 'ok'),
+          sql`${captures.txDate} IS NOT NULL`,
+        ),
+      )
+      .catch(() => []),
   ])
 
   const mtdTotal = monthOkCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
@@ -148,6 +164,19 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
 
   const activeDevice = activeDeviceList[0] ?? null
 
+  // Susun daftar bulan unik secara aman
+  const monthsSet = new Set<string>([currentMonthPrefix])
+  for (const c of monthOkCaptures) {
+    if (c.txDate && c.txDate.length >= 7) monthsSet.add(c.txDate.slice(0, 7))
+  }
+  for (const tx of recentTransactions) {
+    if (tx.txDate && tx.txDate.length >= 7) monthsSet.add(tx.txDate.slice(0, 7))
+  }
+  for (const r of monthRows ?? []) {
+    if (r.month && r.month.length >= 7) monthsSet.add(r.month)
+  }
+  const availableMonths = Array.from(monthsSet).sort().reverse()
+
   return {
     mtdTotal,
     txCount,
@@ -155,6 +184,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     reviewQueue,
     categoryBreakdown,
     activeDevice,
+    availableMonths,
   }
 }
 
@@ -258,3 +288,75 @@ export async function dismissReviewAction(
   revalidatePath('/dashboard')
   return { ok: true }
 }
+
+/**
+ * Ambil data ringkasan pengeluaran & kategori untuk bulan tertentu (format YYYY-MM).
+ */
+export async function getMonthSummaryAction(targetMonth: string): Promise<{
+  ok: boolean
+  data?: {
+    month: string
+    total: number
+    txCount: number
+    categoryBreakdown: CategorySummary[]
+  }
+  error?: string
+}> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { ok: false, error: 'Sesi telah berakhir, silakan login kembali' }
+  }
+
+  if (!/^\d{4}-\d{2}$/.test(targetMonth)) {
+    return { ok: false, error: 'Format bulan tidak valid' }
+  }
+
+  const userId = session.user.id
+
+  try {
+    const monthCaptures = await db
+      .select({
+        amountIdr: captures.amountIdr,
+        category: captures.category,
+      })
+      .from(captures)
+      .where(
+        and(
+          eq(captures.userId, userId),
+          eq(captures.status, 'ok'),
+          sql`${captures.txDate} LIKE ${`${targetMonth}%`}`,
+        ),
+      )
+
+    const total = monthCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
+    const txCount = monthCaptures.length
+
+    const catTotals: Record<string, number> = {}
+    for (const c of monthCaptures) {
+      const cat = c.category ?? 'Lainnya'
+      catTotals[cat] = (catTotals[cat] ?? 0) + (c.amountIdr ?? 0)
+    }
+
+    const categoryBreakdown: CategorySummary[] = Object.entries(catTotals)
+      .map(([category, catTotal]) => ({
+        category,
+        total: catTotal,
+        percentage: total > 0 ? Math.round((catTotal / total) * 100) : 0,
+      }))
+      .sort((a, b) => b.total - a.total)
+
+    return {
+      ok: true,
+      data: {
+        month: targetMonth,
+        total,
+        txCount,
+        categoryBreakdown,
+      },
+    }
+  } catch (err) {
+    console.error('[Dashboard] Gagal memuat ringkasan bulan:', err)
+    return { ok: false, error: 'Gagal memuat ringkasan bulan' }
+  }
+}
+

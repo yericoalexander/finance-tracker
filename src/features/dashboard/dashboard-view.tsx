@@ -8,7 +8,8 @@ import { CategoryBreakdown } from './category-breakdown'
 import { ManualEntryCard } from './manual-entry-card'
 import { RecentTransactions } from './recent-transactions'
 import { SummaryCards } from './summary-cards'
-import type { DashboardData } from './actions'
+import { MonthNavigator } from './month-navigator'
+import { getMonthSummaryAction, type DashboardData } from './actions'
 import { DeviceSetupBanner } from '@/features/devices/device-setup-banner'
 import { ShortcutOnboardingModal } from '@/features/devices/shortcut-onboarding-modal'
 
@@ -31,6 +32,81 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
   const prevFirstTxId = useRef<string | null>(data.recentTransactions[0]?.id ?? null)
   const headerContainerRef = useRef<HTMLDivElement>(null)
   const [stickyOffset, setStickyOffset] = useState<number>(136)
+
+  const currentMonthPrefix = new Date().toISOString().slice(0, 7)
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthPrefix)
+  const [isMonthLoading, setIsMonthLoading] = useState(false)
+
+  // Cache data per bulan untuk perpindahan instan (0ms jika sudah ada)
+  const [monthCache, setMonthCache] = useState<
+    Record<
+      string,
+      {
+        total: number
+        txCount: number
+        categoryBreakdown: typeof data.categoryBreakdown
+      }
+    >
+  >({
+    [currentMonthPrefix]: {
+      total: data.mtdTotal,
+      txCount: data.txCount,
+      categoryBreakdown: data.categoryBreakdown,
+    },
+  })
+
+  // Sinkronisasi data bulan berjalan saat props diperbarui
+  useEffect(() => {
+    setMonthCache((prev) => ({
+      ...prev,
+      [currentMonthPrefix]: {
+        total: data.mtdTotal,
+        txCount: data.txCount,
+        categoryBreakdown: data.categoryBreakdown,
+      },
+    }))
+  }, [data.mtdTotal, data.txCount, data.categoryBreakdown, currentMonthPrefix])
+
+  const handleMonthChange = async (newMonth: string) => {
+    setSelectedMonth(newMonth)
+    if (monthCache[newMonth]) return
+
+    setIsMonthLoading(true)
+    try {
+      const res = await getMonthSummaryAction(newMonth)
+      if (res.ok && res.data) {
+        setMonthCache((prev) => ({
+          ...prev,
+          [newMonth]: {
+            total: res.data!.total,
+            txCount: res.data!.txCount,
+            categoryBreakdown: res.data!.categoryBreakdown,
+          },
+        }))
+      }
+    } catch (err) {
+      console.warn('[Dashboard] Gagal memuat data bulan:', err)
+    } finally {
+      setIsMonthLoading(false)
+    }
+  }
+
+  const currentSummary = monthCache[selectedMonth] ?? {
+    total: 0,
+    txCount: 0,
+    categoryBreakdown: [],
+  }
+
+  const isCurrentMonth = selectedMonth === currentMonthPrefix
+  const [activeYearNum, activeMonthNum] = selectedMonth.split('-').map(Number)
+  const activeMonthDate = new Date(activeYearNum || 2026, (activeMonthNum || 10) - 1, 1)
+  const monthNameText = new Intl.DateTimeFormat('id-ID', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Asia/Jakarta',
+  }).format(activeMonthDate)
+
+  const monthLabel = isCurrentMonth ? 'Bulan Ini' : monthNameText
 
   // Ukur tinggi pasti sticky header agar sub-header di tab transaksi menempel tepat di bawahnya tanpa gap
   useEffect(() => {
@@ -266,18 +342,29 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
             </button>
           </div>
 
+          <MonthNavigator
+            selectedMonth={selectedMonth}
+            currentMonthPrefix={currentMonthPrefix}
+            availableMonths={data.availableMonths ?? [currentMonthPrefix]}
+            onChangeMonth={handleMonthChange}
+            isLoading={isMonthLoading}
+          />
+
           <SummaryCards
-            mtdTotal={data.mtdTotal}
-            txCount={data.txCount}
+            mtdTotal={currentSummary.total}
+            txCount={currentSummary.txCount}
             sheetId={sheetId}
             activeDevice={data.activeDevice}
+            selectedMonth={selectedMonth}
+            currentMonthPrefix={currentMonthPrefix}
           />
 
           <CategoryBreakdown
-            categories={data.categoryBreakdown}
+            categories={currentSummary.categoryBreakdown}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
             onViewCategoryInTransactions={handleCategoryJump}
+            monthLabel={monthLabel}
           />
         </div>
       )}

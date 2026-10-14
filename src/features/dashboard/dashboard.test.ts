@@ -21,6 +21,8 @@ vi.mock('@/lib/db/client', () => ({
     select: () => ({
       from: () => ({
         where: () => ({
+          then: (resolve: (v: unknown) => void, reject?: (e: unknown) => void) =>
+            Promise.resolve(mockDbSelect()).then(resolve, reject),
           limit: () => mockDbSelect(),
           orderBy: () => ({
             limit: () => mockDbSelect(),
@@ -47,7 +49,7 @@ vi.mock('@/lib/google/sheets', () => ({
   appendTransactionRow: (...args: unknown[]) => mockAppendTransactionRow(...args),
 }))
 
-const { approveReviewAction, dismissReviewAction } = await import('./actions')
+const { approveReviewAction, dismissReviewAction, getMonthSummaryAction } = await import('./actions')
 const { createManualTransactionAction } = await import('./manual-entry-action')
 
 describe('Dashboard Actions', () => {
@@ -151,4 +153,39 @@ describe('Dashboard Actions', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith('/dashboard')
     })
   })
+
+  describe('getMonthSummaryAction', () => {
+    it('mengembalikan error jika belum login', async () => {
+      mockAuth.mockResolvedValue(null)
+      const res = await getMonthSummaryAction('2026-10')
+      expect(res.ok).toBe(false)
+      expect(res.error).toContain('Sesi telah berakhir')
+    })
+
+    it('mengembalikan error jika format bulan tidak valid', async () => {
+      mockAuth.mockResolvedValue({ user: { id: 'user-123' } })
+      const res = await getMonthSummaryAction('2026/10')
+      expect(res.ok).toBe(false)
+      expect(res.error).toContain('Format bulan tidak valid')
+    })
+
+    it('berhasil mengembalikan total, txCount, dan categoryBreakdown jika valid', async () => {
+      mockAuth.mockResolvedValue({ user: { id: 'user-123' } })
+      mockDbSelect.mockResolvedValueOnce([
+        { amountIdr: 50000, category: 'Makanan & Minuman' },
+        { amountIdr: 25000, category: 'Makanan & Minuman' },
+        { amountIdr: 25000, category: 'Transportasi' },
+      ])
+
+      const res = await getMonthSummaryAction('2026-09')
+      expect(res.ok).toBe(true)
+      expect(res.data?.total).toBe(100000)
+      expect(res.data?.txCount).toBe(3)
+      expect(res.data?.categoryBreakdown).toHaveLength(2)
+      expect(res.data?.categoryBreakdown[0]?.category).toBe('Makanan & Minuman')
+      expect(res.data?.categoryBreakdown[0]?.total).toBe(75000)
+      expect(res.data?.categoryBreakdown[0]?.percentage).toBe(75)
+    })
+  })
 })
+

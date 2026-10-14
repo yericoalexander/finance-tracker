@@ -13,20 +13,39 @@ interface SummaryCardsProps {
     label: string
     lastSeenAt: Date | null
   } | null
+  selectedMonth?: string
+  currentMonthPrefix?: string
 }
 
-export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) {
+export function SummaryCards({
+  mtdTotal,
+  txCount,
+  sheetId,
+  selectedMonth,
+  currentMonthPrefix,
+}: SummaryCardsProps) {
   const [viewMode, setViewMode] = useState<'total' | 'daily'>('total')
 
   const now = new Date()
-  const dayOfMonth = now.getDate()
-  const currentMonthName = new Intl.DateTimeFormat('id-ID', {
+  const todayMonthPrefix = currentMonthPrefix ?? now.toISOString().slice(0, 7)
+  const activeMonth = selectedMonth ?? todayMonthPrefix
+  const isCurrentMonth = activeMonth === todayMonthPrefix
+
+  const [activeYear, activeMonthNum] = activeMonth.split('-').map(Number)
+  const displayDate = new Date(activeYear || now.getFullYear(), (activeMonthNum || (now.getMonth() + 1)) - 1, 1)
+
+  const activeMonthName = new Intl.DateTimeFormat('id-ID', {
     month: 'long',
     year: 'numeric',
     timeZone: 'Asia/Jakarta',
-  }).format(now)
+  }).format(displayDate)
 
-  const dailyAverage = dayOfMonth > 0 ? Math.round(mtdTotal / dayOfMonth) : mtdTotal
+  // Jumlah hari untuk pembagi rata-rata harian:
+  // Jika bulan berjalan, gunakan tanggal hari ini; jika bulan lampau, gunakan total hari di bulan tersebut
+  const daysInActiveMonth = new Date(activeYear || now.getFullYear(), activeMonthNum || (now.getMonth() + 1), 0).getDate()
+  const dayDivisor = isCurrentMonth ? Math.max(1, now.getDate()) : daysInActiveMonth
+
+  const dailyAverage = dayDivisor > 0 ? Math.round(mtdTotal / dayDivisor) : mtdTotal
   const displayedAmount = viewMode === 'total' ? mtdTotal : dailyAverage
 
   return (
@@ -80,7 +99,11 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
                   margin: 0,
                 }}
               >
-                {viewMode === 'total' ? 'Pengeluaran Bulan Ini' : 'Rata-rata Pengeluaran'}
+                {viewMode === 'total'
+                  ? isCurrentMonth
+                    ? 'Pengeluaran Bulan Ini'
+                    : `Pengeluaran ${activeMonthName}`
+                  : 'Rata-rata Pengeluaran'}
               </p>
             </div>
           </div>
@@ -146,8 +169,8 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
             }}
           >
             {viewMode === 'total'
-              ? `${currentMonthName} · rata-rata ${formatRupiah(dailyAverage)} / hari`
-              : `Berdasarkan ${dayOfMonth} hari di ${currentMonthName}`}
+              ? `${activeMonthName} · rata-rata ${formatRupiah(dailyAverage)} / hari`
+              : `Berdasarkan ${dayDivisor} hari di ${activeMonthName}`}
           </p>
         </div>
 
@@ -165,7 +188,7 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
         >
           <span>{txCount} transaksi tercatat</span>
           <span style={{ fontWeight: 500, color: 'var(--color-text-subtle)' }}>
-            Expense Tracker Otomatis
+            {isCurrentMonth ? 'Bulan Ini' : activeMonthName}
           </span>
         </div>
       </div>
