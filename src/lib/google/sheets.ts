@@ -58,7 +58,7 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
     '',
     '',
     '',
-    '=IFERROR(UNIQUE(SORT(FILTER(Transaksi!A2:A; ISNUMBER(Transaksi!A2:A)); 1; FALSE)); TODAY())',
+    '=IFERROR(UNIQUE(SORT(FILTER(\'_data\'!A2:A; ISNUMBER(\'_data\'!A2:A)); 1; FALSE)); TODAY())',
   ],
   // Row 2: Spacer
   [''],
@@ -78,13 +78,13 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 5: Quick Filter KPI Cards
   [
     'Total:',
-    '=IF(ISBLANK(B4); 0; SUMIFS(Transaksi!E:E; Transaksi!A:A; B4))',
-    '=IF(ISBLANK(B4); 0; COUNTIFS(Transaksi!A:A; B4)) & " transaksi"',
+    '=IF(ISBLANK(B4); 0; SUMIFS(\'_data\'!E:E; \'_data\'!A:A; B4))',
+    '=IF(ISBLANK(B4); 0; COUNTIFS(\'_data\'!A:A; B4)) & " transaksi"',
     '',
     'Total Rentang:',
-    '=IF(OR(ISBLANK(F4); ISBLANK(H4)); 0; SUMIFS(Transaksi!E:E; Transaksi!A:A; ">="&F4; Transaksi!A:A; "<="&H4))',
+    '=IF(OR(ISBLANK(F4); ISBLANK(H4)); 0; SUMIFS(\'_data\'!E:E; \'_data\'!A:A; ">="&F4; \'_data\'!A:A; "<="&H4))',
     'Jumlah:',
-    '=IF(OR(ISBLANK(F4); ISBLANK(H4)); 0; COUNTIFS(Transaksi!A:A; ">="&F4; Transaksi!A:A; "<="&H4)) & " transaksi"',
+    '=IF(OR(ISBLANK(F4); ISBLANK(H4)); 0; COUNTIFS(\'_data\'!A:A; ">="&F4; \'_data\'!A:A; "<="&H4)) & " transaksi"',
   ],
   // Row 6: Spacer
   [''],
@@ -95,11 +95,11 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 9: Month KPI Values
   [
     '=TEXT(TODAY(); "MMMM yyyy")',
-    '=SUMIFS(Transaksi!E:E; Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0))',
-    '=COUNTIFS(Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0))',
+    '=SUMIFS(\'_data\'!E:E; \'_data\'!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); \'_data\'!A:A; "<="&EOMONTH(TODAY();0))',
+    '=COUNTIFS(\'_data\'!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); \'_data\'!A:A; "<="&EOMONTH(TODAY();0))',
     '',
     '=IF(OR(ISBLANK(B9); B9=0); 0; ROUND(B9/DAY(TODAY())))',
-    '=IF(C9=0; 0; MAXIFS(Transaksi!E:E; Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0)))',
+    '=IF(C9=0; 0; MAXIFS(\'_data\'!E:E; \'_data\'!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); \'_data\'!A:A; "<="&EOMONTH(TODAY();0)))',
     '',
     '',
   ],
@@ -121,78 +121,78 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 13: Makanan & Minuman
   [
     'Makanan & Minuman',
-    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A13; Transaksi!A:A; B$4))',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; A13; \'_data\'!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B13/B$20)',
     '',
     'Makanan & Minuman',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E13; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(Transaksi!D:D; E13; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; E13; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(\'_data\'!D:D; E13; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
     '=IF(OR(ISBLANK(F$5); F$5=0); 0; F13/F$5)',
   ],
   // Row 14: Transportasi
   [
     'Transportasi',
-    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A14; Transaksi!A:A; B$4))',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; A14; \'_data\'!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B14/B$20)',
     '',
     'Transportasi',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E14; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(Transaksi!D:D; E14; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; E14; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(\'_data\'!D:D; E14; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
     '=IF(OR(ISBLANK(F$5); F$5=0); 0; F14/F$5)',
   ],
   // Row 15: Belanja
   [
     'Belanja',
-    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A15; Transaksi!A:A; B$4))',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; A15; \'_data\'!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B15/B$20)',
     '',
     'Belanja',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E15; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(Transaksi!D:D; E15; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; E15; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(\'_data\'!D:D; E15; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
     '=IF(OR(ISBLANK(F$5); F$5=0); 0; F15/F$5)',
   ],
   // Row 16: Tagihan & Utilitas
   [
     'Tagihan & Utilitas',
-    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A16; Transaksi!A:A; B$4))',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; A16; \'_data\'!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B16/B$20)',
     '',
     'Tagihan & Utilitas',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E16; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(Transaksi!D:D; E16; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; E16; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(\'_data\'!D:D; E16; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
     '=IF(OR(ISBLANK(F$5); F$5=0); 0; F16/F$5)',
   ],
   // Row 17: Hiburan
   [
     'Hiburan',
-    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A17; Transaksi!A:A; B$4))',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; A17; \'_data\'!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B17/B$20)',
     '',
     'Hiburan',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E17; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(Transaksi!D:D; E17; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; E17; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(\'_data\'!D:D; E17; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
     '=IF(OR(ISBLANK(F$5); F$5=0); 0; F17/F$5)',
   ],
   // Row 18: Kesehatan
   [
     'Kesehatan',
-    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A18; Transaksi!A:A; B$4))',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; A18; \'_data\'!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B18/B$20)',
     '',
     'Kesehatan',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E18; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(Transaksi!D:D; E18; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; E18; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(\'_data\'!D:D; E18; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
     '=IF(OR(ISBLANK(F$5); F$5=0); 0; F18/F$5)',
   ],
   // Row 19: Lainnya
   [
     'Lainnya',
-    '=IF(ISBLANK(B$4); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; A19; Transaksi!A:A; B$4))',
+    '=IF(ISBLANK(B$4); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; A19; \'_data\'!A:A; B$4))',
     '=IF(OR(ISBLANK(B$20); B$20=0); 0; B19/B$20)',
     '',
     'Lainnya',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E19; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
-    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(Transaksi!D:D; E19; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(\'_data\'!E:E; \'_data\'!D:D; E19; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
+    '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; COUNTIFS(\'_data\'!D:D; E19; \'_data\'!A:A; ">="&F$4; \'_data\'!A:A; "<="&H$4))',
     '=IF(OR(ISBLANK(F$5); F$5=0); 0; F19/F$5)',
   ],
   // Row 20: TOTAL Row
@@ -351,24 +351,27 @@ export async function ensureSpreadsheet(
         },
         sheets: [
           {
-            properties: { title: 'Transaksi', index: 0 },
-            data: [
-              {
-                startRow: 0,
-                startColumn: 0,
-                rowData: [
-                  {
-                    values: TRANSACTION_HEADERS.map((h) => ({
-                      userEnteredValue: { stringValue: h },
-                      userEnteredFormat: { textFormat: { bold: true } },
-                    })),
-                  },
-                ],
-              },
-            ],
+            properties: {
+              title: 'Transaksi',
+              index: 0,
+              gridProperties: { rowCount: 1000, columnCount: 26, frozenRowCount: 4 },
+              tabColorStyle: { rgbColor: NAVY },
+            },
           },
           {
-            properties: { title: 'Ringkasan', index: 1 },
+            properties: {
+              title: '_data',
+              index: 1,
+              hidden: true,
+              gridProperties: { rowCount: 1000, columnCount: 26, frozenRowCount: 1 },
+            },
+          },
+          {
+            properties: {
+              title: 'Ringkasan',
+              index: 2,
+              gridProperties: { rowCount: 1000, columnCount: 26 },
+            },
           },
         ],
       },
@@ -384,6 +387,44 @@ export async function ensureSpreadsheet(
   }
 
   try {
+    await sheetsClient.spreadsheets.values.update({
+      spreadsheetId,
+      range: '_data!A1:I1',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [TRANSACTION_HEADERS] },
+    })
+
+    await sheetsClient.spreadsheets.values.update({
+      spreadsheetId,
+      range: '_data!K1:K2',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [
+          ['Semua Tanggal'],
+          [
+            '=IF(OR(Transaksi!B2="Semua Bulan"; ISBLANK(Transaksi!B2)); IFERROR(UNIQUE(SORT(FILTER(A2:A; ISNUMBER(A2:A)); 1; TRUE)); ""); SEQUENCE(DAY(EOMONTH(Transaksi!B2; 0)); 1; DATE(YEAR(Transaksi!B2); MONTH(Transaksi!B2); 1); 1))',
+          ],
+        ],
+      },
+    })
+
+    await sheetsClient.spreadsheets.values.update({
+      spreadsheetId,
+      range: 'Transaksi!A1:I5',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [
+          ['💸 TRANSAKSI & PENGELUARAN', '', '', '', '', '', '', '', ''],
+          ['🗓️ Bulan:', '=DATE(YEAR(TODAY()); MONTH(TODAY()); 1)', '', '📅 Tanggal:', 'Semua Tanggal', '', '🏷️ Kategori:', 'Semua Kategori', ''],
+          ['Total Filter:', '=IFERROR(SUM(F5:F); 0)', '', 'Jumlah Tx:', '=IFERROR(COUNTA(D5:D); 0) & " Transaksi"', '', 'Rata-rata/Tx:', '=IFERROR(AVERAGE(F5:F); 0)', ''],
+          ['Hari', 'Tanggal', 'Waktu', 'Merchant', 'Kategori', 'Nominal', 'Metode Bayar', 'Catatan', 'Sumber'],
+          [
+            '=IFERROR(QUERY(HSTACK(\'_data\'!A2:A; \'_data\'!A2:I); "SELECT Col1, Col2, Col3, Col4, Col5, Col6, Col7, Col8, Col9 WHERE Col2 IS NOT NULL" & IF(OR(B2="Semua Bulan"; ISBLANK(B2); B2=""); ""; " AND Col2 >= date \'" & TEXT(B2; "yyyy-mm-01") & "\' AND Col2 <= date \'" & TEXT(EOMONTH(B2; 0); "yyyy-mm-dd") & "\'") & IF(OR(E2="Semua Tanggal"; ISBLANK(E2); E2=""); ""; " AND Col2 = date \'" & TEXT(E2; "yyyy-mm-dd") & "\'") & IF(OR(H2="Semua Kategori"; ISBLANK(H2); H2=""); ""; " AND Col5 = \'" & H2 & "\'") & " ORDER BY Col2 ASC, Col3 ASC"; 0); "Tidak ada transaksi pada filter ini")',
+          ],
+        ],
+      },
+    })
+
     await sheetsClient.spreadsheets.values.update({
       spreadsheetId,
       range: 'Ringkasan!A1',
@@ -415,6 +456,218 @@ const AMBER_BG = { red: 0.996, green: 0.953, blue: 0.780 }
 const AMBER_TEXT = { red: 0.471, green: 0.208, blue: 0.059 }
 const SECTION_BG = { red: 0.886, green: 0.910, blue: 0.941 }
 const CARD_BG = { red: 0.945, green: 0.961, blue: 0.976 }
+
+const MONTH_OPTIONS = [
+  'Semua Bulan',
+  'Januari 2025', 'Februari 2025', 'Maret 2025', 'April 2025', 'Mei 2025', 'Juni 2025',
+  'Juli 2025', 'Agustus 2025', 'September 2025', 'Oktober 2025', 'November 2025', 'Desember 2025',
+  'Januari 2026', 'Februari 2026', 'Maret 2026', 'April 2026', 'Mei 2026', 'Juni 2026',
+  'Juli 2026', 'Agustus 2026', 'September 2026', 'Oktober 2026', 'November 2026', 'Desember 2026',
+  'Januari 2027', 'Februari 2027', 'Maret 2027', 'April 2027', 'Mei 2027', 'Juni 2027',
+  'Juli 2027', 'Agustus 2027', 'September 2027', 'Oktober 2027', 'November 2027', 'Desember 2027',
+]
+
+const CATEGORY_OPTIONS = [
+  'Semua Kategori',
+  'Makanan & Minuman',
+  'Transportasi',
+  'Belanja',
+  'Tagihan',
+  'Tagihan & Utilitas',
+  'Hiburan',
+  'Kesehatan',
+  'Lainnya',
+]
+
+function buildInteractiveTransactionSheetRequests(sheetId: number, rowCount: number) {
+  const columnWidths = [95, 105, 70, 247, 160, 121, 150, 228, 100]
+
+  return [
+    {
+      updateSheetProperties: {
+        properties: {
+          sheetId,
+          gridProperties: { frozenRowCount: 4, columnCount: 26 },
+          tabColorStyle: { rgbColor: NAVY },
+        },
+        fields: 'gridProperties.frozenRowCount,gridProperties.columnCount,tabColorStyle',
+      },
+    },
+    // Row Heights
+    { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 0, endIndex: 1 }, properties: { pixelSize: 42 }, fields: 'pixelSize' } },
+    { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 1, endIndex: 2 }, properties: { pixelSize: 38 }, fields: 'pixelSize' } },
+    { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 2, endIndex: 3 }, properties: { pixelSize: 34 }, fields: 'pixelSize' } },
+    { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 3, endIndex: 4 }, properties: { pixelSize: 36 }, fields: 'pixelSize' } },
+    { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 4, endIndex: rowCount }, properties: { pixelSize: 30 }, fields: 'pixelSize' } },
+    // Column Widths
+    ...columnWidths.map((pixelSize, idx) => ({
+      updateDimensionProperties: {
+        range: { sheetId, dimension: 'COLUMNS', startIndex: idx, endIndex: idx + 1 },
+        properties: { pixelSize },
+        fields: 'pixelSize',
+      },
+    })),
+    // Merges
+    { mergeCells: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 9 }, mergeType: 'MERGE_ALL' } },
+    { mergeCells: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 1, endColumnIndex: 3 }, mergeType: 'MERGE_ALL' } },
+    { mergeCells: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 4, endColumnIndex: 6 }, mergeType: 'MERGE_ALL' } },
+    { mergeCells: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 7, endColumnIndex: 9 }, mergeType: 'MERGE_ALL' } },
+    { mergeCells: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 1, endColumnIndex: 3 }, mergeType: 'MERGE_ALL' } },
+    { mergeCells: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 4, endColumnIndex: 6 }, mergeType: 'MERGE_ALL' } },
+    { mergeCells: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 7, endColumnIndex: 9 }, mergeType: 'MERGE_ALL' } },
+    // Row 1: Title Banner
+    {
+      repeatCell: {
+        range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 9 },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: NAVY,
+            textFormat: { bold: true, foregroundColor: WHITE, fontSize: 11, fontFamily: 'Google Sans' },
+            horizontalAlignment: 'CENTER',
+            verticalAlignment: 'MIDDLE',
+          },
+        },
+        fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)',
+      },
+    },
+    // Row 2: Filter Labels
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 6, endColumnIndex: 7 }, cell: { userEnteredFormat: { backgroundColor: NAVY_LIGHT, textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
+    // Row 2: Filter Inputs (Amber bg, centered)
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 1, endColumnIndex: 3 }, cell: { userEnteredFormat: { backgroundColor: AMBER_BG, textFormat: { bold: true, foregroundColor: AMBER_TEXT, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'DATE', pattern: 'MMMM yyyy' } } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment,numberFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 4, endColumnIndex: 6 }, cell: { userEnteredFormat: { backgroundColor: AMBER_BG, textFormat: { bold: true, foregroundColor: AMBER_TEXT, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 7, endColumnIndex: 9 }, cell: { userEnteredFormat: { backgroundColor: AMBER_BG, textFormat: { bold: true, foregroundColor: AMBER_TEXT, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)' } },
+    // Row 3: KPI Cards Background
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 0, endColumnIndex: 9 }, cell: { userEnteredFormat: { backgroundColor: CARD_BG, verticalAlignment: 'MIDDLE' } }, fields: 'userEnteredFormat(backgroundColor,verticalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { textFormat: { foregroundColor: MUTED, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat(textFormat,horizontalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { textFormat: { foregroundColor: MUTED, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat(textFormat,horizontalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 6, endColumnIndex: 7 }, cell: { userEnteredFormat: { textFormat: { foregroundColor: MUTED, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat(textFormat,horizontalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 1, endColumnIndex: 3 }, cell: { userEnteredFormat: { textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontSize: 11, fontFamily: 'Google Sans' }, horizontalAlignment: 'RIGHT', numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(textFormat,horizontalAlignment,numberFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 4, endColumnIndex: 6 }, cell: { userEnteredFormat: { textFormat: { bold: true, foregroundColor: DARK_TEXT, fontSize: 10, fontFamily: 'Google Sans' }, horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat(textFormat,horizontalAlignment)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 7, endColumnIndex: 9 }, cell: { userEnteredFormat: { textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontSize: 11, fontFamily: 'Google Sans' }, horizontalAlignment: 'RIGHT', numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(textFormat,horizontalAlignment,numberFormat)' } },
+    // Row 4: Table Headers
+    {
+      repeatCell: {
+        range: { sheetId, startRowIndex: 3, endRowIndex: 4, startColumnIndex: 0, endColumnIndex: 9 },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: NAVY,
+            textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' },
+            verticalAlignment: 'MIDDLE',
+            horizontalAlignment: 'CENTER',
+          },
+        },
+        fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment,horizontalAlignment)',
+      },
+    },
+    { repeatCell: { range: { sheetId, startRowIndex: 3, endRowIndex: 4, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 3, endRowIndex: 4, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 3, endRowIndex: 4, startColumnIndex: 5, endColumnIndex: 6 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
+    // Rows 5..rowCount Data Rows
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: rowCount, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: rowCount, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: rowCount, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'TIME', pattern: 'hh:mm' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: rowCount, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: rowCount, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: rowCount, startColumnIndex: 5, endColumnIndex: 6 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat,numberFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: rowCount, startColumnIndex: 6, endColumnIndex: 7 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: rowCount, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 4, endRowIndex: rowCount, startColumnIndex: 8, endColumnIndex: 9 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 8, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    // Banding
+    { addBanding: { bandedRange: { range: { sheetId, startRowIndex: 3, endRowIndex: rowCount, startColumnIndex: 0, endColumnIndex: 9 }, rowProperties: { headerColor: NAVY, firstBandColor: WHITE, secondBandColor: GRAY_BG } } } },
+    // Validations
+    {
+      setDataValidation: {
+        range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 1, endColumnIndex: 3 },
+        rule: {
+          condition: {
+            type: 'ONE_OF_LIST',
+            values: MONTH_OPTIONS.map((m) => ({ userEnteredValue: m })),
+          },
+          showCustomUi: true,
+        },
+      },
+    },
+    {
+      setDataValidation: {
+        range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 4, endColumnIndex: 6 },
+        rule: {
+          condition: {
+            type: 'ONE_OF_RANGE',
+            values: [{ userEnteredValue: '=\'_data\'!$K$1:$K$50' }],
+          },
+          showCustomUi: true,
+        },
+      },
+    },
+    {
+      setDataValidation: {
+        range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 7, endColumnIndex: 9 },
+        rule: {
+          condition: {
+            type: 'ONE_OF_LIST',
+            values: CATEGORY_OPTIONS.map((c) => ({ userEnteredValue: c })),
+          },
+          showCustomUi: true,
+        },
+      },
+    },
+  ]
+}
+
+function buildDataSheetRequests(sheetId: number, rowCount: number) {
+  const columnWidths = [115, 85, 220, 160, 150, 140, 240, 100, 120]
+
+  return [
+    {
+      updateSheetProperties: {
+        properties: { sheetId, gridProperties: { frozenRowCount: 1, columnCount: 26 } },
+        fields: 'gridProperties.frozenRowCount,gridProperties.columnCount',
+      },
+    },
+    { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 0, endIndex: 1 }, properties: { pixelSize: 40 }, fields: 'pixelSize' } },
+    { updateDimensionProperties: { range: { sheetId, dimension: 'ROWS', startIndex: 1, endIndex: rowCount }, properties: { pixelSize: 32 }, fields: 'pixelSize' } },
+    ...columnWidths.map((pixelSize, idx) => ({
+      updateDimensionProperties: {
+        range: { sheetId, dimension: 'COLUMNS', startIndex: idx, endIndex: idx + 1 },
+        properties: { pixelSize },
+        fields: 'pixelSize',
+      },
+    })),
+    // Header
+    {
+      repeatCell: {
+        range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 9 },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: NAVY,
+            textFormat: { bold: true, foregroundColor: WHITE, fontSize: 10, fontFamily: 'Google Sans' },
+            verticalAlignment: 'MIDDLE',
+            horizontalAlignment: 'LEFT',
+          },
+        },
+        fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment,horizontalAlignment)',
+      },
+    },
+    { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
+    // Data columns
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'TIME', pattern: 'hh:mm' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat,numberFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 5, endColumnIndex: 7 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 9, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: rowCount, startColumnIndex: 8, endColumnIndex: 9 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 8, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+    // Col K sequence date format
+    { repeatCell: { range: { sheetId, startRowIndex: 1, endRowIndex: 50, startColumnIndex: 10, endColumnIndex: 11 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat)' } },
+    // Filter
+    { setBasicFilter: { filter: { range: { sheetId, startRowIndex: 0, endRowIndex: rowCount, startColumnIndex: 0, endColumnIndex: 9 } } } },
+  ]
+}
 
 function buildTransactionSheetRequests(sheetId: number, rowCount: number) {
   const columnWidths = [115, 85, 220, 160, 150, 140, 240, 100, 120]
@@ -663,24 +916,49 @@ export async function formatSpreadsheet(
     const meta = await sheetsClient.spreadsheets.get({ spreadsheetId })
     const txSheet = meta.data.sheets?.find((s) => s.properties?.title === 'Transaksi')
     const summarySheet = meta.data.sheets?.find((s) => s.properties?.title === 'Ringkasan')
+    const dataSheet = meta.data.sheets?.find((s) => s.properties?.title === '_data')
 
     const txSheetId = txSheet?.properties?.sheetId ?? 0
     const summarySheetId = summarySheet?.properties?.sheetId ?? 1
     const txRowCount = txSheet?.properties?.gridProperties?.rowCount ?? 1000
 
-    const existingBanding = txSheet?.bandedRanges ?? []
+    const existingBanding = [
+      ...(txSheet?.bandedRanges ?? []),
+      ...(dataSheet?.bandedRanges ?? []),
+    ]
     const deleteBandingRequests = existingBanding.map((b) => ({
       deleteBanding: { bandedRangeId: b.bandedRangeId },
     }))
 
-    const clearFilterRequests = txSheet?.basicFilter
-      ? [{ clearBasicFilter: { sheetId: txSheetId } }]
+    const clearFilterRequests = [
+      ...(txSheet?.basicFilter ? [{ clearBasicFilter: { sheetId: txSheetId } }] : []),
+      ...(dataSheet?.basicFilter
+        ? [{ clearBasicFilter: { sheetId: dataSheet.properties?.sheetId ?? 0 } }]
+        : []),
+    ]
+
+    const txMerges = txSheet?.merges ?? []
+    const unmergeRequests = txMerges.map((m) => ({
+      unmergeCells: { range: m },
+    }))
+
+    const txRequests = dataSheet
+      ? buildInteractiveTransactionSheetRequests(txSheetId, txRowCount)
+      : buildTransactionSheetRequests(txSheetId, txRowCount)
+
+    const dataRequests = dataSheet
+      ? buildDataSheetRequests(
+          dataSheet.properties?.sheetId ?? 0,
+          dataSheet.properties?.gridProperties?.rowCount ?? 1000,
+        )
       : []
 
     const requests = [
       ...deleteBandingRequests,
       ...clearFilterRequests,
-      ...buildTransactionSheetRequests(txSheetId, txRowCount),
+      ...unmergeRequests,
+      ...txRequests,
+      ...dataRequests,
       ...buildSummarySheetRequests(summarySheetId),
     ]
 

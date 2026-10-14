@@ -46,7 +46,8 @@ describe('ensureSpreadsheet', () => {
       data: {
         sheets: [
           { properties: { title: 'Transaksi', sheetId: 0 } },
-          { properties: { title: 'Ringkasan', sheetId: 1 } },
+          { properties: { title: '_data', sheetId: 1, hidden: true } },
+          { properties: { title: 'Ringkasan', sheetId: 2 } },
         ],
       },
     })
@@ -63,7 +64,7 @@ describe('ensureSpreadsheet', () => {
     const result = await ensureSpreadsheet('refresh-token', null)
     expect(result).toBe('sheet-abc-123')
     expect(mockCreate).toHaveBeenCalledOnce()
-    expect(mockUpdate).toHaveBeenCalledOnce()
+    expect(mockUpdate).toHaveBeenCalledTimes(4)
   })
 
   it('melempar GoogleApiError 401 saat token expired', async () => {
