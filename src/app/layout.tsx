@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 
 import './globals.css'
 
-const inter = Inter({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-sans',
   display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
 })
 
 export const metadata: Metadata = {
@@ -14,13 +15,15 @@ export const metadata: Metadata = {
     default: 'Finance Tracker',
     template: '%s · Finance Tracker',
   },
-  description:
-    'Catat pengeluaran dari screenshot iPhone langsung ke Google Sheets milik kamu.',
+  description: 'Catat pengeluaran dari screenshot iPhone langsung ke Google Sheets milik kamu.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Finance Tracker',
+    title: 'Finance',
+  },
+  icons: {
+    apple: '/icons/apple-touch-icon.png',
   },
 }
 
@@ -38,13 +41,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`,
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${plusJakarta.variable} antialiased`}>{children}</body>
     </html>
   )
 }

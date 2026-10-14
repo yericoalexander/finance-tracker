@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Smartphone, RefreshCw, BarChart3, Receipt, PlusCircle } from 'lucide-react'
+import { Smartphone, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CategoryBreakdown } from './category-breakdown'
@@ -29,20 +29,20 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
     setTimeout(() => setIsRefreshing(false), 600)
   }
 
-  const handleCategoryJumpToTransactions = (category: string) => {
+  const handleCategoryJump = (category: string) => {
     setSelectedCategory(category)
     setActiveTab('transactions')
   }
 
+  const tabs = [
+    { id: 'overview' as TabType, label: 'Ringkasan' },
+    { id: 'transactions' as TabType, label: 'Transaksi' },
+    { id: 'add' as TabType, label: '+ Catat' },
+  ]
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5)',
-      }}
-    >
-      {/* Tab Navigasi Segmented Control */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+      {/* Segmented Tab Control — clean, mirip referensi */}
       <nav
         aria-label="Pilihan tampilan dashboard"
         style={{
@@ -50,86 +50,42 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
           gridTemplateColumns: 'repeat(3, 1fr)',
           backgroundColor: 'var(--color-surface)',
           padding: '4px',
-          borderRadius: 'var(--radius-lg)',
+          borderRadius: 'var(--radius-xl)',
           border: '1px solid var(--color-border)',
           gap: '4px',
         }}
       >
-        <button
-          type="button"
-          onClick={() => setActiveTab('overview')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            minHeight: '44px',
-            borderRadius: 'var(--radius-md)',
-            border: 'none',
-            backgroundColor: activeTab === 'overview' ? 'var(--color-accent)' : 'transparent',
-            color: activeTab === 'overview' ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
-            fontSize: '0.84rem',
-            fontWeight: activeTab === 'overview' ? 600 : 500,
-            cursor: 'pointer',
-            transition: 'all var(--duration-fast) var(--ease-default)',
-            position: 'relative',
-          }}
-        >
-          <BarChart3 size={16} />
-          <span>Ringkasan</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('transactions')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            minHeight: '44px',
-            borderRadius: 'var(--radius-md)',
-            border: 'none',
-            backgroundColor: activeTab === 'transactions' ? 'var(--color-accent)' : 'transparent',
-            color: activeTab === 'transactions' ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
-            fontSize: '0.84rem',
-            fontWeight: activeTab === 'transactions' ? 600 : 500,
-            cursor: 'pointer',
-            transition: 'all var(--duration-fast) var(--ease-default)',
-          }}
-        >
-          <Receipt size={16} />
-          <span>Transaksi</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('add')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            minHeight: '44px',
-            borderRadius: 'var(--radius-md)',
-            border: 'none',
-            backgroundColor: activeTab === 'add' ? 'var(--color-accent)' : 'transparent',
-            color: activeTab === 'add' ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
-            fontSize: '0.84rem',
-            fontWeight: activeTab === 'add' ? 600 : 500,
-            cursor: 'pointer',
-            transition: 'all var(--duration-fast) var(--ease-default)',
-          }}
-        >
-          <PlusCircle size={16} />
-          <span>Catat</span>
-        </button>
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                minHeight: '40px',
+                borderRadius: 'calc(var(--radius-xl) - 4px)',
+                border: 'none',
+                backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
+                color: isActive ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
+                fontSize: '0.82rem',
+                fontWeight: isActive ? 700 : 500,
+                cursor: 'pointer',
+                transition: 'all var(--duration-fast) var(--ease-default)',
+                fontFamily: 'inherit',
+                letterSpacing: isActive ? '-0.01em' : '0',
+              }}
+            >
+              {tab.label}
+            </button>
+          )
+        })}
       </nav>
 
-      {/* Konten Tab 1: Ringkasan Interaktif */}
+      {/* Tab: Ringkasan */}
       {activeTab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-          {/* Baris Status Sinkronisasi & Refresh */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          {/* Sync status & refresh */}
           <div
             style={{
               display: 'flex',
@@ -137,8 +93,8 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
               justifyContent: 'space-between',
             }}
           >
-            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-              Data tersinkron otomatis ke Sheets
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+              Tersinkron ke Sheets
             </span>
             <button
               type="button"
@@ -148,24 +104,26 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                minHeight: '36px',
+                gap: '5px',
+                minHeight: '32px',
                 padding: '4px 10px',
-                borderRadius: 'var(--radius-md)',
+                borderRadius: 'var(--radius-full)',
                 backgroundColor: 'transparent',
                 border: '1px solid var(--color-border)',
                 color: 'var(--color-text-muted)',
-                fontSize: '0.76rem',
+                fontSize: '0.73rem',
                 fontWeight: 500,
                 cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'opacity var(--duration-fast)',
+                opacity: isRefreshing ? 0.5 : 1,
               }}
             >
-              <RefreshCw size={13} className={isRefreshing ? 'animate-spin' : ''} />
-              <span>{isRefreshing ? 'Memuat...' : 'Segarkan'}</span>
+              <RefreshCw size={12} className={isRefreshing ? 'animate-spin' : ''} />
+              {isRefreshing ? 'Memuat...' : 'Segarkan'}
             </button>
           </div>
 
-          {/* Kartu Ringkasan MTD & Toggle Rata-rata Harian */}
           <SummaryCards
             mtdTotal={data.mtdTotal}
             txCount={data.txCount}
@@ -173,58 +131,56 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
             activeDevice={data.activeDevice}
           />
 
-          {/* Distribusi Pengeluaran per Kategori */}
           <CategoryBreakdown
             categories={data.categoryBreakdown}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
-            onViewCategoryInTransactions={handleCategoryJumpToTransactions}
+            onViewCategoryInTransactions={handleCategoryJump}
           />
 
-          {/* Tautan Pengaturan Perangkat iPhone */}
-          <div style={{ paddingTop: 'var(--space-2)' }}>
-            <a
-              href="/pair"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 'var(--space-2)',
-                minHeight: '44px',
-                padding: 'var(--space-3) var(--space-5)',
-                backgroundColor: 'transparent',
-                color: 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                textDecoration: 'none',
-                fontSize: '0.85rem',
-                fontWeight: 500,
-              }}
-            >
-              <Smartphone size={16} />
-              Kelola Perangkat iPhone
-            </a>
-          </div>
+          {/* Link Transaksi ke halaman Sheets */}
+          <a
+            href="/pair"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              minHeight: '52px',
+              padding: 'var(--space-3) var(--space-4)',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-xl)',
+              textDecoration: 'none',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+              transition: 'background-color var(--duration-fast)',
+            }}
+          >
+            <span>Transaksi</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                Lihat semua catatan keuangan
+              </span>
+              <Smartphone size={14} color="var(--color-text-muted)" />
+            </div>
+          </a>
         </div>
       )}
 
-      {/* Konten Tab 2: Riwayat Transaksi & Filter Interaktif */}
+      {/* Tab: Transaksi */}
       {activeTab === 'transactions' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <RecentTransactions
-            transactions={data.recentTransactions}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            onNavigateToAdd={() => setActiveTab('add')}
-          />
-        </div>
+        <RecentTransactions
+          transactions={data.recentTransactions}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+          onNavigateToAdd={() => setActiveTab('add')}
+        />
       )}
 
-      {/* Konten Tab 3: Tambah / Catat Transaksi Manual */}
+      {/* Tab: Catat */}
       {activeTab === 'add' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <ManualEntryCard onSuccess={() => setActiveTab('transactions')} />
-        </div>
+        <ManualEntryCard onSuccess={() => setActiveTab('transactions')} />
       )}
     </div>
   )

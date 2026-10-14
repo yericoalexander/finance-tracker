@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
-import { LogOut } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 
 import { auth, signOut } from '@/auth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -17,7 +17,6 @@ export default async function DashboardPage() {
   const { user } = session
   const firstName = user.name?.split(' ')[0] ?? 'Kamu'
 
-  // Ambil sheetId terbaru langsung dari database
   const dbUser = await db.query.users.findFirst({
     where: eq(users.id, user.id),
     columns: { sheetId: true },
@@ -31,43 +30,53 @@ export default async function DashboardPage() {
       style={{
         minHeight: '100svh',
         backgroundColor: 'var(--color-bg)',
-        padding: 'var(--space-6)',
-        paddingTop: 'calc(var(--space-6) + env(safe-area-inset-top))',
-        paddingBottom: 'calc(var(--space-8) + env(safe-area-inset-bottom))',
+        paddingTop: 'calc(var(--space-5) + env(safe-area-inset-top))',
+        paddingBottom: 'calc(var(--space-10) + env(safe-area-inset-bottom))',
+        paddingLeft: 'var(--space-5)',
+        paddingRight: 'var(--space-5)',
         maxWidth: '430px',
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--space-6)',
+        gap: 'var(--space-5)',
       }}
     >
-      {/* Header */}
+      {/* Header — mirip referensi: nama app bold kiri, avatar kanan */}
       <header
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          paddingBottom: 'var(--space-2)',
         }}
       >
         <div>
-          <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: 0 }}>
-            Selamat datang kembali
-          </p>
           <h1
             style={{
-              fontSize: '1.4rem',
-              fontWeight: 700,
+              fontSize: '1.5rem',
+              fontWeight: 800,
               color: 'var(--color-text)',
-              margin: 0,
+              letterSpacing: '-0.03em',
+              lineHeight: 1,
+            }}
+          >
+            FINANCE.
+          </h1>
+          <p
+            style={{
+              fontSize: '0.75rem',
+              color: 'var(--color-text-muted)',
+              marginTop: '2px',
+              fontWeight: 500,
             }}
           >
             Halo, {firstName} 👋
-          </h1>
+          </p>
         </div>
 
-        {/* Aksi Header: Tema & Keluar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <ThemeToggle />
+          {/* Avatar dengan initials, mirip referensi */}
           <form
             action={async () => {
               'use server'
@@ -77,33 +86,42 @@ export default async function DashboardPage() {
             <button
               type="submit"
               aria-label="Keluar dari akun"
+              title={`Keluar (${user.name ?? ''})`}
               style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-text)',
+                border: 'none',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 'var(--space-1)',
-                minHeight: '44px',
-                minWidth: '44px',
-                padding: `var(--space-2) var(--space-3)`,
-                backgroundColor: 'transparent',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--color-text-muted)',
-                fontSize: '0.82rem',
-                fontFamily: 'inherit',
-                cursor: 'pointer',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                flexShrink: 0,
               }}
             >
-              <LogOut size={16} />
-              Keluar
+              {user.image ? (
+                <Image
+                  src={user.image}
+                  alt={user.name ?? 'avatar'}
+                  width={40}
+                  height={40}
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                />
+              ) : (
+                (user.name?.charAt(0) ?? 'U').toUpperCase()
+              )}
             </button>
           </form>
         </div>
       </header>
 
-      {/* Kartu coba lagi bila pembuatan spreadsheet awal belum selesai */}
       {!currentSheetId ? <RetrySheetCard /> : null}
 
-      {/* Antarmuka Dashboard Interaktif */}
       <DashboardView data={dashboardData} sheetId={currentSheetId} />
     </main>
   )

@@ -3,31 +3,36 @@
 /* ─── Design Tokens ─────────────────────────────────────────────────── */
 :root,
 html[data-theme='light'] {
-  /* Neutral palette — clean, warm stone / crisp paper */
-  --color-bg: #f8fafc;
+  --color-bg: #f7f7f5;
   --color-surface: #ffffff;
-  --color-surface-raised: #f1f5f9;
-  --color-border: #e2e8f0;
-  --color-border-subtle: #f1f5f9;
+  --color-surface-raised: #f2f2f0;
+  --color-border: #e8e8e5;
+  --color-border-subtle: #f0f0ee;
 
-  /* Text — slate-900 / slate-600 */
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
-  --color-text-placeholder: #94a3b8;
+  --color-text: #111110;
+  --color-text-muted: #6f6f6b;
+  --color-text-placeholder: #adadab;
 
-  /* Accent — Navy Blue (Refined & Authoritative) */
-  --color-accent: #1e3a8a;
-  --color-accent-hover: #172554;
-  --color-accent-subtle: #eff6ff;
+  /* Accent — near-black, bold authority */
+  --color-accent: #111110;
+  --color-accent-hover: #2a2a28;
+  --color-accent-subtle: #f0f0ee;
   --color-accent-text: #ffffff;
 
   /* Semantic */
-  --color-success: #16a34a;
-  --color-warning: #d97706;
+  --color-success: #18794e;
+  --color-success-subtle: #e9f6ef;
+  --color-warning: #ad5700;
   --color-warning-subtle: #fef3c7;
   --color-warning-text: #78350f;
-  --color-error: #dc2626;
-  --color-error-subtle: #fef2f2;
+  --color-error: #c62a2f;
+  --color-error-subtle: #fdf2f2;
+
+  /* Income / Expense semantic colors */
+  --color-income: #18794e;
+  --color-income-bg: #e9f6ef;
+  --color-expense: #c62a2f;
+  --color-expense-bg: #fdf2f2;
 
   /* Spacing scale (4px base) */
   --space-1: 0.25rem;
@@ -45,74 +50,78 @@ html[data-theme='light'] {
   --radius-sm: 0.375rem;
   --radius-md: 0.625rem;
   --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-xl: 1.25rem;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.08);
-  --shadow-lg: 0 12px 32px -4px rgb(0 0 0 / 0.12);
+  /* Shadows — very subtle for clean minimal look */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.06);
+  --shadow-lg: 0 12px 24px -4px rgb(0 0 0 / 0.08);
 
   /* Typography */
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-sans: var(--font-sans), system-ui, -apple-system, sans-serif;
 
   /* Motion */
   --duration-fast: 150ms;
   --duration-base: 200ms;
-  --duration-slow: 250ms;
+  --duration-slow: 300ms;
   --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ─── Dark Mode (System preference when not explicitly forced light) ── */
+/* ─── Dark Mode ───────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-bg: #0a0a0a;
-    --color-surface: #171717;
-    --color-surface-raised: #262626;
-    --color-border: #2d2d2d;
-    --color-border-subtle: #1f1f1f;
+    --color-bg: #0c0c0b;
+    --color-surface: #161615;
+    --color-surface-raised: #1e1e1d;
+    --color-border: #2a2a28;
+    --color-border-subtle: #1f1f1e;
 
-    --color-text: #fafaf9;
-    --color-text-muted: #a8a29e;
-    --color-text-placeholder: #57534e;
+    --color-text: #ededec;
+    --color-text-muted: #9b9b97;
+    --color-text-placeholder: #5a5a57;
 
-    --color-accent: #2563eb;
-    --color-accent-hover: #1d4ed8;
-    --color-accent-subtle: #172554;
-    --color-accent-text: #ffffff;
+    --color-accent: #ededec;
+    --color-accent-hover: #d0d0ce;
+    --color-accent-subtle: #1e1e1d;
+    --color-accent-text: #111110;
 
-    --color-success: #22c55e;
-    --color-warning: #f59e0b;
-    --color-warning-subtle: #451a03;
-    --color-warning-text: #fef3c7;
-    --color-error: #ef4444;
-    --color-error-subtle: #1c0a0a;
+    --color-success: #46a758;
+    --color-success-subtle: #0d2415;
+    --color-income: #46a758;
+    --color-income-bg: #0d2415;
+    --color-expense: #e5484d;
+    --color-expense-bg: #2c0a0a;
+    --color-error: #e5484d;
+    --color-error-subtle: #2c0a0a;
   }
 }
 
-/* ─── Dark Mode (Explicit data-theme="dark") ─────────────────────────── */
 html[data-theme='dark'] {
-  --color-bg: #0a0a0a;
-  --color-surface: #171717;
-  --color-surface-raised: #262626;
-  --color-border: #2d2d2d;
-  --color-border-subtle: #1f1f1f;
+  --color-bg: #0c0c0b;
+  --color-surface: #161615;
+  --color-surface-raised: #1e1e1d;
+  --color-border: #2a2a28;
+  --color-border-subtle: #1f1f1e;
 
-  --color-text: #fafaf9;
-  --color-text-muted: #a8a29e;
-  --color-text-placeholder: #57534e;
+  --color-text: #ededec;
+  --color-text-muted: #9b9b97;
+  --color-text-placeholder: #5a5a57;
 
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
-  --color-accent-subtle: #172554;
-  --color-accent-text: #ffffff;
+  --color-accent: #ededec;
+  --color-accent-hover: #d0d0ce;
+  --color-accent-subtle: #1e1e1d;
+  --color-accent-text: #111110;
 
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-warning-subtle: #451a03;
-  --color-warning-text: #fef3c7;
-  --color-error: #ef4444;
-  --color-error-subtle: #1c0a0a;
+  --color-success: #46a758;
+  --color-success-subtle: #0d2415;
+  --color-income: #46a758;
+  --color-income-bg: #0d2415;
+  --color-expense: #e5484d;
+  --color-expense-bg: #2c0a0a;
+  --color-error: #e5484d;
+  --color-error-subtle: #2c0a0a;
 }
 
 /* ─── Reduced Motion ────────────────────────────────────────────────── */
@@ -130,11 +139,14 @@ html[data-theme='dark'] {
 *::before,
 *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -143,25 +155,37 @@ body {
   font-family: var(--font-sans);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  /* Respect iPhone safe areas */
+  -moz-osx-font-smoothing: grayscale;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
 
+/* ─── Focus visible (accessibility) ─────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 /* ─── Utilities ─────────────────────────────────────────────────────── */
 
-/* Tabular numbers for all monetary values */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-/* Minimum touch target 44px (WCAG 2.5.5) */
 .touch-target {
   min-height: 44px;
   min-width: 44px;
 }
 
-/* Muted text shortcut */
 .text-muted {
   color: var(--color-text-muted);
+}
+
+/* Smooth press feedback for touch devices */
+@media (hover: none) {
+  button:active,
+  a:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
 }
