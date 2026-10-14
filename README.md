@@ -163,7 +163,8 @@ Proyek ini dibangun dengan arsitektur berbasis fitur (*feature-based*):
 
 ```text
 finance-tracker/
-├── .agent/                   # Aturan & skills asisten AI
+├── docs/                     # Dokumentasi acuan & gambar pratinjau UI
+│   └── images/               # Tangkapan layar antarmuka aplikasi
 ├── drizzle/                  # Riwayat migrasi database SQL
 ├── public/                   # Ikon PWA & manifest web
 ├── src/

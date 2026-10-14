@@ -48,3 +48,7 @@ pnpm-debug.log*
 .vscode/
 *.swp
 *.swo
+
+# AI Agent & local rules
+.agent/
+.agents/
