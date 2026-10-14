@@ -43,12 +43,12 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
     document.addEventListener('visibilitychange', handleRevalidate)
     window.addEventListener('focus', handleFocus)
 
-    // Polling setiap 4 detik saat tab terbuka agar transaksi baru (dari iPhone / Shortcut) langsung masuk instan
+    // Polling setiap 12 detik saat tab terbuka agar hemat bandwidth & tidak membebani ponsel
     const intervalTimer = setInterval(() => {
       if (document.visibilityState === 'visible') {
         router.refresh()
       }
-    }, 4000)
+    }, 12000)
 
     return () => {
       document.removeEventListener('visibilitychange', handleRevalidate)

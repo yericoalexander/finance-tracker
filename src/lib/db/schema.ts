@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm'
 import {
+  index,
   integer,
   pgTable,
   real,
@@ -78,6 +79,7 @@ export const captures = pgTable(
   },
   (table) => [
     uniqueIndex('captures_user_id_image_hash_idx').on(table.userId, table.imageHash),
+    index('captures_user_id_status_created_idx').on(table.userId, table.status, table.createdAt),
   ],
 )
 
