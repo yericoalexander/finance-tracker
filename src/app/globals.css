@@ -134,6 +134,22 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/* Ensure all form controls, buttons, and inputs strictly inherit font family */
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  font-family: inherit;
+  color: var(--color-text-placeholder);
+}
+
 /* ─── Focus visible (accessibility) ─────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--color-accent);

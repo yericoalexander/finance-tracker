@@ -152,6 +152,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
                 border: '1px solid var(--color-border)',
                 backgroundColor: 'var(--color-surface-raised)',
                 color: 'var(--color-text)',
+                fontFamily: 'inherit',
                 fontSize: '0.88rem',
                 outline: 'none',
               }}
@@ -200,6 +201,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               color: 'var(--color-accent-text)',
               border: 'none',
               borderRadius: 'var(--radius-md)',
+              fontFamily: 'inherit',
               fontWeight: 700,
               fontSize: '0.92rem',
               cursor: loading ? 'not-allowed' : 'pointer',

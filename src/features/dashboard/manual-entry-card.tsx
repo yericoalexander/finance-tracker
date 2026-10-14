@@ -228,6 +228,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                 border: '1px solid var(--color-border)',
                 backgroundColor: 'var(--color-surface-raised)',
                 color: 'var(--color-text)',
+                fontFamily: 'inherit',
                 fontSize: '1.1rem',
                 fontWeight: 700,
                 fontVariantNumeric: 'tabular-nums',
@@ -279,6 +280,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               border: '1px solid var(--color-border)',
               backgroundColor: 'var(--color-surface-raised)',
               color: 'var(--color-text)',
+              fontFamily: 'inherit',
               fontSize: '0.9rem',
               outline: 'none',
             }}
@@ -318,6 +320,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                     minHeight: '38px',
                     padding: '4px 10px',
                     borderRadius: 'var(--radius-full)',
+                    fontFamily: 'inherit',
                     fontSize: '0.78rem',
                     fontWeight: isSelected ? 600 : 500,
                     border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
@@ -364,6 +367,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                 border: '1px solid var(--color-border)',
                 backgroundColor: 'var(--color-surface-raised)',
                 color: 'var(--color-text)',
+                fontFamily: 'inherit',
                 fontSize: '0.88rem',
                 outline: 'none',
               }}
@@ -378,6 +382,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                 border: '1px solid var(--color-border)',
                 backgroundColor: txDate === todayStr ? 'var(--color-surface-raised)' : 'transparent',
                 color: 'var(--color-text)',
+                fontFamily: 'inherit',
                 fontSize: '0.78rem',
                 cursor: 'pointer',
               }}
@@ -414,6 +419,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                     minHeight: '36px',
                     padding: '3px 9px',
                     borderRadius: 'var(--radius-md)',
+                    fontFamily: 'inherit',
                     fontSize: '0.76rem',
                     fontWeight: isSelected ? 600 : 500,
                     border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
@@ -459,6 +465,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               border: '1px solid var(--color-border)',
               backgroundColor: 'var(--color-surface-raised)',
               color: 'var(--color-text)',
+              fontFamily: 'inherit',
               fontSize: '0.88rem',
               outline: 'none',
             }}
@@ -481,6 +488,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
             backgroundColor: 'var(--color-accent)',
             color: 'var(--color-accent-text)',
             border: 'none',
+            fontFamily: 'inherit',
             fontSize: '0.92rem',
             fontWeight: 600,
             cursor: isSubmitting ? 'not-allowed' : 'pointer',
