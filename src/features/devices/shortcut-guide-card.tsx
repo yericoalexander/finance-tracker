@@ -71,7 +71,7 @@ export function ShortcutGuideCard() {
           </div>
         </div>
 
-        {/* Step 2: Pastikan Token Pribadi */}
+        {/* Step 2: Hubungkan Otomatis */}
         <div
           style={{
             display: 'flex',
@@ -101,10 +101,10 @@ export function ShortcutGuideCard() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
-              Pastikan Token Pribadi Anda Terpasang
+              Ketuk &quot;Hubungkan ke iPhone Otomatis&quot;
             </p>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Buka aplikasi <strong>Pintasan</strong> di iPhone → ketuk titik tiga <code>...</code> pada <strong>Finance Tracker</strong> → pada bagian Headers <em>Authorization</em>, pastikan terisi <strong>Token Pribadi</strong> Anda agar transaksi masuk ke Google Sheets Anda sendiri.
+              Cukup ketuk tombol satu kali. iPhone Anda akan otomatis membuka Pintasan dan menyambungkan akun Anda secara instan tanpa perlu ketik apapun.
             </p>
           </div>
         </div>

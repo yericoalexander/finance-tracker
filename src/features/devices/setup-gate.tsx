@@ -2,9 +2,7 @@
 
 import {
   ArrowRight,
-  Check,
   CheckCircle2,
-  Copy,
   ExternalLink,
   Loader2,
   LogOut,
@@ -37,7 +35,6 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deviceToken, setDeviceToken] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
 
   async function handleOneClickSetup() {
     setLoading(true)
@@ -55,7 +52,6 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
       // Otomatis salin token pribadi ke clipboard pengguna
       try {
         await navigator.clipboard.writeText(res.deviceToken)
-        setCopied(true)
       } catch {
         // Fallback jika browser membatasi izin clipboard
       }
@@ -67,12 +63,6 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
     } finally {
       setLoading(false)
     }
-  }
-
-  function handleCopyToken(token: string) {
-    navigator.clipboard.writeText(token)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -147,118 +137,103 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             <CheckCircle2 size={24} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
             <div>
               <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>
-                Pintasan Dibuka di Layar iPhone!
+                Siap Dihubungkan ke iPhone!
               </h2>
               <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>
-                Simpan token ini agar pengeluaran masuk ke spreadsheet Anda sendiri
+                Koneksi otomatis langsung ke Google Sheets ({user.email})
               </p>
             </div>
           </div>
 
-          {/* Kartu Token Pribadi */}
+          {/* Tombol Utama: Hubungkan Otomatis 1-Klik */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
               gap: 'var(--space-2)',
-              padding: 'var(--space-3) var(--space-4)',
+              padding: 'var(--space-4)',
               backgroundColor: 'var(--color-surface-raised)',
               borderRadius: 'var(--radius-lg)',
               border: '1px solid var(--color-border)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong style={{ fontSize: '0.82rem', color: 'var(--color-text)' }}>
-                🔑 Token Pribadi Anda
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <Sparkles size={18} style={{ color: 'var(--color-accent)' }} />
+              <strong style={{ fontSize: '0.86rem', color: 'var(--color-text)' }}>
+                Langkah 1-Klik Otomatis:
               </strong>
-              <span style={{ fontSize: '0.72rem', color: 'var(--color-accent)', fontWeight: 600 }}>
-                {copied ? '✅ Tersalin di clipboard' : 'Khusus Akun Anda'}
-              </span>
             </div>
-            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-              <input
-                readOnly
-                value={deviceToken}
-                style={{
-                  flex: 1,
-                  minHeight: '40px',
-                  padding: '0 var(--space-3)',
-                  fontSize: '0.76rem',
-                  fontFamily: 'monospace',
-                  backgroundColor: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--color-text)',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => handleCopyToken(deviceToken)}
-                style={{
-                  minHeight: '40px',
-                  padding: '0 var(--space-3)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  backgroundColor: 'var(--color-accent)',
-                  color: 'var(--color-accent-text)',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
-                <span>{copied ? 'Tersalin' : 'Salin'}</span>
-              </button>
-            </div>
-            <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Token ini menjamin catatan keuangan Anda <strong>100% masuk ke Google Sheets pribadi</strong> ({user.email}).
+            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.45 }}>
+              Ketuk tombol di bawah. iPhone Anda akan otomatis membuka Pintasan dan menyimpan koneksi akun Anda tanpa perlu ketik apapun.
             </p>
-          </div>
-
-          {/* Langkah Jelas di iPhone */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-2)',
-              fontSize: '0.8rem',
-              lineHeight: 1.5,
-              padding: 'var(--space-3) var(--space-4)',
-              backgroundColor: 'var(--color-surface-raised)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--color-border)',
-            }}
-          >
-            <strong style={{ fontSize: '0.84rem', color: 'var(--color-text)' }}>
-              Langkah Cepat di iPhone:
-            </strong>
-            <ol
+            <button
+              type="button"
+              onClick={() => {
+                const url = `shortcuts://run-shortcut?name=${encodeURIComponent('Finance Tracker')}&input=text&text=${encodeURIComponent(deviceToken)}`
+                window.location.href = url
+              }}
               style={{
-                margin: 0,
-                paddingLeft: 'var(--space-4)',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '5px',
-                color: 'var(--color-text-muted)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-2)',
+                minHeight: '48px',
+                width: '100%',
+                marginTop: 'var(--space-1)',
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-text)',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                fontWeight: 700,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
-              <li>
-                Ketuk tombol <strong style={{ color: 'var(--color-text)' }}>&quot;Tambahkan Pintasan&quot;</strong> di layar pop-up iPhone.
-              </li>
-              <li>
-                Buka aplikasi <strong style={{ color: 'var(--color-text)' }}>Pintasan</strong> → ketuk titik tiga <code>...</code> pada <strong>Finance Tracker</strong> → di bagian <em>Authorization</em>, pastikan terisi <strong>Token Pribadi</strong> Anda di atas.
-              </li>
-              <li>
-                Saat pertama kali scan struk, pilih <strong style={{ color: 'var(--color-text)' }}>Selalu Izinkan (Always Allow)</strong>.
-              </li>
-            </ol>
+              <Sparkles size={18} />
+              <span>Hubungkan ke iPhone Otomatis</span>
+            </button>
           </div>
 
-          {/* Tombol Aksi Buka Dashboard */}
+          {/* Opsi Bagi yang Belum Pasang Pintasan */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-2)',
+              padding: 'var(--space-3) var(--space-4)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+              Belum punya pintasan di iPhone? Pasang sekali saja:
+            </p>
+            <button
+              type="button"
+              onClick={() => window.open(ICLOUD_SHORTCUT_URL, '_blank')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                minHeight: '40px',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <ExternalLink size={14} />
+              <span>Pasang Pintasan (iCloud)</span>
+            </button>
+          </div>
+
+          {/* Tombol Lanjut ke Dashboard */}
           <button
             type="button"
             onClick={() => router.refresh()}
@@ -269,40 +244,17 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               gap: 'var(--space-2)',
               minHeight: '48px',
               width: '100%',
-              backgroundColor: 'var(--color-accent)',
-              color: 'var(--color-accent-text)',
-              border: 'none',
+              backgroundColor: 'transparent',
+              color: 'var(--color-text)',
+              border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-md)',
-              fontWeight: 700,
-              fontSize: '0.92rem',
+              fontWeight: 600,
+              fontSize: '0.88rem',
               cursor: 'pointer',
-              boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <span>Buka Dashboard</span>
-            <ArrowRight size={18} />
-          </button>
-
-          {/* Link cadangan jika pop-up iCloud tidak terbuka */}
-          <button
-            type="button"
-            onClick={() => window.open(ICLOUD_SHORTCUT_URL, '_blank')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              background: 'none',
-              border: 'none',
-              color: 'var(--color-text-muted)',
-              fontSize: '0.74rem',
-              cursor: 'pointer',
-              padding: 0,
-              textDecoration: 'underline',
-            }}
-          >
-            <ExternalLink size={13} />
-            <span>Buka Ulang Pintasan iCloud jika belum muncul</span>
+            <span>Selesai &amp; Buka Dashboard</span>
+            <ArrowRight size={16} />
           </button>
         </div>
       ) : (

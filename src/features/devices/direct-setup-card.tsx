@@ -3,7 +3,6 @@
 import {
   Check,
   Copy,
-  Info,
   Loader2,
   RotateCcw,
   ShieldCheck,
@@ -63,6 +62,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
         // Fallback jika browser membatasi izin clipboard
       }
 
+      // Token berhasil dibuat
       const endpoint = `${window.location.origin}/api/capture`
       const shortcutsUrl = buildShortcutsUrl(endpoint, res.deviceToken)
 
@@ -71,9 +71,6 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
         shortcutsUrl,
         endpoint,
       })
-
-      // Langsung buka link resmi iCloud untuk menambahkan pintasan Finance Tracker di iPhone
-      window.open(ICLOUD_SHORTCUT_URL, '_blank')
     } catch {
       setError('Terjadi kendala jaringan saat menghubungkan')
     } finally {
@@ -129,7 +126,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               margin: 0,
             }}
           >
-            Pasang pintasan <strong>Finance Tracker</strong> langsung ke iPhone Anda dengan 1 kali klik.
+            Hubungkan iPhone Anda ke <strong>Finance Tracker</strong> untuk mencatat pengeluaran otomatis via Back Tap.
           </p>
 
           {/* Nama Perangkat */}
@@ -179,8 +176,8 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
           >
             <ShieldCheck size={18} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-              <strong style={{ color: 'var(--color-text)' }}>Izin Pemilik Akun:</strong> Dengan menekan
-              tombol di bawah, pintasan <em>Finance Tracker</em> akan terhubung secara privat ke Google Sheets pribadi Anda.
+              <strong style={{ color: 'var(--color-text)' }}>Privat &amp; Aman:</strong> Setiap perangkat
+              memiliki token unik terenkripsi dan hanya menulis transaksi ke Google Sheets akun Anda.
             </div>
           </div>
 
@@ -194,7 +191,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             type="button"
             onClick={handleDirectSetup}
             disabled={loading}
-            aria-label="Pasang dan hubungkan pintasan ke iPhone"
+            aria-label="Buat akses dan hubungkan iPhone"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -221,7 +218,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             ) : (
               <Sparkles size={18} />
             )}
-            <span>{loading ? 'Menghubungkan...' : 'Pasang & Hubungkan Pintasan (1-Klik)'}</span>
+            <span>{loading ? 'Menyiapkan Akses...' : 'Buat Akses iPhone (1-Klik)'}</span>
           </button>
         </>
       ) : (
@@ -242,76 +239,10 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             }}
           >
             <Check size={18} style={{ color: 'var(--color-accent)' }} />
-            <span>Pintasan Dibuka di Layar iPhone!</span>
+            <span>Akses iPhone Berhasil Dibuat!</span>
           </div>
 
-          {/* Kartu Token Pribadi — Kunci Isolasi Akun */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-2)',
-              padding: 'var(--space-4)',
-              backgroundColor: 'var(--color-surface-raised)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--color-border)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong style={{ fontSize: '0.86rem', color: 'var(--color-text)' }}>
-                🔑 Token Pribadi Anda
-              </strong>
-              <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-                Khusus akun Anda
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-              <input
-                readOnly
-                value={result.token}
-                style={{
-                  flex: 1,
-                  minHeight: '40px',
-                  padding: '0 var(--space-3)',
-                  fontSize: '0.78rem',
-                  fontFamily: 'monospace',
-                  backgroundColor: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--color-text)',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => handleCopy(result.token, 'token')}
-                style={{
-                  minHeight: '40px',
-                  padding: '0 var(--space-3)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  backgroundColor: 'var(--color-accent)',
-                  color: 'var(--color-accent-text)',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {copiedType === 'token' ? <Check size={14} /> : <Copy size={14} />}
-                <span>{copiedType === 'token' ? 'Tersalin!' : 'Salin'}</span>
-              </button>
-            </div>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              {copiedType === 'token'
-                ? '✅ Token sudah otomatis disalin ke papan klip!'
-                : 'Salin token ini untuk menghubungkan iPhone Anda secara privat.'}
-            </p>
-          </div>
-
-          {/* Langkah Jelas di iPhone */}
+          {/* Tombol Utama: Hubungkan Otomatis ke iPhone */}
           <div
             style={{
               display: 'flex',
@@ -324,37 +255,65 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <Info size={18} style={{ color: 'var(--color-accent)' }} />
+              <Sparkles size={18} style={{ color: 'var(--color-accent)' }} />
               <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
-                Langkah di Layar iPhone:
+                Hubungkan ke iPhone Otomatis (1-Klik)
               </strong>
             </div>
-            <ol
+            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+              Ketuk tombol di bawah. iPhone Anda akan langsung membuka Pintasan dan menyambungkan akun Anda otomatis tanpa perlu ketik apapun.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const autoUrl = `shortcuts://run-shortcut?name=${encodeURIComponent('Finance Tracker')}&input=text&text=${encodeURIComponent(result.token)}`
+                window.location.href = autoUrl
+              }}
               style={{
-                fontSize: '0.82rem',
-                color: 'var(--color-text)',
-                lineHeight: 1.5,
-                margin: 0,
-                paddingLeft: 'var(--space-4)',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-2)',
+                minHeight: '48px',
+                width: '100%',
+                marginTop: 'var(--space-1)',
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-text)',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                fontFamily: 'inherit',
+                fontWeight: 700,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
-              <li>
-                Ketuk tombol biru <strong>&quot;Tambahkan Pintasan&quot;</strong> di iPhone.
-              </li>
-              <li>
-                Buka aplikasi <strong>Pintasan</strong> di iPhone → ketuk titik tiga <code>...</code> pada <strong>Finance Tracker</strong> → di bagian <em>Headers Authorization</em>, pastikan terisi <strong>Token Pribadi Anda</strong> di atas.
-              </li>
-              <li>
-                Saat pertama kali scan struk, pilih <strong>Selalu Izinkan (Always Allow)</strong>.
-              </li>
-            </ol>
-            <p style={{ margin: 'var(--space-1) 0 0 0', fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
-              🔒 Transaksi Anda dijamin 100% hanya masuk ke Google Sheets pribadi akun Anda.
-            </p>
+              <Sparkles size={18} />
+              <span>⚡ Hubungkan ke iPhone Sekarang</span>
+            </button>
           </div>
+
+          {/* Opsi Pasang Pintasan jika belum ada di iPhone */}
+          <button
+            type="button"
+            onClick={() => window.open(ICLOUD_SHORTCUT_URL, '_blank')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 'var(--space-2)',
+              minHeight: '42px',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              color: 'var(--color-text)',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <span>📲 Belum punya pintasan? Pasang dari iCloud</span>
+          </button>
 
           {/* Toggle Detail Manual */}
           <button
