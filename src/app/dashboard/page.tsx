@@ -42,6 +42,7 @@ export default async function DashboardPage() {
       <DashboardView
         data={dashboardData}
         sheetId={currentSheetId}
+        userName={user.name ?? undefined}
         header={
           <DashboardHeader
             user={user}

@@ -9,6 +9,8 @@ import { ManualEntryCard } from './manual-entry-card'
 import { RecentTransactions } from './recent-transactions'
 import { SummaryCards } from './summary-cards'
 import type { DashboardData } from './actions'
+import { DeviceSetupBanner } from '@/features/devices/device-setup-banner'
+import { ShortcutOnboardingModal } from '@/features/devices/shortcut-onboarding-modal'
 
 type TabType = 'overview' | 'transactions' | 'add'
 
@@ -17,9 +19,10 @@ interface DashboardViewProps {
   sheetId?: string | null
   header?: React.ReactNode
   banner?: React.ReactNode
+  userName?: string
 }
 
-export function DashboardView({ data, sheetId, header, banner }: DashboardViewProps) {
+export function DashboardView({ data, sheetId, header, banner, userName }: DashboardViewProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -106,6 +109,9 @@ export function DashboardView({ data, sheetId, header, banner }: DashboardViewPr
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Modal Onboarding Otomatis jika Belum Ada iPhone Terhubung */}
+      <ShortcutOnboardingModal hasActiveDevice={Boolean(data.activeDevice)} userName={userName} />
+
       {/* Sticky Top Header (FINANCE. + Toggle/Avatar + Segmented Tabs) */}
       <div
         ref={headerContainerRef}
@@ -210,6 +216,9 @@ export function DashboardView({ data, sheetId, header, banner }: DashboardViewPr
       {/* Tab: Ringkasan */}
       {activeTab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingTop: 'var(--space-1)' }}>
+          {/* Banner Pemasangan Shortcut iPhone jika Belum Terhubung */}
+          <DeviceSetupBanner hasActiveDevice={Boolean(data.activeDevice)} />
+
           {/* Sync status & refresh */}
           <div
             style={{
