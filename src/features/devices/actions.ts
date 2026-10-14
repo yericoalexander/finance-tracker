@@ -103,3 +103,45 @@ export async function revokeDeviceAction(deviceId: string): Promise<{ ok: boolea
     return { ok: false, error: `Gagal mencabut perangkat: ${msg}` }
   }
 }
+
+export interface DirectTokenResult {
+  ok: boolean
+  deviceToken?: string
+  error?: string
+}
+
+/**
+ * Buat device token langsung tanpa input kode manual.
+ * Digunakan untuk 1-klik otomatisasi Shortcut iOS via URL scheme.
+ */
+export async function createDirectDeviceTokenAction(deviceLabel?: string): Promise<DirectTokenResult> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { ok: false, error: 'Sesi telah berakhir. Silakan login kembali.' }
+  }
+
+  const userId = session.user.id
+  const label = deviceLabel?.trim() || `iPhone ${session.user.name?.split(' ')[0] ?? 'User'}`
+
+  try {
+    const deviceToken = randomBytes(32).toString('hex')
+    const tokenHash = createHash('sha256').update(deviceToken).digest('hex')
+
+    await db.insert(devices).values({
+      userId,
+      tokenHash,
+      label,
+    })
+
+    revalidatePath('/pair')
+    revalidatePath('/dashboard')
+
+    return {
+      ok: true,
+      deviceToken,
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return { ok: false, error: `Gagal membuat token perangkat: ${msg}` }
+  }
+}

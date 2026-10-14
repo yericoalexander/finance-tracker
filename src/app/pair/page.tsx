@@ -95,7 +95,7 @@ export default async function PairPage() {
         <ThemeToggle />
       </header>
 
-      <PairCard />
+      <PairCard userName={session.user.name ?? undefined} />
       <DeviceList devices={serializedDevices} />
     </main>
   )
