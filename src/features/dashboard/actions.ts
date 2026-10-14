@@ -112,7 +112,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
       .orderBy(desc(captures.createdAt))
       .limit(50),
 
-    // 4. Perangkat iPhone aktif terakhir
+    // 4. Perangkat iPhone aktif terakhir (non-blocking / resilient)
     db
       .select({
         label: devices.label,
@@ -121,7 +121,11 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
       .from(devices)
       .where(and(eq(devices.userId, userId), isNull(devices.revokedAt)))
       .orderBy(desc(devices.lastSeenAt))
-      .limit(1),
+      .limit(1)
+      .catch((err) => {
+        console.warn('[Dashboard] Info perangkat aktif tidak dapat dimuat:', err)
+        return []
+      }),
   ])
 
   const mtdTotal = monthOkCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
