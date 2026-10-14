@@ -1,7 +1,9 @@
 'use client'
 
+import { FileSpreadsheet } from 'lucide-react'
+
 import { useState } from 'react'
-import { ExternalLink, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 
 import { formatRupiah } from '@/lib/ai/currency'
 
@@ -190,7 +192,7 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
         </div>
       </div>
 
-      {/* Akses Spreadsheet */}
+      {/* Akses Spreadsheet — card style seperti referensi */}
       {sheetId ? (
         <a
           href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
@@ -199,26 +201,76 @@ export function SummaryCards({ mtdTotal, txCount, sheetId }: SummaryCardsProps) 
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            minHeight: '52px',
-            padding: 'var(--space-3) var(--space-4)',
-            backgroundColor: 'var(--color-surface)',
-            color: 'var(--color-text)',
+            gap: 'var(--space-3)',
+            minHeight: '64px',
+            padding: 'var(--space-3) var(--space-3)',
+            backgroundColor: 'var(--color-surface-raised)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius-xl)',
             textDecoration: 'none',
-            fontSize: '0.84rem',
-            fontWeight: 600,
             marginTop: 'var(--space-3)',
-            transition: 'background-color var(--duration-fast) var(--ease-default)',
+            transition: 'opacity var(--duration-fast)',
           }}
         >
-          <span>Spreadsheet</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+          {/* Ikon kiri — Google Sheets green */}
+          <div
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: 'var(--radius-lg)',
+              backgroundColor: 'var(--color-surface)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <FileSpreadsheet size={22} color="#34a853" />
+          </div>
+
+          {/* Teks tengah */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p
+              style={{
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                color: 'var(--color-text)',
+                margin: 0,
+                lineHeight: 1.3,
+              }}
+            >
+              Spreadsheet
+            </p>
+            <p
+              style={{
+                fontSize: '0.76rem',
+                color: 'var(--color-text-muted)',
+                margin: 0,
+                marginTop: '2px',
+              }}
+            >
               Google Sheets pribadi
-            </span>
-            <ExternalLink size={14} color="var(--color-text-muted)" />
+            </p>
+          </div>
+
+          {/* Panah kanan — bulat */}
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              fontSize: '1rem',
+              color: 'var(--color-text)',
+            }}
+          >
+            →
           </div>
         </a>
       ) : null}

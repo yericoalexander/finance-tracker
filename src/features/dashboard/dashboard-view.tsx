@@ -138,31 +138,81 @@ export function DashboardView({ data, sheetId }: DashboardViewProps) {
             onViewCategoryInTransactions={handleCategoryJump}
           />
 
-          {/* Link Transaksi ke halaman Sheets */}
+          {/* Card Transaksi — style seperti referensi */}
           <a
             href="/pair"
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              minHeight: '52px',
-              padding: 'var(--space-3) var(--space-4)',
-              backgroundColor: 'var(--color-surface)',
-              color: 'var(--color-text)',
+              gap: 'var(--space-3)',
+              minHeight: '64px',
+              padding: 'var(--space-3) var(--space-3)',
+              backgroundColor: 'var(--color-surface-raised)',
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-xl)',
               textDecoration: 'none',
-              fontSize: '0.84rem',
-              fontWeight: 600,
-              transition: 'background-color var(--duration-fast)',
+              transition: 'opacity var(--duration-fast)',
             }}
           >
-            <span>Transaksi</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+            {/* Ikon kiri */}
+            <div
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'var(--color-surface)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <Smartphone size={20} color="var(--color-text-muted)" />
+            </div>
+
+            {/* Teks tengah */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  color: 'var(--color-text)',
+                  margin: 0,
+                  lineHeight: 1.3,
+                }}
+              >
+                Transaksi
+              </p>
+              <p
+                style={{
+                  fontSize: '0.76rem',
+                  color: 'var(--color-text-muted)',
+                  margin: 0,
+                  marginTop: '2px',
+                }}
+              >
                 Lihat semua catatan keuangan
-              </span>
-              <Smartphone size={14} color="var(--color-text-muted)" />
+              </p>
+            </div>
+
+            {/* Panah kanan — bulat */}
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                fontSize: '1rem',
+                color: 'var(--color-text)',
+              }}
+            >
+              →
             </div>
           </a>
         </div>
