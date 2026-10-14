@@ -28,14 +28,50 @@ const TRANSACTION_HEADERS = [
  * with Indonesian regional locale settings in Google Sheets.
  */
 const SUMMARY_FORMULA_ROWS: string[][] = [
-  // Row 1: Header Banner
-  ['📊 Finance Tracker — Dashboard & Rekapitulasi', '', '', '', '', '', '', ''],
+  // Row 1: Header Banner (with dynamic transaction dates formula in Z1 for dropdown validation)
+  [
+    '📊 Finance Tracker — Dashboard & Rekapitulasi',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '=IFERROR(UNIQUE(SORT(FILTER(Transaksi!A2:A; ISNUMBER(Transaksi!A2:A)); 1; FALSE)); TODAY())',
+  ],
   // Row 2: Spacer
   [''],
   // Row 3: Section 1 Header (Interactive Filters)
   ['🎯 Filter Tanggal Tertentu', '', '', '', '📅 Filter Rentang Tanggal', '', '', ''],
-  // Row 4: Inputs (B4: Specific date, F4: Start date, H4: End date)
-  ['Tanggal:', '2026-10-13', '', '', 'Dari Tanggal:', '2026-10-01', 'Sampai:', '2026-10-31'],
+  // Row 4: Inputs (B4: Specific date, F4: Start date, H4: End date - all with transaction date dropdowns)
+  [
+    'Tanggal:',
+    '=IFERROR(INDEX(Z:Z; 1); TODAY())',
+    '',
+    '',
+    'Dari Tanggal:',
+    '=IFERROR(INDEX(Z:Z; COUNTA(Z:Z)); TODAY())',
+    'Sampai:',
+    '=IFERROR(INDEX(Z:Z; 1); TODAY())',
+  ],
   // Row 5: Quick Filter KPI Cards
   [
     'Total:',
@@ -66,15 +102,15 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   ],
   // Row 10: Spacer
   [''],
-  // Row 11: Section 3 Header (Category breakdown: Month vs Range)
-  ['📂 Rincian Kategori Bulan Ini', '', '', '', '🔍 Rincian Kategori pada Rentang Filter', '', '', ''],
+  // Row 11: Section 3 Header (Category breakdown: Today vs Range)
+  ['📂 Rincian Kategori Hari Ini', '', '', '', '🔍 Rincian Kategori pada Rentang Filter', '', '', ''],
   // Row 12: Category Table Headers
-  ['Kategori', 'Total Bulan Ini', '% Porsi', '', 'Kategori', 'Total di Rentang', 'Jumlah Tx', '% Porsi'],
+  ['Kategori', 'Total Hari Ini', '% Porsi', '', 'Kategori', 'Total di Rentang', 'Jumlah Tx', '% Porsi'],
   // Row 13: Makanan & Minuman
   [
     'Makanan & Minuman',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A13; Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0))',
-    '=IF(OR(ISBLANK(B$9); B$9=0); 0; B13/B$9)',
+    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A13; Transaksi!A:A; TODAY())',
+    '=IF(OR(ISBLANK(B$20); B$20=0); 0; B13/B$20)',
     '',
     'Makanan & Minuman',
     '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E13; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
@@ -84,8 +120,8 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 14: Transportasi
   [
     'Transportasi',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A14; Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0))',
-    '=IF(OR(ISBLANK(B$9); B$9=0); 0; B14/B$9)',
+    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A14; Transaksi!A:A; TODAY())',
+    '=IF(OR(ISBLANK(B$20); B$20=0); 0; B14/B$20)',
     '',
     'Transportasi',
     '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E14; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
@@ -95,8 +131,8 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 15: Belanja
   [
     'Belanja',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A15; Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0))',
-    '=IF(OR(ISBLANK(B$9); B$9=0); 0; B15/B$9)',
+    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A15; Transaksi!A:A; TODAY())',
+    '=IF(OR(ISBLANK(B$20); B$20=0); 0; B15/B$20)',
     '',
     'Belanja',
     '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E15; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
@@ -106,8 +142,8 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 16: Tagihan & Utilitas
   [
     'Tagihan & Utilitas',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A16; Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0))',
-    '=IF(OR(ISBLANK(B$9); B$9=0); 0; B16/B$9)',
+    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A16; Transaksi!A:A; TODAY())',
+    '=IF(OR(ISBLANK(B$20); B$20=0); 0; B16/B$20)',
     '',
     'Tagihan & Utilitas',
     '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E16; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
@@ -117,8 +153,8 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 17: Hiburan
   [
     'Hiburan',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A17; Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0))',
-    '=IF(OR(ISBLANK(B$9); B$9=0); 0; B17/B$9)',
+    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A17; Transaksi!A:A; TODAY())',
+    '=IF(OR(ISBLANK(B$20); B$20=0); 0; B17/B$20)',
     '',
     'Hiburan',
     '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E17; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
@@ -128,8 +164,8 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 18: Kesehatan
   [
     'Kesehatan',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A18; Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0))',
-    '=IF(OR(ISBLANK(B$9); B$9=0); 0; B18/B$9)',
+    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A18; Transaksi!A:A; TODAY())',
+    '=IF(OR(ISBLANK(B$20); B$20=0); 0; B18/B$20)',
     '',
     'Kesehatan',
     '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E18; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
@@ -139,8 +175,8 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   // Row 19: Lainnya
   [
     'Lainnya',
-    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A19; Transaksi!A:A; ">="&DATE(YEAR(TODAY());MONTH(TODAY());1); Transaksi!A:A; "<="&EOMONTH(TODAY();0))',
-    '=IF(OR(ISBLANK(B$9); B$9=0); 0; B19/B$9)',
+    '=SUMIFS(Transaksi!E:E; Transaksi!D:D; A19; Transaksi!A:A; TODAY())',
+    '=IF(OR(ISBLANK(B$20); B$20=0); 0; B19/B$20)',
     '',
     'Lainnya',
     '=IF(OR(ISBLANK(F$4); ISBLANK(H$4)); 0; SUMIFS(Transaksi!E:E; Transaksi!D:D; E19; Transaksi!A:A; ">="&F$4; Transaksi!A:A; "<="&H$4))',
@@ -151,7 +187,7 @@ const SUMMARY_FORMULA_ROWS: string[][] = [
   [
     'TOTAL',
     '=SUM(B13:B19)',
-    '=IF(B9=0; 0; 1)',
+    '=IF(B20=0; 0; 1)',
     '',
     'TOTAL',
     '=SUM(F13:F19)',
@@ -511,6 +547,92 @@ function buildSummarySheetRequests(sheetId: number) {
     { repeatCell: { range: { sheetId, startRowIndex: 19, endRowIndex: 20, startColumnIndex: 5, endColumnIndex: 6 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontSize: 11, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,textFormat,numberFormat)' } },
     { repeatCell: { range: { sheetId, startRowIndex: 19, endRowIndex: 20, startColumnIndex: 6, endColumnIndex: 7 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER' } }, fields: 'userEnteredFormat.horizontalAlignment' } },
     { repeatCell: { range: { sheetId, startRowIndex: 19, endRowIndex: 20, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', numberFormat: { type: 'PERCENT', pattern: '0.0%' } } }, fields: 'userEnteredFormat(horizontalAlignment,numberFormat)' } },
+
+    // Column Z Date Format (for unique transaction date list)
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 0,
+          endRowIndex: 200,
+          startColumnIndex: 25,
+          endColumnIndex: 26,
+        },
+        cell: {
+          userEnteredFormat: {
+            numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' },
+            textFormat: { fontFamily: 'Google Sans' },
+          },
+        },
+        fields: 'userEnteredFormat(numberFormat,textFormat)',
+      },
+    },
+
+    // Dropdown Data Validation for B4 (Filter Tanggal Tertentu)
+    {
+      setDataValidation: {
+        range: {
+          sheetId,
+          startRowIndex: 3,
+          endRowIndex: 4,
+          startColumnIndex: 1,
+          endColumnIndex: 2,
+        },
+        rule: {
+          condition: {
+            type: 'ONE_OF_RANGE',
+            values: [{ userEnteredValue: '=Ringkasan!Z1:Z' }],
+          },
+          inputMessage: 'Pilih tanggal dari riwayat transaksi',
+          strict: false,
+          showCustomUi: true,
+        },
+      },
+    },
+
+    // Dropdown Data Validation for F4 (Filter Rentang: Dari Tanggal)
+    {
+      setDataValidation: {
+        range: {
+          sheetId,
+          startRowIndex: 3,
+          endRowIndex: 4,
+          startColumnIndex: 5,
+          endColumnIndex: 6,
+        },
+        rule: {
+          condition: {
+            type: 'ONE_OF_RANGE',
+            values: [{ userEnteredValue: '=Ringkasan!Z1:Z' }],
+          },
+          inputMessage: 'Pilih tanggal awal dari riwayat transaksi',
+          strict: false,
+          showCustomUi: true,
+        },
+      },
+    },
+
+    // Dropdown Data Validation for H4 (Filter Rentang: Sampai Tanggal)
+    {
+      setDataValidation: {
+        range: {
+          sheetId,
+          startRowIndex: 3,
+          endRowIndex: 4,
+          startColumnIndex: 7,
+          endColumnIndex: 8,
+        },
+        rule: {
+          condition: {
+            type: 'ONE_OF_RANGE',
+            values: [{ userEnteredValue: '=Ringkasan!Z1:Z' }],
+          },
+          inputMessage: 'Pilih tanggal akhir dari riwayat transaksi',
+          strict: false,
+          showCustomUi: true,
+        },
+      },
+    },
   ]
 }
 
