@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { createDirectDeviceTokenAction } from './actions'
+import { HomeScreenGuideCard } from './home-screen-guide-card'
 
 interface SetupGateProps {
   user: {
@@ -253,6 +254,9 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             </div>
           </div>
 
+          {/* Panduan Tambah ke Layar Utama iPhone */}
+          <HomeScreenGuideCard defaultExpanded={true} />
+
           {/* Tombol Lanjut ke Dashboard */}
           <button
             type="button"
@@ -370,6 +374,9 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             )}
             <span>{loading ? 'Menghubungkan...' : 'Pasang & Hubungkan Pintasan (1-Klik)'}</span>
           </button>
+
+          {/* Panduan Pasang di Layar Utama iPhone */}
+          <HomeScreenGuideCard defaultExpanded={false} />
 
           {/* Opsi Lewati & Logout */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--space-1)' }}>
