@@ -33,6 +33,9 @@ export const metadata: Metadata = {
       { url: '/icons/apple-touch-icon-v2.png', sizes: '180x180', type: 'image/png' },
     ],
   },
+  verification: {
+    google: '3ZtWGsOhcmp8f5Ywc-jXL4blmVbiMY1_pGksc6tvck0',
+  },
 }
 
 export const viewport: Viewport = {
@@ -53,6 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-v2.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
+        <meta name="google-site-verification" content="3ZtWGsOhcmp8f5Ywc-jXL4blmVbiMY1_pGksc6tvck0" />
       </head>
       <body className={`${plusJakarta.variable} antialiased`}>
         {/* Next.js official Script component with beforeInteractive strategy to prevent React 19 script tag warnings */}
