@@ -12,6 +12,7 @@ import { MonthNavigator } from './month-navigator'
 import { getMonthSummaryAction, type DashboardData } from './actions'
 import { DeviceSetupBanner } from '@/features/devices/device-setup-banner'
 import { ShortcutOnboardingModal } from '@/features/devices/shortcut-onboarding-modal'
+import { useI18n } from '@/lib/i18n/context'
 
 type TabType = 'overview' | 'transactions' | 'add'
 
@@ -25,6 +26,7 @@ interface DashboardViewProps {
 
 export function DashboardView({ data, sheetId, header, banner, userName }: DashboardViewProps) {
   const router = useRouter()
+  const { t, formatMonthName } = useI18n()
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -135,13 +137,9 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
   const isCurrentMonth = selectedMonth === currentMonthPrefix
   const [activeYearNum, activeMonthNum] = selectedMonth.split('-').map(Number)
   const activeMonthDate = new Date(activeYearNum || 2026, (activeMonthNum || 10) - 1, 1)
-  const monthNameText = new Intl.DateTimeFormat('id-ID', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'Asia/Jakarta',
-  }).format(activeMonthDate)
+  const monthNameText = formatMonthName(activeMonthDate)
 
-  const monthLabel = isCurrentMonth ? 'Bulan Ini' : monthNameText
+  const monthLabel = isCurrentMonth ? t('thisMonth') : monthNameText
 
   // Ukur tinggi pasti sticky header agar sub-header di tab transaksi menempel tepat di bawahnya tanpa gap
   useEffect(() => {
@@ -276,17 +274,17 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
   const tabs = [
     {
       id: 'overview' as TabType,
-      label: 'Ringkasan',
+      label: t('navOverview'),
       icon: <LayoutDashboard size={15} strokeWidth={2.2} />,
     },
     {
       id: 'transactions' as TabType,
-      label: 'Transaksi',
+      label: t('navTransactions'),
       icon: <Receipt size={15} strokeWidth={2.2} />,
     },
     {
       id: 'add' as TabType,
-      label: 'Catat',
+      label: t('navAdd'),
       icon: <Plus size={16} strokeWidth={2.6} />,
     },
   ]
@@ -347,7 +345,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
                 flex: 1,
               }}
             >
-              ✨ {newTxAlert.merchant} baru saja masuk!
+              {t('newTxAlert', { merchant: newTxAlert.merchant })}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
               <button
@@ -367,12 +365,12 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
                   alignItems: 'center',
                 }}
               >
-                Lihat Transaksi
+                {t('viewTx')}
               </button>
               <button
                 type="button"
                 onClick={handleDismissAlert}
-                aria-label="Tutup notifikasi"
+                aria-label={t('closeNotification')}
                 style={{
                   backgroundColor: 'transparent',
                   border: 'none',
@@ -411,13 +409,13 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
             }}
           >
             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-              Tersinkron ke Sheets
+              {t('syncedToSheets')}
             </span>
             <button
               type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              aria-label="Segarkan data"
+              aria-label={t('refresh')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -437,7 +435,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
               }}
             >
               <RefreshCw size={12} className={isRefreshing ? 'animate-spin' : ''} />
-              {isRefreshing ? 'Memuat...' : 'Segarkan'}
+              {isRefreshing ? t('refreshing') : t('refresh')}
             </button>
           </div>
 

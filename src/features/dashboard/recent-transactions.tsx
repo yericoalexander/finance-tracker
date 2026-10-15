@@ -23,6 +23,7 @@ import {
 
 import { CATEGORIES } from '@/lib/ai/types'
 import { formatRupiah } from '@/lib/ai/currency'
+import { useI18n } from '@/lib/i18n/context'
 import { deleteTransactionAction } from './actions'
 
 interface TransactionItem {
@@ -44,12 +45,12 @@ interface RecentTransactionsProps {
 
 type QuickDateOption = 'all' | 'today' | 'yesterday' | '7days' | 'month' | 'range'
 
-function formatDateLabel(dateStr: string): string {
+function formatDateLabel(dateStr: string, locale: 'id' | 'en' = 'id'): string {
   try {
     const [year, month, day] = dateStr.split('-').map(Number)
     if (!year || !month || !day) return dateStr
     const d = new Date(year, month - 1, day)
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat(locale === 'id' ? 'id-ID' : 'en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -103,6 +104,7 @@ export function RecentTransactions({
   stickyOffset,
 }: RecentTransactionsProps) {
   const router = useRouter()
+  const { t, translateCategory, locale } = useI18n()
   const [searchQuery, setSearchQuery] = useState('')
   const [quickDate, setQuickDate] = useState<QuickDateOption>('all')
   const [startDate, setStartDate] = useState<string>('')
@@ -360,12 +362,12 @@ export function RecentTransactions({
   }
 
   const quickDateLabels: Record<QuickDateOption, string> = {
-    all: 'Semua Waktu',
-    today: 'Hari Ini',
-    yesterday: 'Kemarin',
-    '7days': '7 Hari Terakhir',
-    month: 'Bulan Ini',
-    range: 'Rentang Tanggal',
+    all: t('allTime'),
+    today: t('optToday'),
+    yesterday: t('optYesterday'),
+    '7days': locale === 'id' ? '7 Hari Terakhir' : 'Last 7 Days',
+    month: t('optMonth'),
+    range: t('dateRange'),
   }
 
   // Cek transaksi baru (< 2 menit lalu)
@@ -380,7 +382,7 @@ export function RecentTransactions({
 
   return (
     <section
-      aria-label="Semua transaksi"
+      aria-label={t('allTransactions')}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -419,7 +421,7 @@ export function RecentTransactions({
               letterSpacing: '-0.01em',
             }}
           >
-            Semua transaksi
+            {t('allTransactions')}
           </h2>
           <p
             style={{
@@ -430,10 +432,10 @@ export function RecentTransactions({
             }}
           >
             {activeTransactions.length === 0
-              ? '0 transaksi tercatat'
+              ? t('txRecorded', { count: 0 })
               : hasActiveFilters
-                ? `${filtered.length} dari ${activeTransactions.length} transaksi`
-                : `${activeTransactions.length} transaksi tercatat`}
+                ? t('txCountFiltered', { filtered: filtered.length, total: activeTransactions.length })
+                : t('txRecorded', { count: activeTransactions.length })}
           </p>
         </div>
 
@@ -457,7 +459,7 @@ export function RecentTransactions({
             }}
           >
             <RotateCcw size={11} />
-            Reset
+            {t('resetFilter')}
           </button>
         )}
       </div>
@@ -507,7 +509,7 @@ export function RecentTransactions({
                   lineHeight: 1.2,
                 }}
               >
-                Transaksi berhasil dihapus
+                {t('txDeletedSuccess')}
               </p>
               <p
                 style={{
@@ -526,14 +528,14 @@ export function RecentTransactions({
                 {deleteSuccessNotice.amountIdr != null
                   ? ` (${formatRupiah(deleteSuccessNotice.amountIdr)})`
                   : ''}{' '}
-                telah dihapus dari Sheets
+                {t('deletedFromSheetsNotice')}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setDeleteSuccessNotice(null)}
-            aria-label="Tutup notifikasi"
+            aria-label={t('closeNotification')}
             style={{
               width: '44px',
               height: '44px',
@@ -582,7 +584,7 @@ export function RecentTransactions({
           />
           <input
             type="text"
-            placeholder="Cari transaksi"
+            placeholder={t('searchTxPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
@@ -604,7 +606,7 @@ export function RecentTransactions({
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              aria-label="Hapus pencarian"
+              aria-label={t('clearSearch')}
               style={{
                 position: 'absolute',
                 right: '10px',
@@ -630,7 +632,7 @@ export function RecentTransactions({
         <button
           type="button"
           onClick={handleOpenFilterModal}
-          aria-label="Buka filter transaksi"
+          aria-label={t('openFilter')}
           style={{
             minHeight: '44px',
             padding: '0 16px',
@@ -651,7 +653,7 @@ export function RecentTransactions({
           }}
         >
           <SlidersHorizontal size={15} />
-          <span>Filter</span>
+          <span>{t('filterBtn')}</span>
           {activeFilterCount > 0 && (
             <span
               style={{
@@ -701,7 +703,7 @@ export function RecentTransactions({
             >
               <Calendar size={11} color="var(--color-text-muted)" />
               {quickDate === 'range' && startDate && endDate
-                ? `${formatDateLabel(startDate)} – ${formatDateLabel(endDate)}`
+                ? `${formatDateLabel(startDate, locale)} – ${formatDateLabel(endDate, locale)}`
                 : quickDateLabels[quickDate]}
               <button
                 type="button"
@@ -736,7 +738,7 @@ export function RecentTransactions({
               }}
             >
               <Tag size={11} color="var(--color-text-muted)" />
-              {selectedCategory}
+              {translateCategory(selectedCategory)}
               <button
                 type="button"
                 onClick={() => onSelectCategory(null)}
@@ -806,7 +808,7 @@ export function RecentTransactions({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-              Rincian Kategori Hasil Filter
+              {t('filteredCategoryBreakdown')}
             </p>
             <span
               style={{
@@ -844,7 +846,7 @@ export function RecentTransactions({
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                     <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}>
-                      {cat.category}
+                      {translateCategory(cat.category)}
                     </span>
                     <span
                       style={{
@@ -906,8 +908,8 @@ export function RecentTransactions({
             }}
           >
             {hasActiveFilters
-              ? 'Tidak ada transaksi yang cocok dengan filter.'
-              : 'Belum ada transaksi yang tercatat.'}
+              ? t('noTxMatchFilter')
+              : t('noTxRecordedYet')}
           </p>
           {hasActiveFilters ? (
             <button
@@ -925,7 +927,7 @@ export function RecentTransactions({
                 cursor: 'pointer',
               }}
             >
-              Hapus Filter
+              {t('clearFilter')}
             </button>
           ) : (
             onNavigateToAdd && (
@@ -944,7 +946,7 @@ export function RecentTransactions({
                   cursor: 'pointer',
                 }}
               >
-                + Tambah Transaksi Pertama
+                {t('addFirstTx')}
               </button>
             )
           )}
@@ -1014,7 +1016,7 @@ export function RecentTransactions({
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {tx.merchant ?? 'Pengeluaran'}
+                      {tx.merchant ?? t('fallbackExpense')}
                     </p>
                     {isNew && (
                       <span
@@ -1027,7 +1029,7 @@ export function RecentTransactions({
                           borderRadius: 'var(--radius-full)',
                         }}
                       >
-                        Baru
+                        {t('badgeNew')}
                       </span>
                     )}
                   </div>
@@ -1038,7 +1040,7 @@ export function RecentTransactions({
                       margin: '2px 0 0 0',
                     }}
                   >
-                    {tx.category ?? 'Lainnya'} · {formatDateLabel(dateStr)}
+                    {translateCategory(tx.category) || t('fallbackOther')} · {formatDateLabel(dateStr, locale)}
                   </p>
                 </div>
 
@@ -1066,8 +1068,8 @@ export function RecentTransactions({
                       setDeleteError(null)
                       setDeleteTarget(tx)
                     }}
-                    aria-label={`Hapus transaksi ${tx.merchant ?? 'Pengeluaran'}`}
-                    title="Hapus transaksi"
+                    aria-label={t('deleteTxAria', { merchant: tx.merchant ?? t('fallbackExpense') })}
+                    title={t('btnDeleteTx')}
                     style={{
                       minWidth: '44px',
                       minHeight: '44px',
@@ -1163,13 +1165,13 @@ export function RecentTransactions({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <SlidersHorizontal size={18} color="var(--color-accent)" />
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-                  Filter Transaksi
+                  {t('filterTransactions')}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setFilterModalOpen(false)}
-                aria-label="Tutup filter"
+                aria-label={t('closeFilter')}
                 style={{
                   border: 'none',
                   backgroundColor: 'transparent',
@@ -1191,7 +1193,7 @@ export function RecentTransactions({
             {/* Bagian 1: Periode Waktu */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
               <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                Periode Waktu
+                {t('timePeriod')}
               </label>
               <div
                 style={{
@@ -1202,12 +1204,12 @@ export function RecentTransactions({
               >
                 {(
                   [
-                    { id: 'all', label: 'Semua Waktu' },
-                    { id: 'today', label: 'Hari Ini' },
-                    { id: 'yesterday', label: 'Kemarin' },
-                    { id: '7days', label: '7 Hari' },
-                    { id: 'month', label: 'Bulan Ini' },
-                    { id: 'range', label: 'Rentang' },
+                    { id: 'all', label: t('allTime') },
+                    { id: 'today', label: t('optToday') },
+                    { id: 'yesterday', label: t('optYesterday') },
+                    { id: '7days', label: t('opt7Days') },
+                    { id: 'month', label: t('optMonth') },
+                    { id: 'range', label: t('optRange') },
                   ] as const
                 ).map((opt) => {
                   const isSelected = draftQuickDate === opt.id
@@ -1262,7 +1264,7 @@ export function RecentTransactions({
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Calendar size={14} color="var(--color-accent)" />
-                      Rentang Tanggal
+                      {t('dateRange')}
                     </span>
                     {draftStartDate && draftEndDate && (
                       <span
@@ -1275,7 +1277,7 @@ export function RecentTransactions({
                       >
                         {draftStartDate > draftEndDate
                           ? '⚠️ Mulai > Akhir'
-                          : `${formatDateLabel(draftStartDate)} – ${formatDateLabel(draftEndDate)}`}
+                          : `${formatDateLabel(draftStartDate, locale)} – ${formatDateLabel(draftEndDate, locale)}`}
                       </span>
                     )}
                   </div>
@@ -1291,7 +1293,7 @@ export function RecentTransactions({
                     {/* Dari */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                        Dari Tanggal
+                        {t('fromDate')}
                       </label>
                       <input
                         type="date"
@@ -1331,7 +1333,7 @@ export function RecentTransactions({
                     {/* Sampai */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                        Sampai Tanggal
+                        {t('toDate')}
                       </label>
                       <input
                         type="date"
@@ -1363,7 +1365,7 @@ export function RecentTransactions({
             {/* Bagian 2: Kategori */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
               <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                Kategori
+                {t('fieldCategory')}
               </label>
               <div
                 style={{
@@ -1390,7 +1392,7 @@ export function RecentTransactions({
                     touchAction: 'manipulation',
                   }}
                 >
-                  Semua Kategori
+                  {t('allCategories')}
                 </button>
                 {CATEGORIES.map((cat) => {
                   const isSelected = draftCategory === cat
@@ -1414,7 +1416,7 @@ export function RecentTransactions({
                         touchAction: 'manipulation',
                       }}
                     >
-                      {cat}
+                      {translateCategory(cat)}
                     </button>
                   )
                 })}
@@ -1447,7 +1449,7 @@ export function RecentTransactions({
                   fontFamily: 'inherit',
                 }}
               >
-                Reset
+                {t('resetFilter')}
               </button>
               <button
                 type="button"
@@ -1470,7 +1472,7 @@ export function RecentTransactions({
                 }}
               >
                 <Check size={16} />
-                Terapkan Filter
+                {t('applyFilter')}
               </button>
             </div>
           </div>
@@ -1569,10 +1571,10 @@ export function RecentTransactions({
                   }}
                 >
                   {deleteStep === 'success'
-                    ? 'Berhasil Dihapus!'
+                    ? t('deleteDialogSuccess')
                     : deleteStep === 'deleting'
-                      ? 'Menghapus Transaksi...'
-                      : 'Hapus Transaksi?'}
+                      ? t('deleteDialogDeleting')
+                      : t('deleteDialogTitle')}
                 </h3>
                 <p
                   style={{
@@ -1583,10 +1585,10 @@ export function RecentTransactions({
                   }}
                 >
                   {deleteStep === 'success'
-                    ? 'Transaksi dan baris di Google Sheets telah selesai dirapikan.'
+                    ? t('deleteDialogDescSuccess')
                     : deleteStep === 'deleting'
-                      ? 'Sedang menghapus data dari sistem dan merapikan Google Sheets Anda...'
-                      : 'Transaksi akan dihapus dari aplikasi dan baris di Google Sheets Anda akan otomatis dirapikan tanpa celah kosong.'}
+                      ? t('deleteDialogDescDeleting')
+                      : t('deleteDialogDesc')}
                 </p>
               </div>
             </div>
@@ -1630,13 +1632,13 @@ export function RecentTransactions({
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Merchant</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{t('fieldMerchant')}</span>
                 <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                  {deleteTarget.merchant ?? 'Pengeluaran'}
+                  {deleteTarget.merchant ?? t('fallbackExpense')}
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Nominal</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{t('fieldAmount')}</span>
                 <span
                   style={{
                     fontSize: '0.9rem',
@@ -1649,19 +1651,20 @@ export function RecentTransactions({
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Kategori</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{t('fieldCategory')}</span>
                 <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}>
-                  {deleteTarget.category ?? 'Lainnya'}
+                  {translateCategory(deleteTarget.category) || t('fallbackOther')}
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Tanggal</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{t('fieldDate')}</span>
                 <span style={{ fontSize: '0.78rem', color: 'var(--color-text)' }}>
                   {formatDateLabel(
                     deleteTarget.txDate ||
                       (deleteTarget.createdAt
                         ? new Date(deleteTarget.createdAt).toISOString().slice(0, 10)
                         : ''),
+                    locale
                   )}
                 </span>
               </div>
@@ -1703,7 +1706,7 @@ export function RecentTransactions({
                 }}
               >
                 <Check size={18} strokeWidth={2.5} />
-                <span>Loading Selesai</span>
+                <span>{t('loadingDone')}</span>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
@@ -1726,7 +1729,7 @@ export function RecentTransactions({
                     transition: 'all var(--duration-fast)',
                   }}
                 >
-                  Batal
+                  {t('btnCancel')}
                 </button>
                 <button
                   type="button"
@@ -1754,10 +1757,10 @@ export function RecentTransactions({
                   {deleteStep === 'deleting' ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />
-                      <span>Menghapus...</span>
+                      <span>{t('deletingStatus')}</span>
                     </>
                   ) : (
-                    <span>Ya, Hapus</span>
+                    <span>{t('btnConfirmDelete')}</span>
                   )}
                 </button>
               </div>

@@ -4,10 +4,12 @@ import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+import { useI18n } from '@/lib/i18n/context'
 import { retryEnsureSpreadsheetAction } from './actions'
 
 export function RetrySheetCard() {
   const router = useRouter()
+  const { t } = useI18n()
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -18,12 +20,12 @@ export function RetrySheetCard() {
     try {
       const result = await retryEnsureSpreadsheetAction()
       if (!result.ok) {
-        setErrorMessage(result.error ?? 'Gagal membuat Google Sheet. Coba lagi.')
+        setErrorMessage(result.error ?? t('errCreateSheet'))
       } else {
         router.refresh()
       }
     } catch {
-      setErrorMessage('Terjadi gangguan jaringan. Silakan coba lagi.')
+      setErrorMessage(t('errNetwork'))
     } finally {
       setLoading(false)
     }
@@ -50,7 +52,7 @@ export function RetrySheetCard() {
             color: 'var(--color-text)',
           }}
         >
-          Google Sheet belum terhubung
+          {t('sheetNotConnected')}
         </p>
         <p
           style={{
@@ -60,7 +62,7 @@ export function RetrySheetCard() {
             lineHeight: 1.4,
           }}
         >
-          Spreadsheet transaksi belum selesai dibuat saat proses login sebelumnya.
+          {t('sheetNotConnectedDesc')}
         </p>
       </div>
 
@@ -88,7 +90,7 @@ export function RetrySheetCard() {
         type="button"
         onClick={handleRetry}
         disabled={loading}
-        aria-label="Coba hubungkan Google Sheet lagi"
+        aria-label={t('btnRetrySheet')}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -110,12 +112,12 @@ export function RetrySheetCard() {
         {loading ? (
           <>
             <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-            <span>Sedang membuat spreadsheet...</span>
+            <span>{t('creatingSpreadsheet')}</span>
           </>
         ) : (
           <>
             <RefreshCw size={16} />
-            <span>Coba lagi</span>
+            <span>{t('tryAgain')}</span>
           </>
         )}
       </button>

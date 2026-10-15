@@ -1,6 +1,7 @@
 'use client'
 
 import { formatRupiah } from '@/lib/ai/currency'
+import { useI18n } from '@/lib/i18n/context'
 import type { CategorySummary } from './actions'
 
 interface CategoryBreakdownProps {
@@ -18,7 +19,8 @@ export function CategoryBreakdown({
   onViewCategoryInTransactions,
   monthLabel,
 }: CategoryBreakdownProps) {
-  const displayTitle = monthLabel ? `Kategori ${monthLabel}` : 'Kategori Bulan Ini'
+  const { t, translateCategory } = useI18n()
+  const displayTitle = monthLabel ? t('categoriesTitle', { month: monthLabel }) : t('categoriesThisMonth')
 
   if (categories.length === 0) {
     return (
@@ -51,7 +53,7 @@ export function CategoryBreakdown({
             margin: 'var(--space-2) 0 0 0',
           }}
         >
-          Belum ada catatan pengeluaran di periode ini.
+          {t('noExpensesPeriod')}
         </p>
       </section>
     )
@@ -107,7 +109,7 @@ export function CategoryBreakdown({
                   cursor: 'pointer',
                 }}
               >
-                Lihat di Transaksi →
+                {t('viewInTransactions')}
               </button>
             ) : null}
             <button
@@ -124,14 +126,14 @@ export function CategoryBreakdown({
                 cursor: 'pointer',
               }}
             >
-              Reset
+              {t('resetFilter')}
             </button>
           </div>
         ) : null}
       </div>
 
       <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-        Ketuk kategori di bawah untuk menyaring riwayat transaksi.
+        {t('filterHint')}
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
@@ -171,7 +173,7 @@ export function CategoryBreakdown({
                     fontWeight: isSelected ? 700 : 500,
                   }}
                 >
-                  {cat.category}
+                  {translateCategory(cat.category)}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   <span

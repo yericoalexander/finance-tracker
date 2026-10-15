@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import { useI18n } from '@/lib/i18n/context'
+
 interface ShortcutOnboardingModalProps {
   hasActiveDevice: boolean
   userName?: string
@@ -15,6 +17,7 @@ export function ShortcutOnboardingModal({
   userName,
 }: ShortcutOnboardingModalProps) {
   const router = useRouter()
+  const { t, locale } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -55,7 +58,7 @@ export function ShortcutOnboardingModal({
 
   if (!isOpen || !mounted) return null
 
-  const firstName = userName?.split(' ')[0] ?? 'Kamu'
+  const firstName = userName?.split(' ')[0] ?? (locale === 'id' ? 'Kamu' : 'there')
 
   return createPortal(
     <div
@@ -94,7 +97,7 @@ export function ShortcutOnboardingModal({
         <button
           type="button"
           onClick={handleDismiss}
-          aria-label="Tutup jendela saran"
+          aria-label={t('closePrompt')}
           style={{
             position: 'absolute',
             top: 'var(--space-4)',
@@ -143,7 +146,7 @@ export function ShortcutOnboardingModal({
                 lineHeight: 1.3,
               }}
             >
-              Pasang Pintasan iPhone
+              {t('onboardingModalTitle')}
             </h2>
             <p
               style={{
@@ -152,7 +155,7 @@ export function ShortcutOnboardingModal({
                 margin: '2px 0 0 0',
               }}
             >
-              Halo {firstName}, siapkan integrasi otomatis
+              {t('onboardingModalSub', { name: firstName })}
             </p>
           </div>
         </div>
@@ -166,9 +169,9 @@ export function ShortcutOnboardingModal({
             margin: 0,
           }}
         >
-          Aplikasi ini mencatat pengeluaran langsung dari tangkapan layar iPhone Anda via{' '}
-          <strong style={{ color: 'var(--color-text)' }}>Ketuk Bagian Belakang (Back Tap)</strong> dalam
-          2 detik.
+          {t('onboardingModalDescPart1')}{' '}
+          <strong style={{ color: 'var(--color-text)' }}>{t('onboardingModalDescStrong')}</strong>{' '}
+          {t('onboardingModalDescPart2')}
         </p>
 
         {/* Peringatan Wajib: Disarankan Allow Semua / Selalu Izinkan */}
@@ -186,7 +189,7 @@ export function ShortcutOnboardingModal({
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <ShieldAlert size={18} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
             <strong style={{ fontSize: '0.86rem', color: 'var(--color-text)' }}>
-              Wajib: Pilih &quot;Selalu Izinkan&quot;
+              {t('onboardingWarningTitle')}
             </strong>
           </div>
           <p
@@ -197,7 +200,7 @@ export function ShortcutOnboardingModal({
               margin: 0,
             }}
           >
-            Saat iPhone memunculkan konfirmasi izin jaringan untuk pertama kali:
+            {t('onboardingWarningDesc')}
           </p>
           <div
             style={{
@@ -211,7 +214,7 @@ export function ShortcutOnboardingModal({
               textAlign: 'center',
             }}
           >
-            👉 Pilih: <span style={{ color: 'var(--color-accent)' }}>Selalu Izinkan (Always Allow)</span>
+            <span style={{ color: 'var(--color-accent)' }}>{t('onboardingWarningAction')}</span>
           </div>
           <p
             style={{
@@ -221,8 +224,7 @@ export function ShortcutOnboardingModal({
               margin: 0,
             }}
           >
-            Pastikan tidak memilih &quot;Jangan Izinkan&quot; agar pengiriman struk belanja ke Google
-            Sheets Anda tidak terblokir oleh iOS.
+            {t('onboardingWarningNote')}
           </p>
         </div>
 
@@ -249,7 +251,7 @@ export function ShortcutOnboardingModal({
             }}
           >
             <Sparkles size={16} />
-            <span>Pasang Sekarang (1-Klik)</span>
+            <span>{t('btnInstallNow')}</span>
             <ExternalLink size={15} />
           </button>
 
@@ -267,7 +269,7 @@ export function ShortcutOnboardingModal({
               cursor: 'pointer',
             }}
           >
-            Nanti Saja
+            {t('btnLater')}
           </button>
         </div>
       </div>

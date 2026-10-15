@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { FileSpreadsheet, ArrowDownLeft } from 'lucide-react'
 
 import { formatRupiah } from '@/lib/ai/currency'
+import { useI18n } from '@/lib/i18n/context'
 
 interface SummaryCardsProps {
   mtdTotal: number
@@ -24,6 +25,7 @@ export function SummaryCards({
   selectedMonth,
   currentMonthPrefix,
 }: SummaryCardsProps) {
+  const { t, formatMonthName } = useI18n()
   const [viewMode, setViewMode] = useState<'total' | 'daily'>('total')
 
   const now = new Date()
@@ -34,11 +36,7 @@ export function SummaryCards({
   const [activeYear, activeMonthNum] = activeMonth.split('-').map(Number)
   const displayDate = new Date(activeYear || now.getFullYear(), (activeMonthNum || (now.getMonth() + 1)) - 1, 1)
 
-  const activeMonthName = new Intl.DateTimeFormat('id-ID', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'Asia/Jakarta',
-  }).format(displayDate)
+  const activeMonthName = formatMonthName(displayDate)
 
   // Jumlah hari untuk pembagi rata-rata harian:
   // Jika bulan berjalan, gunakan tanggal hari ini; jika bulan lampau, gunakan total hari di bulan tersebut
@@ -101,9 +99,9 @@ export function SummaryCards({
               >
                 {viewMode === 'total'
                   ? isCurrentMonth
-                    ? 'Pengeluaran Bulan Ini'
-                    : `Pengeluaran ${activeMonthName}`
-                  : 'Rata-rata Pengeluaran'}
+                    ? t('expensesThisMonth')
+                    : t('expensesPeriod', { month: activeMonthName })
+                  : t('averageExpenses')}
               </p>
             </div>
           </div>
@@ -139,7 +137,7 @@ export function SummaryCards({
                   fontFamily: 'inherit',
                 }}
               >
-                {mode === 'total' ? 'Total' : '/ Hari'}
+                {mode === 'total' ? t('total') : t('daily')}
               </button>
             ))}
           </div>
@@ -169,8 +167,14 @@ export function SummaryCards({
             }}
           >
             {viewMode === 'total'
-              ? `${activeMonthName} · rata-rata ${formatRupiah(dailyAverage)} / hari`
-              : `Berdasarkan ${dayDivisor} hari di ${activeMonthName}`}
+              ? t('dailyAverageText', {
+                  month: activeMonthName,
+                  avg: formatRupiah(dailyAverage),
+                })
+              : t('basedOnDays', {
+                  days: dayDivisor,
+                  month: activeMonthName,
+                })}
           </p>
         </div>
 
@@ -186,9 +190,9 @@ export function SummaryCards({
             color: 'var(--color-text-muted)',
           }}
         >
-          <span>{txCount} transaksi tercatat</span>
+          <span>{t('txRecorded', { count: txCount })}</span>
           <span style={{ fontWeight: 500, color: 'var(--color-text-subtle)' }}>
-            {isCurrentMonth ? 'Bulan Ini' : activeMonthName}
+            {isCurrentMonth ? t('thisMonth') : activeMonthName}
           </span>
         </div>
       </div>
@@ -241,7 +245,7 @@ export function SummaryCards({
                 lineHeight: 1.3,
               }}
             >
-              Spreadsheet
+              {t('spreadsheetTitle')}
             </p>
             <p
               style={{
@@ -251,7 +255,7 @@ export function SummaryCards({
                 marginTop: '2px',
               }}
             >
-              Google Sheets pribadi
+              {t('spreadsheetSub')}
             </p>
           </div>
 

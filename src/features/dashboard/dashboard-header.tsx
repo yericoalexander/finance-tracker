@@ -7,15 +7,15 @@ import Link from 'next/link'
 import {
   Settings,
   HelpCircle,
-  MessageSquare,
   LogOut,
   X,
   FileSpreadsheet,
   Smartphone,
-  CheckCircle2,
+  Languages,
 } from 'lucide-react'
 
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { useI18n } from '@/lib/i18n/context'
 
 interface DashboardHeaderProps {
   user: {
@@ -28,10 +28,10 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderProps) {
+  const { locale, setLocale, toggleLocale, t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [activeModal, setActiveModal] = useState<'settings' | 'help' | 'feedback' | null>(null)
-  const [feedbackText, setFeedbackText] = useState('')
-  const [feedbackSent, setFeedbackSent] = useState(false)
+  const [activeModal, setActiveModal] = useState<'settings' | 'help' | null>(null)
+  const [isLangPressed, setIsLangPressed] = useState(false)
   const [mounted, setMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -73,17 +73,6 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
     }
   }, [])
 
-  const handleSendFeedback = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!feedbackText.trim()) return
-    setFeedbackSent(true)
-    setTimeout(() => {
-      setFeedbackSent(false)
-      setFeedbackText('')
-      setActiveModal(null)
-    }, 1500)
-  }
-
   return (
     <header
       style={{
@@ -114,35 +103,103 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
               fontWeight: 500,
             }}
           >
-            Halo, {firstName} 👋
+            {t('greeting')}, {firstName} 👋
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }} ref={menuRef}>
           <ThemeToggle />
 
-          <button
-            type="button"
-            onClick={() => setActiveModal('help')}
-            aria-label="Bantuan & Panduan"
-            title="Bantuan & Panduan"
+          {/* 1-Click Interactive Segmented Language Switcher — ID ↔ EN */}
+          <div
+            role="group"
+            aria-label={locale === 'id' ? 'Pilih bahasa (saat ini Bahasa Indonesia)' : 'Select language (currently English)'}
+            title={locale === 'id' ? 'Klik untuk ganti ke English (Nominal tetap Rp)' : 'Click to switch to Bahasa Indonesia (Amounts remain Rp)'}
+            onClick={toggleLocale}
+            onPointerDown={() => setIsLangPressed(true)}
+            onPointerUp={() => setIsLangPressed(false)}
+            onPointerLeave={() => setIsLangPressed(false)}
             style={{
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'center',
               minHeight: '44px',
-              minWidth: '44px',
-              padding: '0 var(--space-2)',
+              height: '44px',
+              padding: '3px',
               backgroundColor: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--color-text)',
+              borderRadius: 'var(--radius-full)',
               cursor: 'pointer',
-              transition: 'all var(--duration-fast) var(--ease-default)',
+              userSelect: 'none',
+              transform: isLangPressed ? 'scale(0.95)' : 'scale(1)',
+              transition: 'transform var(--duration-fast) var(--ease-default), border-color var(--duration-fast) var(--ease-default)',
+              boxShadow: 'var(--shadow-xs)',
+              gap: '2px',
             }}
           >
-            <HelpCircle size={18} />
-          </button>
+            {/* Indonesian Segment */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (locale !== 'id') setLocale('id')
+                else toggleLocale()
+              }}
+              aria-pressed={locale === 'id'}
+              aria-label="Bahasa Indonesia"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '34px',
+                height: '36px',
+                padding: '0 8px',
+                borderRadius: 'var(--radius-full)',
+                border: 'none',
+                backgroundColor: locale === 'id' ? 'var(--color-accent)' : 'transparent',
+                color: locale === 'id' ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
+                fontSize: '0.74rem',
+                fontWeight: locale === 'id' ? 800 : 600,
+                letterSpacing: '0.04em',
+                cursor: 'pointer',
+                transition: 'all 160ms cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: locale === 'id' ? '0 1px 3px rgba(0, 0, 0, 0.16)' : 'none',
+              }}
+            >
+              ID
+            </button>
+
+            {/* English Segment */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (locale !== 'en') setLocale('en')
+                else toggleLocale()
+              }}
+              aria-pressed={locale === 'en'}
+              aria-label="English"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '34px',
+                height: '36px',
+                padding: '0 8px',
+                borderRadius: 'var(--radius-full)',
+                border: 'none',
+                backgroundColor: locale === 'en' ? 'var(--color-accent)' : 'transparent',
+                color: locale === 'en' ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
+                fontSize: '0.74rem',
+                fontWeight: locale === 'en' ? 800 : 600,
+                letterSpacing: '0.04em',
+                cursor: 'pointer',
+                transition: 'all 160ms cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: locale === 'en' ? '0 1px 3px rgba(0, 0, 0, 0.16)' : 'none',
+              }}
+            >
+              EN
+            </button>
+          </div>
 
           {/* Avatar button with interactive dropdown */}
           <div style={{ position: 'relative' }}>
@@ -151,7 +208,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
               onClick={() => setMenuOpen((prev) => !prev)}
               aria-expanded={menuOpen}
               aria-haspopup="true"
-              aria-label="Menu akun"
+              aria-label={t('accountMenu')}
               style={{
                 width: '40px',
                 height: '40px',
@@ -230,7 +287,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <Settings size={16} color="var(--color-text-muted)" />
-                  Pengaturan
+                  {t('settings')}
                 </button>
 
                 <button
@@ -259,14 +316,14 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <HelpCircle size={16} color="var(--color-text-muted)" />
-                  Bantuan
+                  {t('help')}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
+                    toggleLocale()
                     setMenuOpen(false)
-                    setActiveModal('feedback')
                   }}
                   style={{
                     display: 'flex',
@@ -287,8 +344,8 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-raised)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
-                  <MessageSquare size={16} color="var(--color-text-muted)" />
-                  Beri masukan
+                  <Languages size={16} color="var(--color-text-muted)" />
+                  {t('switchLangOption')}
                 </button>
 
                 <div
@@ -322,7 +379,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <LogOut size={16} color="var(--color-error)" />
-                    Keluar
+                    {t('logout')}
                   </button>
                 </form>
               </div>
@@ -366,7 +423,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-                Pengaturan
+                {t('modalSettingsTitle')}
               </h2>
               <button
                 type="button"
@@ -392,7 +449,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   border: '1px solid var(--color-border)',
                 }}
               >
-                <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', margin: 0 }}>Akun Google</p>
+                <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', margin: 0 }}>{t('labelGoogleAccount')}</p>
                 <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', margin: '2px 0 0 0' }}>
                   {user.name} ({user.email})
                 </p>
@@ -408,7 +465,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   }}
                 >
                   <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', margin: 0 }}>
-                    Google Spreadsheet
+                    {t('labelGoogleSheets')}
                   </p>
                   <a
                     href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
@@ -426,7 +483,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                     }}
                   >
                     <FileSpreadsheet size={15} />
-                    Buka Google Sheets Pribadi →
+                    {t('linkOpenSheets')}
                   </a>
                 </div>
               )}
@@ -440,7 +497,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 }}
               >
                 <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', margin: 0 }}>
-                  Shortcut iPhone (Back Tap)
+                  {t('labelIphoneShortcut')}
                 </p>
                 <Link
                   href="/pair"
@@ -458,7 +515,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   }}
                 >
                   <Smartphone size={15} />
-                  Hubungkan / Pasang Ulang Shortcut →
+                  {t('linkSetupShortcut')}
                 </Link>
               </div>
             </div>
@@ -478,7 +535,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 cursor: 'pointer',
               }}
             >
-              Tutup
+              {t('btnClose')}
             </button>
           </div>
         </div>,
@@ -522,7 +579,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-                Bantuan & Panduan
+                {t('modalHelpTitle')}
               </h2>
               <button
                 type="button"
@@ -549,12 +606,10 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 }}
               >
                 <p style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-                  ⚡ Cara Catat dengan Back Tap
+                  {t('guideBackTapTitle')}
                 </p>
-                <p style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', margin: '4px 0 0 0', lineHeight: 1.5 }}>
-                  1. Ambil screenshot bukti transfer/struk di iPhone.<br />
-                  2. Ketuk 2x bagian belakang iPhone.<br />
-                  3. Transaksi otomatis diekstrak AI dan masuk ke Google Sheets & Dashboard ini!
+                <p style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', margin: '4px 0 0 0', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                  {t('guideBackTapText')}
                 </p>
               </div>
 
@@ -567,12 +622,10 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 }}
               >
                 <p style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-                  📱 Pasang di Layar Utama (Add to Home Screen)
+                  {t('guidePwaTitle')}
                 </p>
-                <p style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', margin: '4px 0 0 0', lineHeight: 1.5 }}>
-                  1. Buka website ini di Safari iPhone.<br />
-                  2. Ketuk ikon Bagikan (Share).<br />
-                  3. Pilih &quot;Tambah ke Layar Utama&quot; (Add to Home Screen).
+                <p style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', margin: '4px 0 0 0', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                  {t('guidePwaText')}
                 </p>
               </div>
             </div>
@@ -592,118 +645,8 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 cursor: 'pointer',
               }}
             >
-              Mengerti
+              {t('btnGotIt')}
             </button>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* Modal: Beri Masukan */}
-      {mounted && activeModal === 'feedback' && createPortal(
-        <div
-          className="animate-fade-in"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.45)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: 'var(--space-4)',
-          }}
-          onClick={() => setActiveModal(null)}
-        >
-          <div
-            className="animate-scale-in"
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-xl)',
-              border: '1px solid var(--color-border)',
-              padding: 'var(--space-5)',
-              width: '100%',
-              maxWidth: '380px',
-              boxShadow: 'var(--shadow-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-4)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-                Beri Masukan
-              </h2>
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                style={{
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-text-muted)',
-                  cursor: 'pointer',
-                  padding: '4px',
-                }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {feedbackSent ? (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  padding: 'var(--space-4) 0',
-                  gap: '8px',
-                }}
-              >
-                <CheckCircle2 size={36} color="var(--color-success)" />
-                <p style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-                  Terima kasih atas masukanmu!
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSendFeedback} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                <textarea
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder="Tulis saran atau kendala yang kamu temukan..."
-                  rows={4}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-bg)',
-                    color: 'var(--color-text)',
-                    fontSize: '0.85rem',
-                    fontFamily: 'inherit',
-                    resize: 'none',
-                  }}
-                />
-                <button
-                  type="submit"
-                  style={{
-                    width: '100%',
-                    minHeight: '44px',
-                    borderRadius: 'var(--radius-md)',
-                    border: 'none',
-                    backgroundColor: 'var(--color-accent)',
-                    color: 'var(--color-accent-text)',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Kirim Masukan
-                </button>
-              </form>
-            )}
           </div>
         </div>,
         document.body

@@ -3,11 +3,15 @@
 import { ArrowRight, Smartphone, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
+import { useI18n } from '@/lib/i18n/context'
+
 interface DeviceSetupBannerProps {
   hasActiveDevice: boolean
 }
 
 export function DeviceSetupBanner({ hasActiveDevice }: DeviceSetupBannerProps) {
+  const { t } = useI18n()
+
   if (hasActiveDevice) return null
 
   return (
@@ -52,7 +56,7 @@ export function DeviceSetupBanner({ hasActiveDevice }: DeviceSetupBannerProps) {
                 lineHeight: 1.2,
               }}
             >
-              Pintasan Belum Terhubung
+              {t('deviceBannerTitle')}
             </p>
             <span
               style={{
@@ -64,7 +68,7 @@ export function DeviceSetupBanner({ hasActiveDevice }: DeviceSetupBannerProps) {
                 color: 'var(--color-expense)',
               }}
             >
-              1-Klik
+              {t('deviceBannerTag')}
             </span>
           </div>
           <p
@@ -75,14 +79,14 @@ export function DeviceSetupBanner({ hasActiveDevice }: DeviceSetupBannerProps) {
               lineHeight: 1.3,
             }}
           >
-            Aktifkan Back Tap iPhone &amp; pilih <strong>Selalu Izinkan</strong>.
+            {t('deviceBannerDescPrefix')} <strong>{t('deviceBannerDescStrong')}</strong>.
           </p>
         </div>
       </div>
 
       <Link
         href="/pair"
-        aria-label="Hubungkan Pintasan iPhone Sekarang"
+        aria-label={t('deviceBannerAria')}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -100,7 +104,7 @@ export function DeviceSetupBanner({ hasActiveDevice }: DeviceSetupBannerProps) {
         }}
       >
         <Sparkles size={13} />
-        <span>Hubungkan</span>
+        <span>{t('deviceBannerAction')}</span>
         <ArrowRight size={13} />
       </Link>
     </div>

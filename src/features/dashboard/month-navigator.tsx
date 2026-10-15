@@ -1,6 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
+import { useI18n } from '@/lib/i18n/context'
 
 interface MonthNavigatorProps {
   selectedMonth: string // Format 'YYYY-MM'
@@ -8,21 +9,6 @@ interface MonthNavigatorProps {
   availableMonths: string[]
   onChangeMonth: (month: string) => void
   isLoading?: boolean
-}
-
-function formatMonthLabel(monthStr: string): string {
-  try {
-    const [year, month] = monthStr.split('-').map(Number)
-    if (!year || !month) return monthStr
-    const d = new Date(year, month - 1, 1)
-    return new Intl.DateTimeFormat('id-ID', {
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'Asia/Jakarta',
-    }).format(d)
-  } catch {
-    return monthStr
-  }
 }
 
 function getPrevMonthStr(monthStr: string): string {
@@ -50,6 +36,19 @@ export function MonthNavigator({
   onChangeMonth,
   isLoading = false,
 }: MonthNavigatorProps) {
+  const { t, formatMonthName } = useI18n()
+
+  const getMonthLabel = (mStr: string) => {
+    try {
+      const [year, month] = mStr.split('-').map(Number)
+      if (!year || !month) return mStr
+      const d = new Date(year, month - 1, 1)
+      return formatMonthName(d)
+    } catch {
+      return mStr
+    }
+  }
+
   const isCurrentMonth = selectedMonth === currentMonthPrefix
   const canGoNext = selectedMonth < currentMonthPrefix
 
@@ -82,7 +81,7 @@ export function MonthNavigator({
         type="button"
         onClick={handlePrev}
         disabled={isLoading}
-        aria-label="Bulan sebelumnya"
+        aria-label={t('prevMonth')}
         style={{
           width: '44px',
           height: '44px',
@@ -124,7 +123,7 @@ export function MonthNavigator({
           }}
         >
           <Calendar size={15} color="var(--color-text-muted)" />
-          {formatMonthLabel(selectedMonth)}
+          {getMonthLabel(selectedMonth)}
         </span>
 
         {isCurrentMonth ? (
@@ -139,7 +138,7 @@ export function MonthNavigator({
               color: 'var(--color-text-muted)',
             }}
           >
-            Bulan Ini
+            {t('thisMonth')}
           </span>
         ) : null}
 
@@ -147,7 +146,7 @@ export function MonthNavigator({
         <select
           value={selectedMonth}
           onChange={(e) => onChangeMonth(e.target.value)}
-          aria-label="Pilih bulan pengeluaran"
+          aria-label={t('selectMonth')}
           style={{
             position: 'absolute',
             inset: 0,
@@ -159,7 +158,7 @@ export function MonthNavigator({
         >
           {availableMonths.map((m) => (
             <option key={m} value={m}>
-              {formatMonthLabel(m)} {m === currentMonthPrefix ? '(Bulan Ini)' : ''}
+              {getMonthLabel(m)} {m === currentMonthPrefix ? `(${t('thisMonth')})` : ''}
             </option>
           ))}
         </select>
@@ -170,7 +169,7 @@ export function MonthNavigator({
         type="button"
         onClick={handleNext}
         disabled={!canGoNext || isLoading}
-        aria-label="Bulan berikutnya"
+        aria-label={t('nextMonth')}
         style={{
           width: '44px',
           height: '44px',

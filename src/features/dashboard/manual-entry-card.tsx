@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { CATEGORIES, type Category } from '@/lib/ai/types'
 import { formatRupiah } from '@/lib/ai/currency'
+import { useI18n } from '@/lib/i18n/context'
 import { createManualTransactionAction } from './manual-entry-action'
 
 const PAYMENT_METHODS = ['QRIS', 'Transfer BCA', 'Transfer Mandiri', 'Kartu Debit', 'Tunai', 'Lainnya']
@@ -16,6 +17,7 @@ interface ManualEntryCardProps {
 
 export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
   const router = useRouter()
+  const { t, translateCategory, translatePaymentMethod } = useI18n()
   const todayStr = new Date().toISOString().slice(0, 10)
 
   const [merchant, setMerchant] = useState('')
@@ -48,11 +50,11 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!merchant.trim()) {
-      setErrorMsg('Nama merchant atau tempat transaksi wajib diisi')
+      setErrorMsg(t('errMerchantRequired'))
       return
     }
     if (numericAmount <= 0) {
-      setErrorMsg('Nominal transaksi harus lebih dari Rp 0')
+      setErrorMsg(t('errAmountPositive'))
       return
     }
 
@@ -71,9 +73,9 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
       })
 
       if (!res.ok) {
-        setErrorMsg(res.error ?? 'Gagal mencatat transaksi')
+        setErrorMsg(res.error ?? t('errSaveFailed'))
       } else {
-        setSuccessMsg(`Berhasil mencatat ${formatRupiah(numericAmount)} untuk ${merchant.trim()} ke Google Sheets!`)
+        setSuccessMsg(t('manualSuccessMsg', { amount: formatRupiah(numericAmount), merchant: merchant.trim() }))
         resetForm()
         router.refresh()
         if (onSuccess) {
@@ -83,7 +85,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
         }
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem. Coba beberapa saat lagi.'
+      const msg = err instanceof Error ? err.message : t('errSystemError')
       setErrorMsg(msg)
     } finally {
       setIsSubmitting(false)
@@ -120,7 +122,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               margin: 0,
             }}
           >
-            Catat Pengeluaran
+            {t('manualTitle')}
           </h2>
           <p
             style={{
@@ -129,7 +131,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               margin: '4px 0 0 0',
             }}
           >
-            Data langsung ditulis ke sheet Transaksi milik kamu
+            {t('manualSub')}
           </p>
         </div>
 
@@ -170,7 +172,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                   padding: 0,
                 }}
               >
-                Lihat di Tab Transaksi <ArrowRight size={13} />
+                {t('viewInTxTab')} <ArrowRight size={13} />
               </button>
             ) : null}
           </div>
@@ -210,7 +212,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               letterSpacing: '0.04em',
             }}
           >
-            Nominal Transaksi (Rp)
+            {t('labelAmount')}
           </label>
           <div style={{ position: 'relative' }}>
             <input
@@ -219,7 +221,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               inputMode="numeric"
               value={amountStr ? parseInt(amountStr, 10).toLocaleString('id-ID') : ''}
               onChange={handleAmountChange}
-              placeholder="Contoh: 50.000"
+              placeholder={t('placeholderAmount')}
               style={{
                 width: '100%',
                 minHeight: '44px',
@@ -245,7 +247,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              Terbaca: {formatRupiah(numericAmount)}
+              {t('amountInterpreted', { amount: formatRupiah(numericAmount) })}
             </p>
           ) : null}
         </div>
@@ -264,14 +266,14 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               letterSpacing: '0.04em',
             }}
           >
-            Nama Tempat / Merchant
+            {t('labelMerchant')}
           </label>
           <input
             id="manual-merchant"
             type="text"
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
-            placeholder="Contoh: Kopi Kenangan, Superindo, MRT"
+            placeholder={t('placeholderMerchant')}
             style={{
               width: '100%',
               minHeight: '44px',
@@ -300,7 +302,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               letterSpacing: '0.04em',
             }}
           >
-            Kategori
+            {t('labelCategory')}
           </span>
           <div
             style={{
@@ -330,7 +332,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                     transition: 'all var(--duration-fast) var(--ease-default)',
                   }}
                 >
-                  {cat}
+                  {translateCategory(cat)}
                 </button>
               )
             })}
@@ -351,7 +353,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               letterSpacing: '0.04em',
             }}
           >
-            Tanggal
+            {t('labelDate')}
           </label>
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <input
@@ -387,7 +389,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                 cursor: 'pointer',
               }}
             >
-              Hari Ini
+              {t('btnToday')}
             </button>
           </div>
         </div>
@@ -405,7 +407,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               letterSpacing: '0.04em',
             }}
           >
-            Metode Pembayaran
+            {t('labelPayment')}
           </span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             {PAYMENT_METHODS.map((method) => {
@@ -428,7 +430,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                     cursor: 'pointer',
                   }}
                 >
-                  {method}
+                  {translatePaymentMethod(method)}
                 </button>
               )
             })}
@@ -449,14 +451,14 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               letterSpacing: '0.04em',
             }}
           >
-            Catatan (Opsional)
+            {t('labelNote')}
           </label>
           <input
             id="manual-note"
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Contoh: Bersama teman kantor, diskon promo"
+            placeholder={t('placeholderNote')}
             style={{
               width: '100%',
               minHeight: '44px',
@@ -499,10 +501,10 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
           {isSubmitting ? (
             <>
               <Loader2 size={16} className="animate-spin" />
-              Menyimpan ke Sheets...
+              {t('submittingManual')}
             </>
           ) : (
-            'Catat Transaksi ke Sheets'
+            t('btnSubmitManual')
           )}
         </button>
       </form>
@@ -520,10 +522,10 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
         }}
       >
         <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>
-          💡 Mau pencatatan otomatis tanpa isi form?
+          {t('manualBackTapTipTitle')}
         </span>
         <p style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', margin: 0 }}>
-          Gunakan Shortcut Back Tap di iPhone kamu untuk menangkap struk belanjaan atau notifikasi bank dalam 2 detik langsung ke Google Sheets.
+          {t('manualBackTapTipDesc')}
         </p>
       </div>
     </div>

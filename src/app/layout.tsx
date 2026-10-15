@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google'
 import Script from 'next/script'
 
 import { AppSplashScreen } from '@/components/ui/splash-screen'
+import { I18nProvider } from '@/lib/i18n/context'
 import './globals.css'
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -70,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Instant zero-latency branded splash screen managed safely through React lifecycle */}
         <AppSplashScreen />
-        {children}
+        <I18nProvider>{children}</I18nProvider>
       </body>
     </html>
   )
