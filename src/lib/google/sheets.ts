@@ -1062,22 +1062,34 @@ export async function appendTransactionRow(
   ]
 
   try {
-    // Deteksi apakah spreadsheet menggunakan arsitektur baru (_data + view Transaksi)
-    const meta = await sheetsClient.spreadsheets.get({ spreadsheetId }).catch(() => null)
-    const dataSheet = meta?.data.sheets?.find((s) => s.properties?.title === '_data')
-    const targetSheetTitle = dataSheet ? '_data' : 'Transaksi'
-    const targetSheetId = (dataSheet ?? meta?.data.sheets?.find((s) => s.properties?.title === 'Transaksi'))?.properties?.sheetId ?? 0
+    // Tulis langsung ke sheet _data tanpa menunggu spreadsheets.get metadata
+    let appendRes
+    let targetSheetTitle = '_data'
+    try {
+      appendRes = await sheetsClient.spreadsheets.values.append({
+        spreadsheetId,
+        range: '_data!A:I',
+        valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'OVERWRITE',
+        requestBody: {
+          values: [rowValues],
+        },
+      })
+    } catch {
+      // Fallback untuk spreadsheet versi lama tanpa sheet _data
+      targetSheetTitle = 'Transaksi'
+      appendRes = await sheetsClient.spreadsheets.values.append({
+        spreadsheetId,
+        range: 'Transaksi!A:I',
+        valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'OVERWRITE',
+        requestBody: {
+          values: [rowValues],
+        },
+      })
+    }
 
-    const appendRes = await sheetsClient.spreadsheets.values.append({
-      spreadsheetId,
-      range: `${targetSheetTitle}!A:I`,
-      valueInputOption: 'USER_ENTERED',
-      insertDataOption: 'OVERWRITE',
-      requestBody: {
-        values: [rowValues],
-      },
-    })
-
+    // Format tampilan baris baru dijalankan di background agar tidak menghambat respons pengguna
     const updatedRange = appendRes.data.updates?.updatedRange
     if (updatedRange) {
       const match = updatedRange.match(/!A(\d+):/)
@@ -1085,22 +1097,26 @@ export async function appendTransactionRow(
         const rowNumber = parseInt(match[1], 10)
         const rowIndex = rowNumber - 1
 
-        // Format baris yang baru ditulis agar warna teks selalu gelap pekat (bukan putih)
-        await sheetsClient.spreadsheets
-          .batchUpdate({
-            spreadsheetId,
-            requestBody: {
-              requests: [
-                { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
-                { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'TIME', pattern: 'hh:mm' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
-                { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
-                { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
-                { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat,numberFormat)' } },
-                { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 5, endColumnIndex: 7 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
-                { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 9, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
-                { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 8, endColumnIndex: 9 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 8, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
-              ],
-            },
+        void sheetsClient.spreadsheets
+          .get({ spreadsheetId })
+          .then((meta) => {
+            const sheet = meta?.data.sheets?.find((s) => s.properties?.title === targetSheetTitle)
+            const targetSheetId = sheet?.properties?.sheetId ?? 0
+            return sheetsClient.spreadsheets.batchUpdate({
+              spreadsheetId,
+              requestBody: {
+                requests: [
+                  { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+                  { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 1, endColumnIndex: 2 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', numberFormat: { type: 'TIME', pattern: 'hh:mm' }, textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,numberFormat,textFormat)' } },
+                  { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 2, endColumnIndex: 3 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+                  { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 3, endColumnIndex: 4 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+                  { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 4, endColumnIndex: 5 }, cell: { userEnteredFormat: { horizontalAlignment: 'RIGHT', verticalAlignment: 'MIDDLE', textFormat: { bold: true, foregroundColor: GREEN_ACCENT, fontFamily: 'Google Sans' }, numberFormat: { type: 'CURRENCY', pattern: '"Rp "#,##0' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat,numberFormat)' } },
+                  { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 5, endColumnIndex: 7 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { foregroundColor: DARK_TEXT, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+                  { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 7, endColumnIndex: 8 }, cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 9, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+                  { repeatCell: { range: { sheetId: targetSheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 8, endColumnIndex: 9 }, cell: { userEnteredFormat: { horizontalAlignment: 'LEFT', verticalAlignment: 'MIDDLE', textFormat: { fontSize: 8, foregroundColor: MUTED, fontFamily: 'Google Sans' } } }, fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)' } },
+                ],
+              },
+            })
           })
           .catch(() => {})
       }

@@ -58,10 +58,10 @@ interface RawGeminiOutput {
 
 const CANDIDATE_MODELS = Array.from(
   new Set([
-    env.GEMINI_MODEL,
     'gemini-flash-lite-latest',
     'gemini-3.5-flash-lite',
     'gemini-3.5-flash',
+    ...(env.GEMINI_MODEL !== 'gemini-2.5-flash' ? [env.GEMINI_MODEL] : []),
   ]),
 )
 

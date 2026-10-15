@@ -58,16 +58,27 @@ async function syncToGoogleSheets(
   userId: string,
   captureId: string,
   extraction: TransactionExtraction,
+  preloaded?: {
+    user?: { sheetId: string | null } | null
+    tokenRecord?: typeof googleTokens.$inferSelect | null
+  },
 ) {
-  const [user, tokenRecord] = await Promise.all([
-    db.query.users.findFirst({
-      where: eq(users.id, userId),
-      columns: { sheetId: true },
-    }),
-    db.query.googleTokens.findFirst({
-      where: eq(googleTokens.userId, userId),
-    }),
-  ])
+  let user = preloaded?.user
+  let tokenRecord = preloaded?.tokenRecord
+
+  if (!preloaded) {
+    const [dbUser, dbToken] = await Promise.all([
+      db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: { sheetId: true },
+      }),
+      db.query.googleTokens.findFirst({
+        where: eq(googleTokens.userId, userId),
+      }),
+    ])
+    user = dbUser
+    tokenRecord = dbToken
+  }
 
   if (!tokenRecord) {
     throw new Error('GOOGLE_AUTH_MISSING')
@@ -123,8 +134,8 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Update last seen perangkat di background
-  await db.update(devices).set({ lastSeenAt: new Date() }).where(eq(devices.id, device.id))
+  // Update last seen perangkat di background (tanpa await agar tidak memperlambat)
+  void db.update(devices).set({ lastSeenAt: new Date() }).where(eq(devices.id, device.id)).catch(() => {})
 
   // 3. Validasi multipart & file gambar
   let imageBuffer: Buffer | null = null
@@ -216,7 +227,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // 4. Deteksi duplikat via SHA-256 gambar
+  // 4. Deteksi duplikat via SHA-256 gambar (cek instan sebelum AI untuk hemat kuota & waktu)
   const imageHash = createHash('sha256').update(imageBuffer).digest('hex')
   const existing = await db.query.captures.findFirst({
     where: and(eq(captures.userId, device.userId), eq(captures.imageHash, imageHash)),
@@ -231,12 +242,29 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  // 5. Ekstraksi model AI
-  let extraction: TransactionExtraction
-  try {
-    extraction = await defaultExtractionProvider.extractReceipt(imageBuffer, validation.mimeType)
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err)
+  // 5. Ekstraksi model AI secara paralel dengan pre-load data Google Sheets
+  const [extractionResult, authData] = await Promise.all([
+    Promise.resolve(
+      defaultExtractionProvider.extractReceipt(imageBuffer, validation.mimeType),
+    )
+      .then((val) => ({ ok: true as const, value: val }))
+      .catch((err) => ({ ok: false as const, error: err })),
+    Promise.all([
+      db.query.users.findFirst({
+        where: eq(users.id, device.userId),
+        columns: { sheetId: true },
+      }),
+      db.query.googleTokens.findFirst({
+        where: eq(googleTokens.userId, device.userId),
+      }),
+    ]),
+  ])
+
+  if (!extractionResult.ok) {
+    const errorMsg =
+      extractionResult.error instanceof Error
+        ? extractionResult.error.message
+        : String(extractionResult.error)
     console.error('[Capture API] Ekstraksi struk gagal:', errorMsg)
     await db.insert(captures).values({
       userId: device.userId,
@@ -252,6 +280,13 @@ export async function POST(request: NextRequest) {
           ? 'Layanan AI sedang padat. Silakan coba kembali sesaat lagi.'
           : 'Gagal mengekstrak struk: informasi transaksi tidak terbaca',
     })
+  }
+
+  const extraction = extractionResult.value
+  const [preloadedUser, preloadedToken] = authData
+  const preloadedAuth = {
+    user: preloadedUser,
+    tokenRecord: preloadedToken,
   }
 
   // 6. Tangani alur confidence & Google Sheets
@@ -301,12 +336,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: 'failed', message: 'Gagal menyimpan transaksi ke database' })
   }
 
-  // Invalidate server cache seketika agar dashboard langsung menampilkan transaksi baru
-  revalidatePath('/dashboard')
-
   // Tulis ke Google Sheets
   try {
-    await syncToGoogleSheets(device.userId, newCapture.id, extraction)
+    await syncToGoogleSheets(device.userId, newCapture.id, extraction, preloadedAuth)
     await db
       .update(captures)
       .set({ sheetRowId: newCapture.id })
