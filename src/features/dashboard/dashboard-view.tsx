@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { RefreshCw, X } from 'lucide-react'
+import { RefreshCw, X, LayoutDashboard, Receipt, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CategoryBreakdown } from './category-breakdown'
@@ -274,17 +274,35 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
   }
 
   const tabs = [
-    { id: 'overview' as TabType, label: 'Ringkasan' },
-    { id: 'transactions' as TabType, label: 'Transaksi' },
-    { id: 'add' as TabType, label: '+ Catat' },
+    {
+      id: 'overview' as TabType,
+      label: 'Ringkasan',
+      icon: <LayoutDashboard size={15} strokeWidth={2.2} />,
+    },
+    {
+      id: 'transactions' as TabType,
+      label: 'Transaksi',
+      icon: <Receipt size={15} strokeWidth={2.2} />,
+    },
+    {
+      id: 'add' as TabType,
+      label: 'Catat',
+      icon: <Plus size={16} strokeWidth={2.6} />,
+    },
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        paddingBottom: 'calc(98px + env(safe-area-inset-bottom, 0px))',
+      }}
+    >
       {/* Modal Onboarding Otomatis jika Belum Ada iPhone Terhubung */}
       <ShortcutOnboardingModal hasActiveDevice={Boolean(data.activeDevice)} userName={userName} />
 
-      {/* Sticky Top Header (FINANCE. + Toggle/Avatar + Segmented Tabs) */}
+      {/* Sticky Top Header (FINANCE. + Profile/Avatar + Notifikasi Alert) */}
       <div
         ref={headerContainerRef}
         style={{
@@ -293,10 +311,10 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
           zIndex: 35,
           backgroundColor: 'var(--color-bg)',
           paddingTop: 'calc(var(--space-4) + env(safe-area-inset-top, 0px))',
-          paddingBottom: 'var(--space-3)',
+          paddingBottom: 'var(--space-2)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--space-3)',
+          gap: 'var(--space-2)',
         }}
       >
         <div key="dashboard-header-slot">{header}</div>
@@ -374,46 +392,6 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
             </div>
           </div>
         ) : null}
-
-        {/* Segmented Tab Control — clean, mirip referensi */}
-        <nav
-          aria-label="Pilihan tampilan dashboard"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            backgroundColor: 'var(--color-surface)',
-            padding: '4px',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--color-border)',
-            gap: '4px',
-          }}
-        >
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  minHeight: '40px',
-                  borderRadius: 'calc(var(--radius-xl) - 4px)',
-                  border: 'none',
-                  backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
-                  color: isActive ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
-                  fontSize: '0.82rem',
-                  fontWeight: isActive ? 700 : 500,
-                  cursor: 'pointer',
-                  transition: 'all var(--duration-fast) var(--ease-default)',
-                  fontFamily: 'inherit',
-                  letterSpacing: isActive ? '-0.01em' : '0',
-                }}
-              >
-                {tab.label}
-              </button>
-            )
-          })}
-        </nav>
       </div>
 
       {banner ? <div style={{ margin: 'var(--space-2) 0 var(--space-4) 0' }}>{banner}</div> : null}
@@ -509,6 +487,68 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
           <ManualEntryCard onSuccess={() => setActiveTab('transactions')} />
         </div>
       )}
+
+      {/* Floating Bottom Navigation Bar — Ergonomis di jangkauan jempol iPhone */}
+      <nav
+        aria-label="Pilihan tampilan dashboard"
+        style={{
+          position: 'fixed',
+          bottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',
+          left: 0,
+          right: 0,
+          margin: '0 auto',
+          width: 'calc(100% - 32px)',
+          maxWidth: '390px',
+          zIndex: 40,
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            backgroundColor: 'var(--color-surface)',
+            padding: '5px',
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid var(--color-border)',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+            gap: '4px',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+          }}
+        >
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  minHeight: '44px',
+                  borderRadius: 'var(--radius-full)',
+                  border: 'none',
+                  backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
+                  color: isActive ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
+                  fontSize: '0.82rem',
+                  fontWeight: isActive ? 700 : 600,
+                  cursor: 'pointer',
+                  transition: 'all var(--duration-fast) var(--ease-default)',
+                  fontFamily: 'inherit',
+                  letterSpacing: isActive ? '-0.01em' : '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '0 8px',
+                }}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
     </div>
   )
 }

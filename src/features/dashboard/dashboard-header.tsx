@@ -121,6 +121,29 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }} ref={menuRef}>
           <ThemeToggle />
 
+          <button
+            type="button"
+            onClick={() => setActiveModal('help')}
+            aria-label="Bantuan & Panduan"
+            title="Bantuan & Panduan"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '44px',
+              minWidth: '44px',
+              padding: '0 var(--space-2)',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              color: 'var(--color-text)',
+              cursor: 'pointer',
+              transition: 'all var(--duration-fast) var(--ease-default)',
+            }}
+          >
+            <HelpCircle size={18} />
+          </button>
+
           {/* Avatar button with interactive dropdown */}
           <div style={{ position: 'relative' }}>
             <button
@@ -307,38 +330,6 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
           </div>
         </div>
 
-
-      {/* Floating Bantuan Pill Button — Mirip referensi di pojok kanan bawah */}
-      {!activeModal && (
-        <button
-          type="button"
-          onClick={() => setActiveModal('help')}
-          aria-label="Buka bantuan"
-          style={{
-            position: 'fixed',
-            bottom: 'calc(var(--space-5) + env(safe-area-inset-bottom))',
-            right: 'var(--space-4)',
-            zIndex: 40,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--color-accent)',
-            color: 'var(--color-accent-text)',
-            border: 'none',
-            boxShadow: 'var(--shadow-lg)',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            transition: 'transform var(--duration-fast)',
-            touchAction: 'manipulation',
-          }}
-        >
-          <HelpCircle size={14} />
-          Bantuan
-        </button>
-      )}
 
       {/* Modal: Pengaturan */}
       {mounted && activeModal === 'settings' && createPortal(

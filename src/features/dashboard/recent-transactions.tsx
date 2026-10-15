@@ -391,7 +391,7 @@ export function RecentTransactions({
       <div
         style={{
           position: 'sticky',
-          top: stickyOffset ? `${stickyOffset}px` : 'calc(136px + env(safe-area-inset-top, 0px))',
+          top: stickyOffset ? `${stickyOffset}px` : 'calc(68px + env(safe-area-inset-top, 0px))',
           zIndex: 25,
           backgroundColor: 'var(--color-bg)',
           paddingTop: 'var(--space-2)',
