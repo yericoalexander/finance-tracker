@@ -4,8 +4,6 @@ import { AlertCircle, Loader2, ShieldCheck } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -43,11 +41,6 @@ export default function LoginPage() {
           gap: 'var(--space-6)',
         }}
       >
-        {/* Tombol ganti tema */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-          <ThemeToggle />
-        </div>
-
         {/* Logo / Nama app */}
         <div style={{ textAlign: 'center' }}>
           <p
