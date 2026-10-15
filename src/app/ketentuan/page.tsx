@@ -344,42 +344,112 @@ export default function TermsPage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {/* Item 1: Otomatisasi AI Vision */}
               <div
                 style={{
-                  padding: 'var(--space-3) var(--space-4)',
+                  padding: 'var(--space-4)',
                   backgroundColor: 'var(--color-surface-raised)',
                   borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--color-border-subtle)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 'var(--space-3)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '4px' }}>
-                  <Cpu size={16} color="var(--color-accent)" />
-                  <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
-                    Otomatisasi Ekstraksi AI Vision
-                  </strong>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    color: 'var(--color-accent)',
+                  }}
+                >
+                  <Cpu size={18} />
                 </div>
-                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                  Memproses gambar bukti pembayaran (struk fisik, transfer m-banking, QRIS, e-wallet) menjadi
-                  struktur transaksi keuangan terorganisir.
-                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                    <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
+                      Otomatisasi Ekstraksi AI Vision
+                    </strong>
+                    <span
+                      style={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: 'var(--radius-full)',
+                        backgroundColor: 'var(--color-accent-subtle)',
+                        color: 'var(--color-accent)',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      AI Powered
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
+                    Memproses gambar bukti pembayaran (struk belanja fisik, mutasi m-banking, QRIS, e-wallet) menjadi data pengeluaran terstruktur secara otomatis.
+                  </p>
+                </div>
               </div>
 
+              {/* Item 2: Sinkronisasi Google Sheets */}
               <div
                 style={{
-                  padding: 'var(--space-3) var(--space-4)',
+                  padding: 'var(--space-4)',
                   backgroundColor: 'var(--color-surface-raised)',
                   borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--color-border-subtle)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 'var(--space-3)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '4px' }}>
-                  <ShieldCheck size={16} color="var(--color-accent)" />
-                  <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
-                    Sinkronisasi Google Sheets
-                  </strong>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    color: 'var(--color-accent)',
+                  }}
+                >
+                  <ShieldCheck size={18} />
                 </div>
-                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                  Menulis data transaksi secara langsung ke lembar kerja Google Sheets milik akun Google Anda sendiri,
-                  lengkap dengan formula rekapitulasi dinamis dan analitik kategori.
-                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                    <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
+                      Sinkronisasi Google Sheets
+                    </strong>
+                    <span
+                      style={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: 'var(--radius-full)',
+                        backgroundColor: 'var(--color-accent-subtle)',
+                        color: 'var(--color-accent)',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Live Sync
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
+                    Menulis catatan transaksi langsung ke spreadsheet milik akun Google Anda sendiri, lengkap dengan formula rekapitulasi dan filter interaktif.
+                  </p>
+                </div>
               </div>
             </div>
           </section>

@@ -2,13 +2,16 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import {
   ArrowLeft,
+  Check,
   CheckCircle2,
   Database,
   ExternalLink,
   Lock,
   Mail,
   Shield,
+  Sparkles,
   Trash2,
+  X,
 } from 'lucide-react'
 
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -345,61 +348,212 @@ export default function PrivacyPage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {/* Item 1: Profil Akun Google */}
               <div
                 style={{
-                  padding: 'var(--space-3) var(--space-4)',
+                  padding: 'var(--space-4)',
                   backgroundColor: 'var(--color-surface-raised)',
                   borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--color-border-subtle)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 'var(--space-3)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '4px' }}>
-                  <Database size={16} color="var(--color-accent)" />
-                  <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
-                    Profil Akun Google
-                  </strong>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    color: 'var(--color-accent)',
+                  }}
+                >
+                  <Database size={18} />
                 </div>
-                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                  Nama, alamat email, dan foto profil Anda saat masuk melalui Google OAuth untuk autentikasi sesi.
-                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                    <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
+                      Profil Akun Google
+                    </strong>
+                    <span
+                      style={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: 'var(--radius-full)',
+                        backgroundColor: 'var(--color-accent-subtle)',
+                        color: 'var(--color-accent)',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Autentikasi
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
+                    Nama, alamat email, dan foto profil Anda saat masuk melalui Google OAuth untuk mengidentifikasi akun Anda.
+                  </p>
+                </div>
               </div>
 
+              {/* Item 2: Izin Akses Google Sheets & Drive (Terbatas) */}
               <div
                 style={{
-                  padding: 'var(--space-3) var(--space-4)',
+                  padding: 'var(--space-4)',
                   backgroundColor: 'var(--color-surface-raised)',
                   borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--color-border-subtle)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--space-3)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '4px' }}>
-                  <Lock size={16} color="var(--color-accent)" />
-                  <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
-                    Izin Akses Google Sheets & Drive (Terbatas)
-                  </strong>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      color: 'var(--color-accent)',
+                    }}
+                  >
+                    <Lock size={18} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                      <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
+                        Google Sheets & Google Drive
+                      </strong>
+                      <span
+                        style={{
+                          fontSize: '0.6875rem',
+                          fontWeight: 600,
+                          padding: '2px 8px',
+                          borderRadius: 'var(--radius-full)',
+                          backgroundColor: 'var(--color-accent-subtle)',
+                          color: 'var(--color-accent)',
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Akses Terbatas
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Cakupan Izin:</span>
+                      <code
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          backgroundColor: 'var(--color-surface)',
+                          border: '1px solid var(--color-border)',
+                          color: 'var(--color-accent)',
+                          fontWeight: 600,
+                        }}
+                      >
+                        drive.file
+                      </code>
+                    </div>
+                  </div>
                 </div>
-                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                  Cakupan <code>https://www.googleapis.com/auth/drive.file</code>. Izin ini dibatasi ketat oleh Google
-                  hanya untuk membuat dan memodifikasi spreadsheet yang dibuat langsung oleh Finance Tracker. Kami tidak
-                  dapat melihat atau mengedit berkas pribadi lain di Google Drive Anda.
+
+                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
+                  Aplikasi hanya meminta izin resmi untuk membuat dan memperbarui lembar kerja spreadsheet
+                  transaksi milik akun Google Anda sendiri.
                 </p>
+
+                {/* Sub-kotak perbandingan rapi */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gap: 'var(--space-2)',
+                    padding: 'var(--space-3)',
+                    backgroundColor: 'var(--color-surface)',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border-subtle)',
+                    fontSize: '0.8125rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
+                    <Check size={15} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span style={{ color: 'var(--color-text)' }}>
+                      <strong>Dapat diakses:</strong> File spreadsheet &ldquo;Finance Tracker — Transaksi&rdquo; yang dibuat oleh aplikasi.
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
+                    <X size={15} color="var(--color-error, #c62a2f)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span style={{ color: 'var(--color-text-muted)' }}>
+                      <strong>Tidak dapat diakses:</strong> Dokumen, foto, atau berkas pribadi Anda lainnya di Google Drive.
+                    </span>
+                  </div>
+                </div>
               </div>
 
+              {/* Item 3: Tangkapan Layar & Data Ekstraksi */}
               <div
                 style={{
-                  padding: 'var(--space-3) var(--space-4)',
+                  padding: 'var(--space-4)',
                   backgroundColor: 'var(--color-surface-raised)',
                   borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--color-border-subtle)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 'var(--space-3)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '4px' }}>
-                  <Shield size={16} color="var(--color-accent)" />
-                  <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
-                    Tangkapan Layar & Data Ekstraksi
-                  </strong>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    color: 'var(--color-accent)',
+                  }}
+                >
+                  <Sparkles size={18} />
                 </div>
-                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                  Gambar bukti transaksi yang Anda kirimkan diproses sementara secara real-time untuk mengekstrak
-                  nominal uang, nama merchant, tanggal, dan kategori.
-                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                    <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
+                      Tangkapan Layar Struk & Bukti Bayar
+                    </strong>
+                    <span
+                      style={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: 'var(--radius-full)',
+                        backgroundColor: 'var(--color-accent-subtle)',
+                        color: 'var(--color-accent)',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      AI Vision
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
+                    Gambar diproses sementara secara real-time untuk mengekstrak nominal, nama merchant, dan tanggal, lalu langsung dibersihkan dari server begitu data tercatat.
+                  </p>
+                </div>
               </div>
             </div>
           </section>
