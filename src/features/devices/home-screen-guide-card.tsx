@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, PlusSquare, Sparkles, Smartphone } from 'lucide-react'
+import { ChevronDown, ChevronUp, PlusSquare, Smartphone, Sparkles } from 'lucide-react'
 
 interface HomeScreenGuideCardProps {
   defaultExpanded?: boolean
@@ -36,16 +36,17 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
           cursor: 'pointer',
           textAlign: 'left',
           color: 'var(--color-text)',
-          minHeight: '48px',
+          minHeight: '56px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: 1 }}>
           <div
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--color-accent-subtle)',
+              width: '38px',
+              height: '38px',
+              borderRadius: 'var(--radius-lg)',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-border-subtle)',
               color: 'var(--color-accent)',
               display: 'flex',
               alignItems: 'center',
@@ -55,34 +56,18 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
           >
             <Smartphone size={20} />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'nowrap' }}>
-              <strong
-                style={{
-                  fontSize: '0.92rem',
-                  color: 'var(--color-text)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Pasang di Layar Utama
-              </strong>
-              <span
-                style={{
-                  fontSize: '0.625rem',
-                  fontWeight: 700,
-                  padding: '2px 7px',
-                  borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--color-success-subtle, #e9f6ef)',
-                  color: 'var(--color-success, #18794e)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
-              >
-                Layar Penuh
-              </span>
-            </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h3
+              style={{
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                color: 'var(--color-text)',
+                margin: 0,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Pasang di Layar Utama iPhone
+            </h3>
             <p
               style={{
                 margin: '2px 0 0 0',
@@ -96,39 +81,40 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
           </div>
         </div>
 
-        <div style={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-          {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        <div
+          style={{
+            color: 'var(--color-text-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            paddingLeft: 'var(--space-2)',
+            flexShrink: 0,
+          }}
+        >
+          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </div>
       </button>
 
-      {/* Konten Langkah-langkah */}
+      {/* Konten Langkah-langkah (Bersih, Lega, Bebas Kotak Bertumpuk) */}
       {isExpanded && (
         <div
           style={{
-            padding: '0 var(--space-5) var(--space-5) var(--space-5)',
+            padding: 'var(--space-1) var(--space-5) var(--space-5) var(--space-5)',
             display: 'flex',
             flexDirection: 'column',
             gap: 'var(--space-4)',
           }}
         >
-          {/* Timeline 3 Langkah Terstruktur */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-3)',
-              padding: 'var(--space-4)',
-              backgroundColor: 'var(--color-surface-raised)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--color-border-subtle)',
-            }}
-          >
+          {/* Garis pemisah halus */}
+          <div style={{ height: '1px', backgroundColor: 'var(--color-border-subtle)' }} />
+
+          {/* 3 Langkah Terbuka & Nyaman Dibaca */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             {/* Langkah 1 */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
               <div
                 style={{
-                  width: '24px',
-                  height: '24px',
+                  width: '26px',
+                  height: '26px',
                   borderRadius: '50%',
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-accent-text)',
@@ -143,28 +129,32 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
               >
                 1
               </div>
-              <div style={{ fontSize: '0.8125rem', lineHeight: 1.55 }}>
-                <span style={{ color: 'var(--color-text)' }}>
-                  Ketuk ikon{' '}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                  <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
+                    Ketuk Bagikan
+                  </strong>
                   <span
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
-                      padding: '1px 7px',
+                      padding: '2px 8px',
                       borderRadius: 'var(--radius-sm)',
-                      backgroundColor: 'var(--color-surface)',
+                      backgroundColor: 'var(--color-surface-raised)',
                       border: '1px solid var(--color-border)',
+                      fontSize: '0.74rem',
                       fontWeight: 600,
                       color: 'var(--color-text)',
-                      verticalAlign: 'middle',
                     }}
                   >
-                    <IosShareIcon size={13} />
-                    <span>Bagikan</span>
-                  </span>{' '}
-                  di bilah bawah Safari.
-                </span>
+                    <IosShareIcon size={12} />
+                    <span>Share</span>
+                  </span>
+                </div>
+                <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+                  Tekan ikon kotak berpanah ke atas di bilah bawah browser Safari.
+                </p>
               </div>
             </div>
 
@@ -172,8 +162,8 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
               <div
                 style={{
-                  width: '24px',
-                  height: '24px',
+                  width: '26px',
+                  height: '26px',
                   borderRadius: '50%',
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-accent-text)',
@@ -188,28 +178,32 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
               >
                 2
               </div>
-              <div style={{ fontSize: '0.8125rem', lineHeight: 1.55 }}>
-                <span style={{ color: 'var(--color-text)' }}>
-                  Gulir ke bawah, pilih{' '}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                  <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
+                    Pilih &ldquo;Tambah ke Layar Utama&rdquo;
+                  </strong>
                   <span
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
-                      padding: '1px 7px',
+                      padding: '2px 8px',
                       borderRadius: 'var(--radius-sm)',
-                      backgroundColor: 'var(--color-surface)',
+                      backgroundColor: 'var(--color-surface-raised)',
                       border: '1px solid var(--color-border)',
+                      fontSize: '0.74rem',
                       fontWeight: 600,
                       color: 'var(--color-text)',
-                      verticalAlign: 'middle',
                     }}
                   >
-                    <PlusSquare size={13} />
-                    <span>Tambah ke Layar Utama</span>
+                    <PlusSquare size={12} />
+                    <span>Add to Home Screen</span>
                   </span>
-                  .
-                </span>
+                </div>
+                <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+                  Gulir menu opsi ke bawah hingga menemukan menu ini.
+                </p>
               </div>
             </div>
 
@@ -217,8 +211,8 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
               <div
                 style={{
-                  width: '24px',
-                  height: '24px',
+                  width: '26px',
+                  height: '26px',
                   borderRadius: '50%',
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-accent-text)',
@@ -233,44 +227,51 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
               >
                 3
               </div>
-              <div style={{ fontSize: '0.8125rem', lineHeight: 1.55 }}>
-                <span style={{ color: 'var(--color-text)' }}>
-                  Ketuk{' '}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                  <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
+                    Ketuk &ldquo;Tambah&rdquo;
+                  </strong>
                   <span
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      padding: '1px 8px',
+                      padding: '2px 8px',
                       borderRadius: 'var(--radius-sm)',
                       backgroundColor: 'var(--color-accent)',
                       color: 'var(--color-accent-text)',
+                      fontSize: '0.74rem',
                       fontWeight: 700,
-                      fontSize: '0.78rem',
-                      verticalAlign: 'middle',
                     }}
                   >
                     Tambah
-                  </span>{' '}
-                  di pojok kanan atas.
-                </span>
+                  </span>
+                </div>
+                <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+                  Tombol di pojok kanan atas. Ikon aplikasi langsung terpasang di layar utama.
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Keuntungan Ringkas di Bagian Bawah */}
+          {/* Manfaat Ringkas */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 'var(--space-2)',
-              fontSize: '0.76rem',
+              padding: 'var(--space-3) var(--space-4)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border-subtle)',
+              fontSize: '0.78rem',
               color: 'var(--color-text-muted)',
               lineHeight: 1.45,
             }}
           >
-            <Sparkles size={14} color="var(--color-accent)" style={{ flexShrink: 0 }} />
+            <Sparkles size={15} color="var(--color-accent)" style={{ flexShrink: 0 }} />
             <span>
-              Aplikasi akan terbuka layar penuh (*standalone*) tanpa bilah Safari &amp; tanpa tab yang menumpuk.
+              Aplikasi akan terbuka layar penuh tanpa bilah Safari dan tanpa membuat tab browser menumpuk.
             </span>
           </div>
         </div>
@@ -280,7 +281,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
 }
 
 /**
- * Ikon otentik tombol Share di iOS Safari (kotak dengan panah mengarah ke atas)
+ * Ikon tombol Share di iOS Safari (kotak dengan panah mengarah ke atas)
  */
 function IosShareIcon({ size = 16 }: { size?: number }) {
   return (
