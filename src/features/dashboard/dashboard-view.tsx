@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CategoryBreakdown } from './category-breakdown'
@@ -28,8 +28,14 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [newTxAlert, setNewTxAlert] = useState<string | null>(null)
-  const prevFirstTxId = useRef<string | null>(data.recentTransactions[0]?.id ?? null)
+  const [newTxAlert, setNewTxAlert] = useState<{ id: string; merchant: string } | null>(null)
+
+  // Catat transaksi yang sudah ada sejak awal agar refresh tidak pernah memicu notifikasi untuk data lama
+  const seenTxIds = useRef<Set<string>>(
+    new Set(data.recentTransactions.map((tx) => tx.id)),
+  )
+  const dismissedTxIds = useRef<Set<string>>(new Set())
+
   const headerContainerRef = useRef<HTMLDivElement>(null)
   const [stickyOffset, setStickyOffset] = useState<number>(136)
 
@@ -223,19 +229,44 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
     }
   }, [router, selectedMonth, currentMonthPrefix])
 
-  // Deteksi transaksi baru yang baru saja masuk
+  // Deteksi hanya transaksi baru yang belum pernah dimunculkan notifikasinya
   useEffect(() => {
-    const currentFirstId = data.recentTransactions[0]?.id ?? null
-    if (prevFirstTxId.current && currentFirstId && prevFirstTxId.current !== currentFirstId) {
-      const newTx = data.recentTransactions[0]
-      if (newTx) {
-        setNewTxAlert(`${newTx.merchant ?? 'Transaksi'} baru saja masuk!`)
-        const timer = setTimeout(() => setNewTxAlert(null), 4000)
-        return () => clearTimeout(timer)
-      }
+    const latestTx = data.recentTransactions[0]
+    if (
+      latestTx &&
+      !seenTxIds.current.has(latestTx.id) &&
+      !dismissedTxIds.current.has(latestTx.id)
+    ) {
+      // Tandai langsung di seenTxIds agar tidak pernah terpicu ulang oleh polling / re-render
+      seenTxIds.current.add(latestTx.id)
+      setNewTxAlert({
+        id: latestTx.id,
+        merchant: latestTx.merchant ?? 'Transaksi',
+      })
     }
-    prevFirstTxId.current = currentFirstId
   }, [data.recentTransactions])
+
+  // Timer auto-dismiss 4 detik
+  useEffect(() => {
+    if (!newTxAlert) return
+    const timer = setTimeout(() => {
+      setNewTxAlert(null)
+    }, 4000)
+    return () => clearTimeout(timer)
+  }, [newTxAlert])
+
+  const handleDismissAlert = () => {
+    if (newTxAlert) {
+      dismissedTxIds.current.add(newTxAlert.id)
+      seenTxIds.current.add(newTxAlert.id)
+    }
+    setNewTxAlert(null)
+  }
+
+  const handleViewAlertTransaction = () => {
+    handleDismissAlert()
+    setActiveTab('transactions')
+  }
 
   const handleCategoryJump = (category: string) => {
     setSelectedCategory(category)
@@ -270,16 +301,18 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
       >
         <div key="dashboard-header-slot">{header}</div>
 
-        {/* Notifikasi Transaksi Baru Masuk */}
+        {/* Notifikasi Transaksi Baru Masuk (Muncul 1x, langsung hilang saat diklik) */}
         {newTxAlert ? (
           <div
             role="status"
             aria-live="polite"
+            className="animate-slide-up"
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: 'var(--space-2) var(--space-4)',
+              gap: 'var(--space-2)',
+              padding: '6px 12px 6px 14px',
               backgroundColor: 'var(--color-accent)',
               color: 'var(--color-accent-text)',
               borderRadius: 'var(--radius-lg)',
@@ -288,26 +321,57 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
               fontWeight: 600,
             }}
           >
-            <span>✨ {newTxAlert}</span>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('transactions')
-                setNewTxAlert(null)
-              }}
+            <span
               style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: 'var(--color-accent-text)',
-                fontSize: '0.74rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                textDecoration: 'underline',
-                padding: 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: 1,
               }}
             >
-              Lihat Transaksi
-            </button>
+              ✨ {newTxAlert.merchant} baru saja masuk!
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+              <button
+                type="button"
+                onClick={handleViewAlertTransaction}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: 'var(--color-accent-text)',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  padding: '4px 6px',
+                  minHeight: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                Lihat Transaksi
+              </button>
+              <button
+                type="button"
+                onClick={handleDismissAlert}
+                aria-label="Tutup notifikasi"
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: 'var(--color-accent-text)',
+                  cursor: 'pointer',
+                  padding: '0 4px',
+                  minWidth: '44px',
+                  minHeight: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: 0.8,
+                }}
+              >
+                <X size={15} />
+              </button>
+            </div>
           </div>
         ) : null}
 
