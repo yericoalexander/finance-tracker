@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 
 import { auth } from '@/auth'
 import { DeviceList } from '@/features/devices/device-list'
-import { HomeScreenGuideCard } from '@/features/devices/home-screen-guide-card'
 import { PairCard } from '@/features/devices/pair-card'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { db } from '@/lib/db/client'
@@ -98,7 +97,6 @@ export default async function PairPage() {
       </header>
 
       <PairCard userName={session.user.name ?? undefined} />
-      <HomeScreenGuideCard defaultExpanded={false} />
       <DeviceList devices={serializedDevices} />
     </main>
   )

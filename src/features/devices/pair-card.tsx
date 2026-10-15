@@ -1,7 +1,6 @@
 'use client'
 
 import { DirectSetupCard } from './direct-setup-card'
-import { ManualPairAccordion } from './manual-pair-accordion'
 import { ShortcutGuideCard } from './shortcut-guide-card'
 
 interface PairCardProps {
@@ -16,9 +15,6 @@ export function PairCard({ userName }: PairCardProps) {
 
       {/* 2. Panduan Lengkap Pembuatan Pintasan & Back Tap */}
       <ShortcutGuideCard />
-
-      {/* 3. Opsi Alternatif: Kode Pairing 8 Karakter (Accordion) */}
-      <ManualPairAccordion />
     </div>
   )
 }
