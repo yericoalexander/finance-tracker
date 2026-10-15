@@ -264,7 +264,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
           gap: 'var(--space-3)',
         }}
       >
-        {header}
+        <div key="dashboard-header-slot">{header}</div>
 
         {/* Notifikasi Transaksi Baru Masuk */}
         {newTxAlert ? (

@@ -85,9 +85,8 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
   }
 
   return (
-    <>
-      <header
-        style={{
+    <header
+      style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -307,7 +306,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
             )}
           </div>
         </div>
-      </header>
+
 
       {/* Floating Bantuan Pill Button — Mirip referensi di pojok kanan bawah */}
       {!activeModal && (
@@ -718,6 +717,6 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
         </div>,
         document.body
       )}
-    </>
+    </header>
   )
 }

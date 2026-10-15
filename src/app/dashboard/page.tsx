@@ -81,6 +81,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         userName={user.name ?? undefined}
         header={
           <DashboardHeader
+            key="dashboard-header"
             user={user}
             sheetId={currentSheetId}
             onSignOut={async () => {
@@ -89,7 +90,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             }}
           />
         }
-        banner={!currentSheetId ? <RetrySheetCard /> : null}
+        banner={!currentSheetId ? <RetrySheetCard key="retry-sheet-banner" /> : null}
       />
     </main>
   )
