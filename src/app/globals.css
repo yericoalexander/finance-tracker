@@ -247,6 +247,17 @@ textarea::placeholder {
 }
 
 /* ─── App Splash & Logo Loading Animations ─────────────────────────── */
+#app-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
 @keyframes splashLogoPulse {
   0% {
     transform: scale(0.975);

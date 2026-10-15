@@ -82,11 +82,7 @@ export function LogoLoader({
               alt="Logo Finance Tracker"
               width={72}
               height={72}
-              priority
               style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
                 display: 'block',
               }}
             />

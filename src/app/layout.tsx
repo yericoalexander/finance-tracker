@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
+import Script from 'next/script'
 
 import { AppSplashScreen } from '@/components/ui/splash-screen'
 import './globals.css'
@@ -52,33 +53,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-v2.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
-        <script
+      </head>
+      <body className={`${plusJakarta.variable} antialiased`}>
+        {/* Next.js official Script component with beforeInteractive strategy to prevent React 19 script tag warnings */}
+        <Script
+          id="theme-detector"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.setAttribute('data-theme','dark');}else{document.documentElement.setAttribute('data-theme','light');}}catch(e){}if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.getRegistrations().then(function(r){for(var s of r){s.unregister();}});},{once:true});}})();`,
           }}
         />
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              #app-splash {
-                position: fixed;
-                inset: 0;
-                z-index: 99999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background-color: #f7f7f5;
-                color: #111110;
-              }
-              html[data-theme='dark'] #app-splash {
-                background-color: #0c0c0b;
-                color: #ededec;
-              }
-            `,
-          }}
-        />
-      </head>
-      <body className={`${plusJakarta.variable} antialiased`}>
+
         {/* Instant zero-latency branded splash screen managed safely through React lifecycle */}
         <AppSplashScreen />
         {children}
