@@ -143,10 +143,39 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const file = formData.get('image')
+    let file = formData.get('image')
     if (!file) {
+      file =
+        formData.get('file') ??
+        formData.get('File') ??
+        formData.get('Image') ??
+        formData.get('screenshot') ??
+        formData.get('Screenshot') ??
+        formData.get('photo') ??
+        formData.get('Photo') ??
+        formData.get('gambar')
+
+      if (!file) {
+        for (const val of formData.values()) {
+          if (val instanceof Blob && val.size > 0) {
+            file = val
+            break
+          }
+          if (typeof val === 'string' && val.length > 50) {
+            file = val
+            break
+          }
+        }
+      }
+    }
+
+    if (!file || (file instanceof Blob && file.size === 0) || (typeof file === 'string' && file.trim() === '')) {
       return NextResponse.json(
-        { status: 'failed', message: 'Field image tidak ditemukan pada form-data' },
+        {
+          status: 'failed',
+          message:
+            'Tangkapan layar kosong. Pastikan memilih "Selalu Izinkan" saat iPhone meminta izin tangkapan layar, lalu coba lagi.',
+        },
         { status: 400 },
       )
     }
