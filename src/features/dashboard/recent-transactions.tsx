@@ -112,9 +112,24 @@ export function RecentTransactions({
 
   // State untuk fitur hapus transaksi
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set())
+  const [animatingOutId, setAnimatingOutId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<TransactionItem | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteStep, setDeleteStep] = useState<'idle' | 'deleting' | 'success' | 'closing'>('idle')
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deleteSuccessNotice, setDeleteSuccessNotice] = useState<{
+    id: string
+    merchant: string
+    amountIdr: number | null
+  } | null>(null)
+
+  // Auto-dismiss notifikasi berhasil hapus setelah 4.5 detik
+  useEffect(() => {
+    if (!deleteSuccessNotice) return
+    const timer = setTimeout(() => {
+      setDeleteSuccessNotice(null)
+    }, 4500)
+    return () => clearTimeout(timer)
+  }, [deleteSuccessNotice])
 
   useEffect(() => {
     setMounted(true)
@@ -153,8 +168,9 @@ export function RecentTransactions({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (deleteTarget && !isDeleting) {
+        if (deleteTarget && deleteStep === 'idle') {
           setDeleteTarget(null)
+          setDeleteError(null)
         } else if (filterModalOpen) {
           setFilterModalOpen(false)
         }
@@ -162,27 +178,57 @@ export function RecentTransactions({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [filterModalOpen, deleteTarget, isDeleting])
+  }, [filterModalOpen, deleteTarget, deleteStep])
+
+  const handleCloseDeleteModal = () => {
+    if (deleteStep === 'idle') {
+      setDeleteTarget(null)
+      setDeleteError(null)
+    }
+  }
 
   const handleConfirmDelete = async () => {
-    if (!deleteTarget) return
-    setIsDeleting(true)
+    if (!deleteTarget || deleteStep !== 'idle') return
+    setDeleteStep('deleting')
     setDeleteError(null)
 
+    const target = deleteTarget
+    const targetId = target.id
+
     try {
-      const targetId = deleteTarget.id
       const res = await deleteTransactionAction(targetId)
       if (res.ok) {
+        // Step 1: Loading selesai & tampilkan status sukses di modal (interaktif)
+        setDeleteStep('success')
+
+        // Jeda waktu agar pengguna melihat visual feedback "Loading selesai"
+        await new Promise((resolve) => setTimeout(resolve, 600))
+
+        // Step 2: Smooth menutup modal & animasi runtuh kartu di daftar
+        setDeleteStep('closing')
+        setAnimatingOutId(targetId)
+
+        // Tunggu durasi animasi (240ms)
+        await new Promise((resolve) => setTimeout(resolve, 240))
+
+        // Step 3: Hapus dari daftar aktif dan tampilkan notifikasi di header
         setDeletedIds((prev) => new Set([...prev, targetId]))
+        setAnimatingOutId(null)
         setDeleteTarget(null)
+        setDeleteStep('idle')
+        setDeleteSuccessNotice({
+          id: target.id,
+          merchant: target.merchant ?? 'Pengeluaran',
+          amountIdr: target.amountIdr,
+        })
         router.refresh()
       } else {
+        setDeleteStep('idle')
         setDeleteError(res.error ?? 'Gagal menghapus transaksi')
       }
     } catch (err) {
+      setDeleteStep('idle')
       setDeleteError(err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus')
-    } finally {
-      setIsDeleting(false)
     }
   }
 
@@ -415,6 +461,101 @@ export function RecentTransactions({
           </button>
         )}
       </div>
+
+      {/* Notifikasi Transaksi Berhasil Dihapus — Tepat di atas pencarian & di dalam shell mobile */}
+      {deleteSuccessNotice && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="animate-slide-up"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 'var(--space-2)',
+            padding: '8px 12px 8px 14px',
+            backgroundColor: 'var(--color-surface)',
+            border: '1.5px solid var(--color-success)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-sm)',
+            width: '100%',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-success-subtle)',
+                color: 'var(--color-success)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Check size={14} strokeWidth={2.5} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  color: 'var(--color-text)',
+                  margin: 0,
+                  lineHeight: 1.2,
+                }}
+              >
+                Transaksi berhasil dihapus
+              </p>
+              <p
+                style={{
+                  fontSize: '0.72rem',
+                  color: 'var(--color-text-muted)',
+                  margin: '2px 0 0 0',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1.2,
+                }}
+              >
+                <strong style={{ color: 'var(--color-text)', fontWeight: 600 }}>
+                  {deleteSuccessNotice.merchant}
+                </strong>
+                {deleteSuccessNotice.amountIdr != null
+                  ? ` (${formatRupiah(deleteSuccessNotice.amountIdr)})`
+                  : ''}{' '}
+                telah dihapus dari Sheets
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDeleteSuccessNotice(null)}
+            aria-label="Tutup notifikasi"
+            style={{
+              width: '44px',
+              height: '44px',
+              minWidth: '44px',
+              minHeight: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'transparent',
+              border: 'none',
+              color: 'var(--color-text-muted)',
+              cursor: 'pointer',
+              padding: 0,
+              borderRadius: 'var(--radius-md)',
+              flexShrink: 0,
+              marginRight: '-6px',
+            }}
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
 
       {/* Baris Pencarian & Tombol Filter (Persis seperti referensi Image 1 & 3) */}
       <div
@@ -818,6 +959,7 @@ export function RecentTransactions({
         >
           {filtered.map((tx) => {
             const isNew = isRecentNew(tx.createdAt)
+            const isAnimatingOut = animatingOutId === tx.id
             const dateStr = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
 
             return (
@@ -827,12 +969,18 @@ export function RecentTransactions({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 'var(--space-3)',
-                  padding: 'var(--space-3) var(--space-4)',
+                  padding: isAnimatingOut ? '0 var(--space-4)' : 'var(--space-3) var(--space-4)',
                   backgroundColor: 'var(--color-surface)',
                   borderRadius: 'var(--radius-xl)',
-                  border: isNew ? '1.5px solid var(--color-success)' : '1px solid var(--color-border)',
-                  boxShadow: 'var(--shadow-sm)',
-                  transition: 'background-color var(--duration-fast)',
+                  border: isAnimatingOut ? 'none' : isNew ? '1.5px solid var(--color-success)' : '1px solid var(--color-border)',
+                  boxShadow: isAnimatingOut ? 'none' : 'var(--shadow-sm)',
+                  opacity: isAnimatingOut ? 0 : 1,
+                  transform: isAnimatingOut ? 'scale(0.95) translateY(-8px)' : 'none',
+                  maxHeight: isAnimatingOut ? '0px' : '90px',
+                  marginBottom: isAnimatingOut ? '-8px' : '0px',
+                  overflow: 'hidden',
+                  pointerEvents: isAnimatingOut ? 'none' : 'auto',
+                  transition: 'all 240ms cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               >
                 {/* Ikon Kategori */}
@@ -1333,7 +1481,7 @@ export function RecentTransactions({
       {/* Modal Konfirmasi Hapus Transaksi */}
       {mounted && deleteTarget && createPortal(
         <div
-          className="animate-fade-in"
+          className={deleteStep === 'closing' ? '' : 'animate-fade-in'}
           style={{
             position: 'fixed',
             inset: 0,
@@ -1345,15 +1493,17 @@ export function RecentTransactions({
             alignItems: 'center',
             justifyContent: 'center',
             padding: 'var(--space-4)',
+            opacity: deleteStep === 'closing' ? 0 : 1,
+            transition: 'opacity 240ms ease',
           }}
           onClick={(e) => {
-            if (e.target === e.currentTarget && !isDeleting) {
-              setDeleteTarget(null)
+            if (e.target === e.currentTarget && deleteStep === 'idle') {
+              handleCloseDeleteModal()
             }
           }}
         >
           <div
-            className="animate-slide-up"
+            className={deleteStep === 'closing' ? '' : 'animate-slide-up'}
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-dialog-title"
@@ -1368,6 +1518,9 @@ export function RecentTransactions({
               display: 'flex',
               flexDirection: 'column',
               gap: 'var(--space-4)',
+              transform: deleteStep === 'closing' ? 'scale(0.95) translateY(12px)' : 'none',
+              opacity: deleteStep === 'closing' ? 0 : 1,
+              transition: 'transform 240ms cubic-bezier(0.4, 0, 0.2, 1), opacity 240ms ease',
             }}
           >
             {/* Header Dialog */}
@@ -1377,15 +1530,32 @@ export function RecentTransactions({
                   width: '42px',
                   height: '42px',
                   borderRadius: 'var(--radius-lg)',
-                  backgroundColor: 'var(--color-error-subtle)',
-                  color: 'var(--color-error)',
+                  backgroundColor:
+                    deleteStep === 'success'
+                      ? 'var(--color-success)'
+                      : deleteStep === 'deleting'
+                        ? 'var(--color-surface-raised)'
+                        : 'var(--color-error-subtle)',
+                  color:
+                    deleteStep === 'success'
+                      ? '#ffffff'
+                      : deleteStep === 'deleting'
+                        ? 'var(--color-accent)'
+                        : 'var(--color-error)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
+                  transition: 'all 200ms ease',
                 }}
               >
-                <Trash2 size={20} />
+                {deleteStep === 'success' ? (
+                  <Check size={22} strokeWidth={2.5} className="animate-scale-in" />
+                ) : deleteStep === 'deleting' ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <Trash2 size={20} />
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <h3
@@ -1393,11 +1563,16 @@ export function RecentTransactions({
                   style={{
                     fontSize: '1.05rem',
                     fontWeight: 700,
-                    color: 'var(--color-text)',
+                    color: deleteStep === 'success' ? 'var(--color-success)' : 'var(--color-text)',
                     margin: 0,
+                    transition: 'color 200ms ease',
                   }}
                 >
-                  Hapus Transaksi?
+                  {deleteStep === 'success'
+                    ? 'Berhasil Dihapus!'
+                    : deleteStep === 'deleting'
+                      ? 'Menghapus Transaksi...'
+                      : 'Hapus Transaksi?'}
                 </h3>
                 <p
                   style={{
@@ -1407,10 +1582,37 @@ export function RecentTransactions({
                     lineHeight: 1.4,
                   }}
                 >
-                  Transaksi akan dihapus dari aplikasi dan baris di Google Sheets Anda akan otomatis dirapikan tanpa celah kosong.
+                  {deleteStep === 'success'
+                    ? 'Transaksi dan baris di Google Sheets telah selesai dirapikan.'
+                    : deleteStep === 'deleting'
+                      ? 'Sedang menghapus data dari sistem dan merapikan Google Sheets Anda...'
+                      : 'Transaksi akan dihapus dari aplikasi dan baris di Google Sheets Anda akan otomatis dirapikan tanpa celah kosong.'}
                 </p>
               </div>
             </div>
+
+            {/* Indikator progress bar interaktif saat menghapus */}
+            {deleteStep === 'deleting' && (
+              <div
+                style={{
+                  height: '3px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-border)',
+                  overflow: 'hidden',
+                  width: '100%',
+                }}
+              >
+                <div
+                  className="splash-progress-bar"
+                  style={{
+                    height: '100%',
+                    width: '45%',
+                    backgroundColor: 'var(--color-error)',
+                    borderRadius: 'var(--radius-full)',
+                  }}
+                />
+              </div>
+            )}
 
             {/* Rincian Transaksi yang Dihapus */}
             <div
@@ -1422,6 +1624,9 @@ export function RecentTransactions({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '6px',
+                opacity: deleteStep === 'deleting' ? 0.6 : 1,
+                transform: deleteStep === 'deleting' ? 'scale(0.99)' : 'none',
+                transition: 'opacity 200ms ease, transform 200ms ease',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1478,61 +1683,85 @@ export function RecentTransactions({
               </div>
             )}
 
-            {/* Tombol Aksi */}
-            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
-              <button
-                type="button"
-                disabled={isDeleting}
-                onClick={() => setDeleteTarget(null)}
+            {/* Tombol Aksi & Loading Selesai State */}
+            {deleteStep === 'success' ? (
+              <div
+                className="animate-scale-in"
                 style={{
-                  flex: 1,
+                  width: '100%',
                   minHeight: '44px',
                   borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-surface)',
-                  color: 'var(--color-text)',
-                  fontSize: '0.86rem',
-                  fontWeight: 600,
-                  cursor: isDeleting ? 'not-allowed' : 'pointer',
-                  fontFamily: 'inherit',
-                  transition: 'background-color var(--duration-fast)',
-                }}
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                disabled={isDeleting}
-                onClick={handleConfirmDelete}
-                style={{
-                  flex: 1,
-                  minHeight: '44px',
-                  borderRadius: 'var(--radius-lg)',
-                  border: 'none',
-                  backgroundColor: 'var(--color-error)',
+                  backgroundColor: 'var(--color-success)',
                   color: '#ffffff',
                   fontSize: '0.86rem',
                   fontWeight: 700,
-                  cursor: isDeleting ? 'not-allowed' : 'pointer',
-                  fontFamily: 'inherit',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
-                  opacity: isDeleting ? 0.75 : 1,
-                  transition: 'opacity var(--duration-fast)',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
-                {isDeleting ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>Menghapus...</span>
-                  </>
-                ) : (
-                  <span>Ya, Hapus</span>
-                )}
-              </button>
-            </div>
+                <Check size={18} strokeWidth={2.5} />
+                <span>Loading Selesai</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
+                <button
+                  type="button"
+                  disabled={deleteStep !== 'idle'}
+                  onClick={handleCloseDeleteModal}
+                  style={{
+                    flex: 1,
+                    minHeight: '44px',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'var(--color-surface)',
+                    color: 'var(--color-text)',
+                    fontSize: '0.86rem',
+                    fontWeight: 600,
+                    cursor: deleteStep !== 'idle' ? 'not-allowed' : 'pointer',
+                    fontFamily: 'inherit',
+                    opacity: deleteStep !== 'idle' ? 0.5 : 1,
+                    transition: 'all var(--duration-fast)',
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={deleteStep !== 'idle'}
+                  onClick={handleConfirmDelete}
+                  style={{
+                    flex: 1,
+                    minHeight: '44px',
+                    borderRadius: 'var(--radius-lg)',
+                    border: 'none',
+                    backgroundColor: 'var(--color-error)',
+                    color: '#ffffff',
+                    fontSize: '0.86rem',
+                    fontWeight: 700,
+                    cursor: deleteStep !== 'idle' ? 'not-allowed' : 'pointer',
+                    fontFamily: 'inherit',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    opacity: deleteStep === 'deleting' ? 0.85 : 1,
+                    transition: 'all var(--duration-fast)',
+                  }}
+                >
+                  {deleteStep === 'deleting' ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Menghapus...</span>
+                    </>
+                  ) : (
+                    <span>Ya, Hapus</span>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>,
         document.body
