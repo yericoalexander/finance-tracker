@@ -58,16 +58,27 @@ async function syncToGoogleSheets(
   userId: string,
   captureId: string,
   extraction: TransactionExtraction,
+  preloaded?: {
+    userSheetId?: string | null
+    tokenRecord?: typeof googleTokens.$inferSelect | null
+  },
 ) {
-  const [user, tokenRecord] = await Promise.all([
-    db.query.users.findFirst({
-      where: eq(users.id, userId),
-      columns: { sheetId: true },
-    }),
-    db.query.googleTokens.findFirst({
-      where: eq(googleTokens.userId, userId),
-    }),
-  ])
+  let userSheetId = preloaded?.userSheetId
+  let tokenRecord = preloaded?.tokenRecord
+
+  if (!preloaded) {
+    const [user, dbTokenRecord] = await Promise.all([
+      db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: { sheetId: true },
+      }),
+      db.query.googleTokens.findFirst({
+        where: eq(googleTokens.userId, userId),
+      }),
+    ])
+    userSheetId = user?.sheetId
+    tokenRecord = dbTokenRecord
+  }
 
   if (!tokenRecord) {
     throw new Error('GOOGLE_AUTH_MISSING')
@@ -79,7 +90,7 @@ async function syncToGoogleSheets(
     authTag: tokenRecord.authTag,
   })
 
-  let sheetId = user?.sheetId
+  let sheetId = userSheetId
   if (!sheetId) {
     sheetId = await ensureSpreadsheet(refreshToken, null)
     await db.update(users).set({ sheetId }).where(eq(users.id, userId))
@@ -231,11 +242,21 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  // 5. Ekstraksi model AI
-  let extraction: TransactionExtraction
-  try {
-    extraction = await defaultExtractionProvider.extractReceipt(imageBuffer, validation.mimeType)
-  } catch {
+  // 5. Ekstraksi model AI secara paralel dengan pre-fetching data Google Sheets
+  const [extractionResult, authPreload] = await Promise.allSettled([
+    defaultExtractionProvider.extractReceipt(imageBuffer, validation.mimeType),
+    Promise.all([
+      db.query.users.findFirst({
+        where: eq(users.id, device.userId),
+        columns: { sheetId: true },
+      }),
+      db.query.googleTokens.findFirst({
+        where: eq(googleTokens.userId, device.userId),
+      }),
+    ]),
+  ])
+
+  if (extractionResult.status === 'rejected') {
     await db.insert(captures).values({
       userId: device.userId,
       deviceId: device.id,
@@ -248,6 +269,15 @@ export async function POST(request: NextRequest) {
       message: 'Gagal mengekstrak struk: informasi transaksi tidak terbaca',
     })
   }
+
+  const extraction = extractionResult.value
+  const preloadedAuth =
+    authPreload.status === 'fulfilled'
+      ? {
+          userSheetId: authPreload.value[0]?.sheetId,
+          tokenRecord: authPreload.value[1],
+        }
+      : undefined
 
   // 6. Tangani alur confidence & Google Sheets
   const formattedAmount = formatRupiah(extraction.amountIdr)
@@ -301,7 +331,7 @@ export async function POST(request: NextRequest) {
 
   // Tulis ke Google Sheets
   try {
-    await syncToGoogleSheets(device.userId, newCapture.id, extraction)
+    await syncToGoogleSheets(device.userId, newCapture.id, extraction, preloadedAuth)
     await db
       .update(captures)
       .set({ sheetRowId: newCapture.id })

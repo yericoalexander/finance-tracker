@@ -175,7 +175,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
 
     const triggerRefresh = () => {
       const now = Date.now()
-      if (now - lastRefresh < 3000) return
+      if (now - lastRefresh < 1500) return
       lastRefresh = now
       router.refresh()
       if (selectedMonth !== currentMonthPrefix) {
@@ -186,12 +186,16 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         const now = Date.now()
-        // Hanya refresh jika sudah lebih dari 4 detik sejak refresh terakhir
-        if (now - lastRefresh >= 4000) {
+        // Langsung refresh instan saat tab dibuka kembali setelah Back Tap
+        if (now - lastRefresh >= 1500) {
           triggerRefresh()
-          // Fast follow-up 2.5s untuk menangkap transaksi yang baru selesai diekstrak Gemini AI
-          const t = setTimeout(triggerRefresh, 2500)
-          return () => clearTimeout(t)
+        }
+        // Follow-up bertahap untuk menangkap transaksi yang baru selesai diproses server
+        const t1 = setTimeout(triggerRefresh, 1500)
+        const t2 = setTimeout(triggerRefresh, 3500)
+        return () => {
+          clearTimeout(t1)
+          clearTimeout(t2)
         }
       }
     }
@@ -205,12 +209,12 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
 
     document.addEventListener('visibilitychange', onVisibilityChange)
 
-    // Polling aktif 12 detik saat tab terbuka dan terlihat
+    // Polling aktif 6 detik saat tab terbuka dan terlihat di layar
     const intervalTimer = setInterval(() => {
       if (document.visibilityState === 'visible') {
         triggerRefresh()
       }
-    }, 12000)
+    }, 6000)
 
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange)

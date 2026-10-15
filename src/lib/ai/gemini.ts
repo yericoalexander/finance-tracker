@@ -83,6 +83,10 @@ async function callGeminiApi(
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: GEMINI_JSON_SCHEMA,
+      maxOutputTokens: 300,
+      thinkingConfig: {
+        thinkingBudget: 0,
+      },
     },
   }
 
