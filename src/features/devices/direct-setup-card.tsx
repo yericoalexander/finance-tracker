@@ -326,7 +326,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '2px' }}>
                 💡 Jangan Lupa: Atur Back Tap di iPhone
               </strong>
-              Buka <strong>Pengaturan</strong> &gt; <strong>Aksesibilitas</strong> &gt; <strong>Sentuh</strong> &gt; <strong>Ketuk Bagian Belakang</strong> &gt; pilih <strong>Finance Tracker</strong> pada Ketuk 2x.
+              Buka <strong>Pengaturan</strong> &gt; <strong>Aksesibilitas</strong> &gt; <strong>Sentuh</strong> &gt; <strong>Ketuk Bagian Belakang</strong> &gt; pilih <strong>Finance Tracker</strong>{' '}pada Ketuk 2x.
             </div>
           </div>
 

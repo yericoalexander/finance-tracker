@@ -183,7 +183,7 @@ export function ShortcutGuideCard() {
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
               Buka <strong>Pengaturan iPhone</strong> → <strong>Aksesibilitas</strong> →{' '}
               <strong>Sentuh</strong> → <strong>Ketuk Bagian Belakang</strong> → Pilih{' '}
-              <strong>Finance Tracker</strong> pada Ketuk Dua Kali.
+              <strong>Finance Tracker</strong>{' '}pada Ketuk Dua Kali.
             </p>
           </div>
         </div>

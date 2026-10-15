@@ -116,8 +116,8 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             lineHeight: 1.45,
           }}
         >
-          Halo <strong>{firstName}</strong>! Pasang pintasan <em>Finance Tracker</em> ke iPhone Anda untuk
-          mulai mencatat pengeluaran otomatis ke Google Sheets pribadi.
+          Halo <strong>{firstName}</strong>! Pasang pintasan <strong>Finance Tracker</strong>{' '}
+          ke iPhone Anda untuk mulai mencatat pengeluaran otomatis ke Google Sheets pribadi.
         </p>
       </div>
 
@@ -250,7 +250,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '2px' }}>
                 💡 Jangan Lupa: Atur Back Tap di iPhone
               </strong>
-              Buka <strong>Pengaturan</strong> &gt; <strong>Aksesibilitas</strong> &gt; <strong>Sentuh</strong> &gt; <strong>Ketuk Bagian Belakang</strong> &gt; pilih <strong>Finance Tracker</strong> pada Ketuk 2x.
+              Buka <strong>Pengaturan</strong> &gt; <strong>Aksesibilitas</strong> &gt; <strong>Sentuh</strong> &gt; <strong>Ketuk Bagian Belakang</strong> &gt; pilih <strong>Finance Tracker</strong>{' '}pada Ketuk 2x.
             </div>
           </div>
 
