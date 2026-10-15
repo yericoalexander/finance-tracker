@@ -11,7 +11,6 @@ import { SummaryCards } from './summary-cards'
 import { MonthNavigator } from './month-navigator'
 import { getMonthSummaryAction, type DashboardData } from './actions'
 import { DeviceSetupBanner } from '@/features/devices/device-setup-banner'
-import { HomeScreenBanner } from '@/features/devices/home-screen-banner'
 import { ShortcutOnboardingModal } from '@/features/devices/shortcut-onboarding-modal'
 
 type TabType = 'overview' | 'transactions' | 'add'
@@ -354,9 +353,6 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
       {/* Tab: Ringkasan */}
       {activeTab === 'overview' && (
         <div key="overview" className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingTop: 'var(--space-1)' }}>
-          {/* Banner Add to Home Screen (otomatis sembunyi jika sudah PWA) */}
-          <HomeScreenBanner />
-
           {/* Banner Pemasangan Shortcut iPhone jika Belum Terhubung */}
           <DeviceSetupBanner hasActiveDevice={Boolean(data.activeDevice)} />
 
