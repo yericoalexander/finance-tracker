@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 
-import { SplashScreenCoordinator } from '@/components/ui/splash-screen'
+import { AppSplashScreen } from '@/components/ui/splash-screen'
 import './globals.css'
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -48,11 +48,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" data-theme="light" suppressHydrationWarning>
+    <html lang="id" data-theme="light" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-v2.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
-        <link rel="preload" as="image" href="/icons/apple-touch-icon-v2.png" type="image/png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.setAttribute('data-theme','dark');}else{document.documentElement.setAttribute('data-theme','light');}}catch(e){}if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.getRegistrations().then(function(r){for(var s of r){s.unregister();}});},{once:true});}})();`,
@@ -80,143 +79,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${plusJakarta.variable} antialiased`}>
-        {/* Instant zero-latency branded splash overlay for 0ms initial launch feedback */}
-        <div id="app-splash" aria-hidden="true">
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1rem',
-              padding: '1.5rem',
-            }}
-          >
-            <div
-              className="splash-ambient-wrap"
-              style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <div
-                className="splash-ambient-glow"
-                style={{
-                  position: 'absolute',
-                  width: '96px',
-                  height: '96px',
-                  borderRadius: '50%',
-                  backgroundColor: 'currentColor',
-                  filter: 'blur(24px)',
-                  opacity: 0.12,
-                  pointerEvents: 'none',
-                }}
-              />
-              <div
-                className="splash-logo-pulse"
-                style={{
-                  width: '84px',
-                  height: '84px',
-                  borderRadius: '24px',
-                  padding: '6px',
-                  backgroundColor: 'var(--color-surface-raised, rgba(128,128,128,0.08))',
-                  border: '1px solid var(--color-border, rgba(128,128,128,0.18))',
-                  boxShadow: '0 8px 24px -4px rgba(0,0,0,0.12)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <div
-                  style={{
-                    width: '72px',
-                    height: '72px',
-                    borderRadius: '18px',
-                    overflow: 'hidden',
-                    backgroundColor: '#0c1017',
-                    boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.2)',
-                  }}
-                >
-                  <img
-                    src="/icons/apple-touch-icon-v2.png"
-                    alt="Finance Tracker"
-                    width={72}
-                    height={72}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '6px',
-                textAlign: 'center',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.8125rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontFamily: 'var(--font-sans), system-ui, -apple-system, sans-serif',
-                }}
-              >
-                Finance Tracker
-              </span>
-              <div
-                className="splash-progress-track"
-                style={{
-                  marginTop: '4px',
-                  width: '120px',
-                  height: '3px',
-                  borderRadius: '9999px',
-                  backgroundColor: 'var(--color-border, rgba(128,128,128,0.2))',
-                  overflow: 'hidden',
-                  position: 'relative',
-                }}
-              >
-                <div
-                  className="splash-progress-bar"
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    width: '40%',
-                    borderRadius: '9999px',
-                    backgroundColor: 'currentColor',
-                  }}
-                />
-              </div>
-              <span
-                style={{
-                  fontSize: '0.75rem',
-                  opacity: 0.65,
-                  fontWeight: 500,
-                  letterSpacing: '0.02em',
-                  marginTop: '2px',
-                  fontFamily: 'var(--font-sans), system-ui, -apple-system, sans-serif',
-                }}
-              >
-                Memuat...
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <SplashScreenCoordinator />
+        {/* Instant zero-latency branded splash screen managed safely through React lifecycle */}
+        <AppSplashScreen />
         {children}
       </body>
     </html>
