@@ -56,13 +56,22 @@ interface RawGeminiOutput {
   confidence?: number
 }
 
+const CANDIDATE_MODELS = Array.from(
+  new Set([
+    env.GEMINI_MODEL,
+    'gemini-flash-lite-latest',
+    'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
+  ]),
+)
+
 async function callGeminiApi(
   imageBuffer: Buffer,
   mimeType: string,
+  modelName: string,
 ): Promise<RawGeminiOutput> {
-  const model = env.GEMINI_MODEL
   const apiKey = env.GEMINI_API_KEY
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`
 
   const base64Data = imageBuffer.toString('base64')
 
@@ -83,10 +92,6 @@ async function callGeminiApi(
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: GEMINI_JSON_SCHEMA,
-      maxOutputTokens: 300,
-      thinkingConfig: {
-        thinkingBudget: 0,
-      },
     },
   }
 
@@ -145,20 +150,19 @@ export class GeminiExtractionProvider implements ExtractionProvider {
     imageBuffer: Buffer,
     mimeType: string,
   ): Promise<TransactionExtraction> {
-    try {
-      const raw = await callGeminiApi(imageBuffer, mimeType)
-      return processRawOutput(raw)
-    } catch {
-      // Retry 1 kali
-      console.warn('Percobaan pertama Gemini gagal, mencoba sekali lagi...')
+    let lastError: Error | null = null
+
+    for (const model of CANDIDATE_MODELS) {
       try {
-        const rawRetry = await callGeminiApi(imageBuffer, mimeType)
-        return processRawOutput(rawRetry)
-      } catch (retryErr) {
-        const msg = retryErr instanceof Error ? retryErr.message : String(retryErr)
-        throw new Error(`Ekstraksi Gemini gagal setelah retry: ${msg}`)
+        const raw = await callGeminiApi(imageBuffer, mimeType, model)
+        return processRawOutput(raw)
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err))
+        console.warn(`[Gemini] Model ${model} gagal: ${lastError.message}. Mencoba cadangan...`)
       }
     }
+
+    throw new Error(`Ekstraksi Gemini gagal: ${lastError?.message ?? 'Semua model gagal'}`)
   }
 }
 

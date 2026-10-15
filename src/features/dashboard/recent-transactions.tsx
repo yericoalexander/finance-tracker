@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import {
   Calendar,
   RotateCcw,
@@ -16,10 +17,13 @@ import {
   HeartPulse,
   Tag,
   Check,
+  Trash2,
+  Loader2,
 } from 'lucide-react'
 
 import { CATEGORIES } from '@/lib/ai/types'
 import { formatRupiah } from '@/lib/ai/currency'
+import { deleteTransactionAction } from './actions'
 
 interface TransactionItem {
   id: string
@@ -98,6 +102,7 @@ export function RecentTransactions({
   onNavigateToAdd,
   stickyOffset,
 }: RecentTransactionsProps) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [quickDate, setQuickDate] = useState<QuickDateOption>('all')
   const [startDate, setStartDate] = useState<string>('')
@@ -105,18 +110,24 @@ export function RecentTransactions({
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
+  // State untuk fitur hapus transaksi
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set())
+  const [deleteTarget, setDeleteTarget] = useState<TransactionItem | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    if (filterModalOpen) {
+    if (filterModalOpen || deleteTarget !== null) {
       document.body.style.overflow = 'hidden'
       return () => {
         document.body.style.overflow = ''
       }
     }
-  }, [filterModalOpen])
+  }, [filterModalOpen, deleteTarget])
 
   // Draft filter states inside modal
   const [draftQuickDate, setDraftQuickDate] = useState<QuickDateOption>('all')
@@ -141,13 +152,39 @@ export function RecentTransactions({
   // Close on escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && filterModalOpen) {
-        setFilterModalOpen(false)
+      if (e.key === 'Escape') {
+        if (deleteTarget && !isDeleting) {
+          setDeleteTarget(null)
+        } else if (filterModalOpen) {
+          setFilterModalOpen(false)
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [filterModalOpen])
+  }, [filterModalOpen, deleteTarget, isDeleting])
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+    setIsDeleting(true)
+    setDeleteError(null)
+
+    try {
+      const targetId = deleteTarget.id
+      const res = await deleteTransactionAction(targetId)
+      if (res.ok) {
+        setDeletedIds((prev) => new Set([...prev, targetId]))
+        setDeleteTarget(null)
+        router.refresh()
+      } else {
+        setDeleteError(res.error ?? 'Gagal menghapus transaksi')
+      }
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   // Count active filters for badge
   const activeFilterCount = useMemo(() => {
@@ -160,9 +197,14 @@ export function RecentTransactions({
 
   const hasActiveFilters = activeFilterCount > 0
 
+  // Filter transaksi aktif (kecualikan yang baru saja dihapus di UI)
+  const activeTransactions = useMemo(() => {
+    return transactions.filter((tx) => !deletedIds.has(tx.id))
+  }, [transactions, deletedIds])
+
   // Apply filters
   const filtered = useMemo(() => {
-    return transactions.filter((tx) => {
+    return activeTransactions.filter((tx) => {
       // 1. Kategori
       if (selectedCategory !== null && tx.category !== selectedCategory) {
         return false
@@ -341,11 +383,11 @@ export function RecentTransactions({
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {transactions.length === 0
+            {activeTransactions.length === 0
               ? '0 transaksi tercatat'
               : hasActiveFilters
-                ? `${filtered.length} dari ${transactions.length} transaksi`
-                : `${transactions.length} transaksi tercatat`}
+                ? `${filtered.length} dari ${activeTransactions.length} transaksi`
+                : `${activeTransactions.length} transaksi tercatat`}
           </p>
         </div>
 
@@ -852,20 +894,59 @@ export function RecentTransactions({
                   </p>
                 </div>
 
-                {/* Nominal */}
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <p
+                {/* Nominal & Tombol Hapus */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <p
+                      style={{
+                        fontSize: '0.92rem',
+                        fontWeight: 800,
+                        color: 'var(--color-expense)',
+                        fontVariantNumeric: 'tabular-nums',
+                        letterSpacing: '-0.02em',
+                        margin: 0,
+                      }}
+                    >
+                      -{formatRupiah(tx.amountIdr ?? 0)}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDeleteError(null)
+                      setDeleteTarget(tx)
+                    }}
+                    aria-label={`Hapus transaksi ${tx.merchant ?? 'Pengeluaran'}`}
+                    title="Hapus transaksi"
                     style={{
-                      fontSize: '0.92rem',
-                      fontWeight: 800,
-                      color: 'var(--color-expense)',
-                      fontVariantNumeric: 'tabular-nums',
-                      letterSpacing: '-0.02em',
-                      margin: 0,
+                      minWidth: '44px',
+                      minHeight: '44px',
+                      width: '44px',
+                      height: '44px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 'var(--radius-md)',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      color: 'var(--color-text-placeholder)',
+                      cursor: 'pointer',
+                      padding: 0,
+                      transition: 'color var(--duration-fast), background-color var(--duration-fast)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--color-error)'
+                      e.currentTarget.style.backgroundColor = 'var(--color-error-subtle)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--color-text-placeholder)'
+                      e.currentTarget.style.backgroundColor = 'transparent'
                     }}
                   >
-                    -{formatRupiah(tx.amountIdr ?? 0)}
-                  </p>
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             )
@@ -1242,6 +1323,214 @@ export function RecentTransactions({
               >
                 <Check size={16} />
                 Terapkan Filter
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Konfirmasi Hapus Transaksi */}
+      {mounted && deleteTarget && createPortal(
+        <div
+          className="animate-fade-in"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 'var(--space-4)',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDeleting) {
+              setDeleteTarget(null)
+            }
+          }}
+        >
+          <div
+            className="animate-slide-up"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-dialog-title"
+            style={{
+              width: '100%',
+              maxWidth: '380px',
+              backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-xl)',
+              border: '1px solid var(--color-border)',
+              boxShadow: 'var(--shadow-lg)',
+              padding: 'var(--space-5)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-4)',
+            }}
+          >
+            {/* Header Dialog */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: 'var(--radius-lg)',
+                  backgroundColor: 'var(--color-error-subtle)',
+                  color: 'var(--color-error)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Trash2 size={20} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3
+                  id="delete-dialog-title"
+                  style={{
+                    fontSize: '1.05rem',
+                    fontWeight: 700,
+                    color: 'var(--color-text)',
+                    margin: 0,
+                  }}
+                >
+                  Hapus Transaksi?
+                </h3>
+                <p
+                  style={{
+                    fontSize: '0.8rem',
+                    color: 'var(--color-text-muted)',
+                    margin: '4px 0 0 0',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  Transaksi akan dihapus dari aplikasi dan baris di Google Sheets Anda akan otomatis dirapikan tanpa celah kosong.
+                </p>
+              </div>
+            </div>
+
+            {/* Rincian Transaksi yang Dihapus */}
+            <div
+              style={{
+                backgroundColor: 'var(--color-surface-raised)',
+                borderRadius: 'var(--radius-lg)',
+                padding: 'var(--space-3) var(--space-4)',
+                border: '1px solid var(--color-border-subtle)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Merchant</span>
+                <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                  {deleteTarget.merchant ?? 'Pengeluaran'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Nominal</span>
+                <span
+                  style={{
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    color: 'var(--color-expense)',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  -{formatRupiah(deleteTarget.amountIdr ?? 0)}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Kategori</span>
+                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                  {deleteTarget.category ?? 'Lainnya'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Tanggal</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text)' }}>
+                  {formatDateLabel(
+                    deleteTarget.txDate ||
+                      (deleteTarget.createdAt
+                        ? new Date(deleteTarget.createdAt).toISOString().slice(0, 10)
+                        : ''),
+                  )}
+                </span>
+              </div>
+            </div>
+
+            {/* Error Message jika gagal */}
+            {deleteError && (
+              <div
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--color-error-subtle)',
+                  color: 'var(--color-error)',
+                  fontSize: '0.78rem',
+                  lineHeight: 1.4,
+                }}
+              >
+                {deleteError}
+              </div>
+            )}
+
+            {/* Tombol Aksi */}
+            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeleteTarget(null)}
+                style={{
+                  flex: 1,
+                  minHeight: '44px',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                  fontSize: '0.86rem',
+                  fontWeight: 600,
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'background-color var(--duration-fast)',
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                style={{
+                  flex: 1,
+                  minHeight: '44px',
+                  borderRadius: 'var(--radius-lg)',
+                  border: 'none',
+                  backgroundColor: 'var(--color-error)',
+                  color: '#ffffff',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  opacity: isDeleting ? 0.75 : 1,
+                  transition: 'opacity var(--duration-fast)',
+                }}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <span>Ya, Hapus</span>
+                )}
               </button>
             </div>
           </div>

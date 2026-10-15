@@ -4,7 +4,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mockDbSelect = vi.fn()
 const mockDbInsert = vi.fn()
 const mockDbUpdate = vi.fn()
+const mockDbDelete = vi.fn()
 const mockAppendTransactionRow = vi.fn()
+const mockDeleteTransactionRow = vi.fn()
 const mockAuth = vi.fn()
 const mockRevalidatePath = vi.fn()
 
@@ -38,6 +40,9 @@ vi.mock('@/lib/db/client', () => ({
         where: () => mockDbUpdate(),
       }),
     }),
+    delete: () => ({
+      where: () => mockDbDelete(),
+    }),
   },
 }))
 
@@ -47,9 +52,10 @@ vi.mock('@/lib/crypto', () => ({
 
 vi.mock('@/lib/google/sheets', () => ({
   appendTransactionRow: (...args: unknown[]) => mockAppendTransactionRow(...args),
+  deleteTransactionRow: (...args: unknown[]) => mockDeleteTransactionRow(...args),
 }))
 
-const { approveReviewAction, dismissReviewAction, getMonthSummaryAction } = await import('./actions')
+const { approveReviewAction, dismissReviewAction, getMonthSummaryAction, deleteTransactionAction } = await import('./actions')
 const { createManualTransactionAction } = await import('./manual-entry-action')
 
 describe('Dashboard Actions', () => {
@@ -185,6 +191,63 @@ describe('Dashboard Actions', () => {
       expect(res.data?.categoryBreakdown[0]?.category).toBe('Makanan & Minuman')
       expect(res.data?.categoryBreakdown[0]?.total).toBe(75000)
       expect(res.data?.categoryBreakdown[0]?.percentage).toBe(75)
+    })
+  })
+
+  describe('deleteTransactionAction', () => {
+    it('mengembalikan error jika belum login', async () => {
+      mockAuth.mockResolvedValue(null)
+      const res = await deleteTransactionAction('tx-123')
+      expect(res.ok).toBe(false)
+      expect(res.error).toContain('Sesi telah berakhir')
+    })
+
+    it('mengembalikan error jika transaksi tidak ditemukan', async () => {
+      mockAuth.mockResolvedValue({ user: { id: 'user-123' } })
+      mockDbSelect.mockResolvedValueOnce([]) // captureRecord not found
+      const res = await deleteTransactionAction('tx-nonexistent')
+      expect(res.ok).toBe(false)
+      expect(res.error).toBe('Transaksi tidak ditemukan')
+    })
+
+    it('berhasil menghapus dari database dan memanggil deleteTransactionRow di Google Sheets', async () => {
+      mockAuth.mockResolvedValue({ user: { id: 'user-123' } })
+      // 1. captureRecord
+      mockDbSelect.mockResolvedValueOnce([
+        {
+          id: 'tx-123',
+          userId: 'user-123',
+          merchant: 'Kopi Kenangan',
+          amountIdr: 25000,
+          txDate: '2026-10-15',
+        },
+      ])
+      // 2. userRecord
+      mockDbSelect.mockResolvedValueOnce([{ sheetId: 'sheet-123' }])
+      // 3. tokenRecord
+      mockDbSelect.mockResolvedValueOnce([
+        {
+          refreshTokenEncrypted: 'enc',
+          iv: 'iv',
+          authTag: 'tag',
+        },
+      ])
+      mockDeleteTransactionRow.mockResolvedValue({ deleted: true, rowIndex: 5 })
+
+      const res = await deleteTransactionAction('tx-123')
+      expect(res.ok).toBe(true)
+      expect(mockDeleteTransactionRow).toHaveBeenCalledWith(
+        'mock-refresh-token',
+        'sheet-123',
+        'tx-123',
+        expect.objectContaining({
+          merchant: 'Kopi Kenangan',
+          amountIdr: 25000,
+          date: '2026-10-15',
+        }),
+      )
+      expect(mockDbDelete).toHaveBeenCalled()
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/dashboard')
     })
   })
 })

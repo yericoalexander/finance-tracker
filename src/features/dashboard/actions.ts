@@ -9,7 +9,7 @@ import { CATEGORIES } from '@/lib/ai/types'
 import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
 import { captures, devices, googleTokens, users } from '@/lib/db/schema'
-import { appendTransactionRow } from '@/lib/google/sheets'
+import { appendTransactionRow, deleteTransactionRow } from '@/lib/google/sheets'
 
 const ApproveReviewSchema = z.object({
   captureId: z.string().uuid(),
@@ -360,4 +360,73 @@ export async function getMonthSummaryAction(targetMonth: string): Promise<{
     return { ok: false, error: 'Gagal memuat ringkasan bulan' }
   }
 }
+
+/**
+ * Hapus transaksi dari database dan Google Sheets (otomatis merapikan baris tanpa celah).
+ */
+export async function deleteTransactionAction(
+  captureId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { ok: false, error: 'Sesi telah berakhir, silakan login kembali' }
+  }
+
+  const userId = session.user.id
+
+  // 1. Ambil data capture untuk verifikasi kepemilikan dan data pencocokan sheets
+  const [captureRecord] = await db
+    .select()
+    .from(captures)
+    .where(and(eq(captures.id, captureId), eq(captures.userId, userId)))
+    .limit(1)
+
+  if (!captureRecord) {
+    return { ok: false, error: 'Transaksi tidak ditemukan' }
+  }
+
+  // 2. Jika user memiliki Google Sheet yang terhubung, hapus barisnya di Google Sheets
+  const [userList, tokenList] = await Promise.all([
+    db
+      .select({ sheetId: users.sheetId })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1),
+    db
+      .select()
+      .from(googleTokens)
+      .where(eq(googleTokens.userId, userId))
+      .limit(1),
+  ])
+
+  const userRecord = userList[0]
+  const tokenRecord = tokenList[0]
+
+  if (userRecord?.sheetId && tokenRecord) {
+    try {
+      const refreshToken = decrypt({
+        ciphertext: tokenRecord.refreshTokenEncrypted,
+        iv: tokenRecord.iv,
+        authTag: tokenRecord.authTag,
+      })
+
+      await deleteTransactionRow(refreshToken, userRecord.sheetId, captureId, {
+        date: captureRecord.txDate ?? undefined,
+        merchant: captureRecord.merchant ?? undefined,
+        amountIdr: captureRecord.amountIdr ?? undefined,
+      })
+    } catch (err) {
+      console.warn('[Dashboard] Gagal menghapus baris di Google Sheets:', err)
+    }
+  }
+
+  // 3. Hapus capture dari database
+  await db
+    .delete(captures)
+    .where(and(eq(captures.id, captureId), eq(captures.userId, userId)))
+
+  revalidatePath('/dashboard')
+  return { ok: true }
+}
+
 

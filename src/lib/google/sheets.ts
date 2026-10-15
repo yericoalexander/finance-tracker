@@ -11,6 +11,7 @@ export type SheetStep =
   | 'tulis rumus Ringkasan'
   | 'format spreadsheet'
   | 'tulis baris Transaksi'
+  | 'hapus baris Transaksi'
 
 // Standard headers for Transaksi sheet
 const TRANSACTION_HEADERS = [
@@ -1136,4 +1137,103 @@ export async function refreshSummarySheet(
 
   // Terapkan ulang format lengkap
   await formatSpreadsheet(refreshToken, spreadsheetId)
+}
+
+export interface DeleteTransactionFallback {
+  date?: string | null
+  merchant?: string | null
+  amountIdr?: number | null
+}
+
+/**
+ * Hapus baris transaksi dari Google Sheets dan otomatis merapikan baris di bawahnya (deleteDimension).
+ * Baris tidak akan bolong karena baris di bawahnya otomatis bergeser naik.
+ */
+export async function deleteTransactionRow(
+  refreshToken: string,
+  spreadsheetId: string,
+  transactionId: string,
+  fallback?: DeleteTransactionFallback,
+): Promise<{ deleted: boolean; rowIndex?: number }> {
+  const auth = buildOAuth2Client(refreshToken)
+  const sheetsClient = await getSheetsClient(auth)
+
+  try {
+    const meta = await sheetsClient.spreadsheets.get({ spreadsheetId }).catch(() => null)
+    const dataSheet = meta?.data.sheets?.find((s) => s.properties?.title === '_data')
+    const targetSheetTitle = dataSheet ? '_data' : 'Transaksi'
+    const targetSheetId =
+      (dataSheet ?? meta?.data.sheets?.find((s) => s.properties?.title === 'Transaksi'))?.properties
+        ?.sheetId ?? 0
+
+    // Ambil kolom ID (kolom I) dan data baris pendukung
+    const getRes = await sheetsClient.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${targetSheetTitle}!A:I`,
+    })
+
+    const rows = getRes.data.values ?? []
+    if (rows.length <= 1) {
+      return { deleted: false }
+    }
+
+    let targetRowIndex = -1
+
+    // 1. Cari baris berdasarkan captureId di Kolom I (index 8)
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i]
+      if (row && row[8] && String(row[8]).trim() === transactionId.trim()) {
+        targetRowIndex = i
+        break
+      }
+    }
+
+    // 2. Fallback pencocokan jika kolom ID kosong (misal catatan manual versi lama)
+    if (targetRowIndex === -1 && fallback) {
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i]
+        if (!row) continue
+        const dateMatch = !fallback.date || row[0] === fallback.date
+        const merchantMatch = !fallback.merchant || row[2] === fallback.merchant
+        const amountMatch =
+          fallback.amountIdr === undefined ||
+          fallback.amountIdr === null ||
+          row[4] === String(fallback.amountIdr) ||
+          Number(String(row[4]).replace(/[^\d]/g, '')) === fallback.amountIdr
+
+        if (dateMatch && merchantMatch && amountMatch) {
+          targetRowIndex = i
+          break
+        }
+      }
+    }
+
+    if (targetRowIndex === -1) {
+      console.warn(`[Google Sheets] Transaksi ${transactionId} tidak ditemukan di sheet`)
+      return { deleted: false }
+    }
+
+    // Hapus baris secara fisik menggunakan deleteDimension agar baris di bawahnya naik merapikan diri
+    await sheetsClient.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId: targetSheetId,
+                dimension: 'ROWS',
+                startIndex: targetRowIndex,
+                endIndex: targetRowIndex + 1,
+              },
+            },
+          },
+        ],
+      },
+    })
+
+    return { deleted: true, rowIndex: targetRowIndex }
+  } catch (err) {
+    throw logGoogleError('hapus baris Transaksi', err)
+  }
 }
