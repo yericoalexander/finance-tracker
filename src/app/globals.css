@@ -246,6 +246,70 @@ textarea::placeholder {
   animation: pageEnter var(--duration-fast) var(--ease-default);
 }
 
+/* ─── App Splash & Logo Loading Animations ─────────────────────────── */
+@keyframes splashLogoPulse {
+  0% {
+    transform: scale(0.975);
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.08);
+  }
+  50% {
+    transform: scale(1.025);
+    box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.16);
+  }
+  100% {
+    transform: scale(0.975);
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.08);
+  }
+}
+
+@keyframes splashProgressScan {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(110%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes splashAmbientGlow {
+  0%, 100% {
+    opacity: 0.10;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.22;
+    transform: scale(1.12);
+  }
+}
+
+.splash-logo-pulse {
+  animation: splashLogoPulse 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+
+.splash-progress-bar {
+  animation: splashProgressScan 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  will-change: transform;
+}
+
+.splash-ambient-glow {
+  animation: splashAmbientGlow 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.app-splash-fade-out {
+  opacity: 0 !important;
+  transform: scale(1.03) !important;
+  filter: blur(2px) !important;
+  pointer-events: none !important;
+  transition: opacity 240ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+              filter 240ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -254,6 +318,16 @@ textarea::placeholder {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .splash-logo-pulse,
+  .splash-progress-bar,
+  .splash-ambient-glow {
+    animation: none !important;
+    transform: none !important;
+  }
+  .app-splash-fade-out {
+    transition-duration: 0.01ms !important;
+    filter: none !important;
   }
 }
 

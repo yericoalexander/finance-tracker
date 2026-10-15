@@ -1,1 +1,5 @@
-export { default } from './dashboard/loading'
+import { LogoLoader } from '@/components/ui/logo-loader'
+
+export default function RootLoading() {
+  return <LogoLoader label="Memuat..." />
+}
