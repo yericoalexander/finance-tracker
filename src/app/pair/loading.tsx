@@ -22,9 +22,10 @@ export default function PairLoading() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: 'var(--space-2)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: 1 }}>
           <div
             style={{
               width: '44px',
@@ -32,13 +33,14 @@ export default function PairLoading() {
               borderRadius: 'var(--radius-md)',
               backgroundColor: 'var(--color-border)',
               animation: 'pulse 1.5s ease-in-out infinite',
+              flexShrink: 0,
             }}
           />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
             <div
               style={{
-                width: '160px',
-                height: '20px',
+                width: '120px',
+                height: '16px',
                 borderRadius: 'var(--radius-sm)',
                 backgroundColor: 'var(--color-border)',
                 animation: 'pulse 1.5s ease-in-out infinite',
@@ -46,8 +48,8 @@ export default function PairLoading() {
             />
             <div
               style={{
-                width: '120px',
-                height: '14px',
+                width: '160px',
+                height: '12px',
                 borderRadius: 'var(--radius-sm)',
                 backgroundColor: 'var(--color-border-subtle)',
                 animation: 'pulse 1.5s ease-in-out infinite',
@@ -55,15 +57,27 @@ export default function PairLoading() {
             />
           </div>
         </div>
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'var(--color-border-subtle)',
-            animation: 'pulse 1.5s ease-in-out infinite',
-          }}
-        />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexShrink: 0 }}>
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--color-border-subtle)',
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }}
+          />
+          <div
+            style={{
+              width: '84px',
+              height: '40px',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: 'var(--color-border-subtle)',
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }}
+          />
+        </div>
       </header>
 
       {/* Direct Setup Card Skeleton */}

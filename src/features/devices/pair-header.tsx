@@ -19,13 +19,13 @@ export function PairHeader() {
         gap: 'var(--space-2)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: 1 }}>
         <Link
           href="/dashboard"
           prefetch={true}
           aria-label={t('backToDashboard')}
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
             minHeight: '44px',
@@ -36,31 +36,31 @@ export function PairHeader() {
             backgroundColor: 'var(--color-surface)',
             textDecoration: 'none',
             flexShrink: 0,
+            transition: 'background-color 150ms ease',
           }}
         >
           <ArrowLeft size={18} />
         </Link>
+
         <div style={{ minWidth: 0 }}>
           <h1
             style={{
-              fontSize: '1.25rem',
+              fontSize: '1rem',
               fontWeight: 700,
               margin: 0,
               color: 'var(--color-text)',
-              letterSpacing: '-0.02em',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              letterSpacing: '-0.015em',
+              lineHeight: 1.25,
             }}
           >
             {t('pairTitle')}
           </h1>
           <p
             style={{
-              fontSize: '0.78rem',
+              fontSize: '0.74rem',
               color: 'var(--color-text-muted)',
-              margin: 0,
-              lineHeight: 1.3,
+              margin: '2px 0 0',
+              lineHeight: 1.35,
             }}
           >
             {t('pairSubtitle')}
