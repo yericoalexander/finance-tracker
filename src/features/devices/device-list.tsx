@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { revokeDeviceAction } from './actions'
+import { useI18n } from '@/lib/i18n/context'
 
 interface DeviceListItemProps {
   devices: Array<{
@@ -18,23 +19,24 @@ interface DeviceListItemProps {
 
 export function DeviceList({ devices }: DeviceListItemProps) {
   const router = useRouter()
+  const { t, locale } = useI18n()
   const [revokingId, setRevokingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function handleRevoke(deviceId: string) {
-    if (!confirm('Apakah Anda yakin ingin mencabut akses perangkat ini?')) return
+    if (!confirm(t('confirmRevoke'))) return
 
     setRevokingId(deviceId)
     setError(null)
     try {
       const res = await revokeDeviceAction(deviceId)
       if (!res.ok) {
-        setError(res.error ?? 'Gagal mencabut perangkat')
+        setError(res.error ?? t('errRevokeDevice'))
       } else {
         router.refresh()
       }
     } catch {
-      setError('Terjadi gangguan jaringan')
+      setError(t('errNetworkRevoke'))
     } finally {
       setRevokingId(null)
     }
@@ -65,7 +67,7 @@ export function DeviceList({ devices }: DeviceListItemProps) {
             color: 'var(--color-text)',
           }}
         >
-          Perangkat Terhubung ({activeDevices.length})
+          {t('connectedDevicesTitle', { count: activeDevices.length })}
         </h2>
       </div>
 
@@ -85,7 +87,7 @@ export function DeviceList({ devices }: DeviceListItemProps) {
             margin: 0,
           }}
         >
-          Belum ada iPhone yang terhubung.
+          {t('noDevicesConnected')}
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
@@ -121,8 +123,8 @@ export function DeviceList({ devices }: DeviceListItemProps) {
                   }}
                 >
                   {device.lastSeenAt
-                    ? `Terakhir aktif: ${new Date(device.lastSeenAt).toLocaleString('id-ID')}`
-                    : `Dihubungkan: ${new Date(device.createdAt).toLocaleDateString('id-ID')}`}
+                    ? `${t('lastActive')} ${new Date(device.lastSeenAt).toLocaleString(locale === 'id' ? 'id-ID' : 'en-US')}`
+                    : `${t('connectedAt')} ${new Date(device.createdAt).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US')}`}
                 </p>
               </div>
 
@@ -130,7 +132,7 @@ export function DeviceList({ devices }: DeviceListItemProps) {
                 type="button"
                 onClick={() => handleRevoke(device.id)}
                 disabled={revokingId === device.id}
-                aria-label={`Cabut akses ${device.label}`}
+                aria-label={t('revokeAriaLabel', { label: device.label })}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -153,7 +155,7 @@ export function DeviceList({ devices }: DeviceListItemProps) {
                 ) : (
                   <Trash2 size={14} />
                 )}
-                <span>Cabut</span>
+                <span>{t('btnRevoke')}</span>
               </button>
             </div>
           ))}

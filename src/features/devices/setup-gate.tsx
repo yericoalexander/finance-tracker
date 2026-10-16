@@ -15,6 +15,9 @@ import { useState } from 'react'
 
 import { createDirectDeviceTokenAction } from './actions'
 import { HomeScreenGuideCard } from './home-screen-guide-card'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { LanguageToggle } from '@/components/ui/language-toggle'
+import { useI18n } from '@/lib/i18n/context'
 
 interface SetupGateProps {
   user: {
@@ -30,8 +33,9 @@ const ICLOUD_SHORTCUT_URL = 'https://www.icloud.com/shortcuts/4d6a9040bd104b02b9
 
 export function SetupGate({ user, onSignOut }: SetupGateProps) {
   const router = useRouter()
-  const firstName = user.name?.split(' ')[0] ?? 'Kamu'
-  const deviceLabel = `iPhone ${firstName}`
+  const { t, locale } = useI18n()
+  const firstName = user.name?.split(' ')[0] ?? (locale === 'en' ? 'User' : 'Kamu')
+  const deviceLabel = locale === 'en' ? `${firstName}'s iPhone` : `iPhone ${firstName}`
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +47,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
     try {
       const res = await createDirectDeviceTokenAction(deviceLabel)
       if (!res.ok || !res.deviceToken) {
-        setError(res.error ?? 'Gagal membuat akses perangkat')
+        setError(res.error ?? t('errCreateAccess'))
         setLoading(false)
         return
       }
@@ -60,7 +64,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
       // Langsung buka sheet native iOS "Tambahkan Pintasan"
       window.open(ICLOUD_SHORTCUT_URL, '_blank')
     } catch {
-      setError('Terjadi kendala jaringan saat menghubungkan')
+      setError(t('errNetworkConnect'))
     } finally {
       setLoading(false)
     }
@@ -78,6 +82,12 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
         justifyContent: 'center',
       }}
     >
+      {/* Top Bar Switchers */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <ThemeToggle />
+        <LanguageToggle />
+      </div>
+
       {/* Header Selamat Datang */}
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)' }}>
         <div
@@ -105,7 +115,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             letterSpacing: '-0.02em',
           }}
         >
-          Pasang Pintasan iPhone
+          {t('setupGateTitle')}
         </h1>
         <p
           style={{
@@ -116,8 +126,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             lineHeight: 1.45,
           }}
         >
-          Halo <strong>{firstName}</strong>! Pasang pintasan <strong>Finance Tracker</strong>{' '}
-          ke iPhone Anda untuk mulai mencatat pengeluaran otomatis ke Google Sheets pribadi.
+          {t('setupGateSubtitle', { name: firstName })}
         </p>
       </div>
 
@@ -138,10 +147,10 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             <CheckCircle2 size={24} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
             <div>
               <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>
-                Siap Dihubungkan ke iPhone!
+                {t('setupGateReadyTitle')}
               </h2>
               <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>
-                Koneksi otomatis langsung ke Google Sheets ({user.email})
+                {t('setupGateReadySub', { email: user.email ?? '' })}
               </p>
             </div>
           </div>
@@ -161,11 +170,11 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
               <Sparkles size={18} style={{ color: 'var(--color-accent)' }} />
               <strong style={{ fontSize: '0.86rem', color: 'var(--color-text)' }}>
-                Langkah 1-Klik Otomatis:
+                {t('setupGateStepTitle')}
               </strong>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.45 }}>
-              Ketuk tombol di bawah. iPhone Anda akan otomatis membuka Pintasan dan menyimpan koneksi akun Anda tanpa perlu ketik apapun.
+              {t('setupGateStepDesc')}
             </p>
             <button
               type="button"
@@ -192,7 +201,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               }}
             >
               <Sparkles size={18} />
-              <span>Hubungkan ke iPhone Otomatis</span>
+              <span>{t('setupGateBtnConnectAuto')}</span>
             </button>
           </div>
 
@@ -209,7 +218,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             }}
           >
             <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Belum punya pintasan di iPhone? Pasang sekali saja:
+              {t('setupGateNotInstalledYet')}
             </p>
             <button
               type="button"
@@ -230,7 +239,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               }}
             >
               <ExternalLink size={14} />
-              <span>Pasang Pintasan (iCloud)</span>
+              <span>{t('setupGateBtnInstallIcloud')}</span>
             </button>
           </div>
 
@@ -248,9 +257,9 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             <Smartphone size={20} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
               <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '2px' }}>
-                💡 Jangan Lupa: Atur Back Tap di iPhone
+                {t('backTapReminderTitle')}
               </strong>
-              Buka <strong>Pengaturan</strong> &gt; <strong>Aksesibilitas</strong> &gt; <strong>Sentuh</strong> &gt; <strong>Ketuk Bagian Belakang</strong> &gt; pilih <strong>Finance Tracker</strong>{' '}pada Ketuk 2x.
+              {t('backTapReminderDesc')}
             </div>
           </div>
 
@@ -277,7 +286,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               cursor: 'pointer',
             }}
           >
-            <span>Selesai &amp; Buka Dashboard</span>
+            <span>{t('setupGateBtnFinishDashboard')}</span>
             <ArrowRight size={16} />
           </button>
         </div>
@@ -309,7 +318,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
               <ShieldCheck size={18} style={{ color: 'var(--color-accent)' }} />
               <strong style={{ fontSize: '0.86rem', color: 'var(--color-text)' }}>
-                Petunjuk Cepat di Layar iPhone:
+                {t('setupGateQuickGuideTitle')}
               </strong>
             </div>
             <ol
@@ -324,17 +333,9 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
                 gap: '3px',
               }}
             >
-              <li>
-                Ketuk tombol <strong>&quot;Pasang &amp; Hubungkan Pintasan&quot;</strong> di bawah.
-              </li>
-              <li>
-                iPhone akan membuka pop-up: ketuk{' '}
-                <strong style={{ color: 'var(--color-text)' }}>Tambahkan Pintasan (Add Shortcut)</strong>.
-              </li>
-              <li>
-                Saat pertama kali dipakai, pilih:{' '}
-                <strong style={{ color: 'var(--color-accent)' }}>Selalu Izinkan (Always Allow)</strong>.
-              </li>
+              <li>{t('setupGateGuideItem1')}</li>
+              <li>{t('setupGateGuideItem2')}</li>
+              <li>{t('setupGateGuideItem3')}</li>
             </ol>
           </div>
 
@@ -372,7 +373,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             ) : (
               <Sparkles size={18} />
             )}
-            <span>{loading ? 'Menghubungkan...' : 'Pasang & Hubungkan Pintasan (1-Klik)'}</span>
+            <span>{loading ? t('setupGateBtnInstalling') : t('setupGateBtnInstall1Click')}</span>
           </button>
 
           {/* Panduan Pasang di Layar Utama iPhone */}
@@ -393,7 +394,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
                 textDecoration: 'underline',
               }}
             >
-              Lanjut ke Dashboard tanpa iPhone
+              {t('setupGateSkipWithoutIphone')}
             </button>
 
             <button
@@ -412,7 +413,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               }}
             >
               <LogOut size={13} />
-              <span>Keluar</span>
+              <span>{t('setupGateLogout')}</span>
             </button>
           </div>
         </div>

@@ -12,6 +12,7 @@ import {
 import { useState } from 'react'
 
 import { createDirectDeviceTokenAction } from './actions'
+import { useI18n } from '@/lib/i18n/context'
 
 interface DirectSetupCardProps {
   userName?: string
@@ -31,7 +32,12 @@ function buildShortcutsUrl(token: string): string {
 }
 
 export function DirectSetupCard({ userName }: DirectSetupCardProps) {
-  const defaultLabel = `iPhone ${userName?.split(' ')[0] ?? 'Saya'}`
+  const { t, locale } = useI18n()
+  const userFirstName = userName?.split(' ')[0]
+  const defaultLabel = userFirstName
+    ? (locale === 'en' ? `${userFirstName}'s iPhone` : `iPhone ${userFirstName}`)
+    : (locale === 'en' ? 'My iPhone' : 'iPhone Saya')
+
   const [deviceLabel, setDeviceLabel] = useState(defaultLabel)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +51,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
     try {
       const res = await createDirectDeviceTokenAction(deviceLabel)
       if (!res.ok || !res.deviceToken) {
-        setError(res.error ?? 'Gagal membuat akses perangkat')
+        setError(res.error ?? t('errCreateAccess'))
         return
       }
 
@@ -67,7 +73,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
         endpoint,
       })
     } catch {
-      setError('Terjadi kendala jaringan saat menghubungkan')
+      setError(t('errNetworkConnect'))
     } finally {
       setLoading(false)
     }
@@ -107,7 +113,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             color: 'var(--color-text)',
           }}
         >
-          Hubungkan iPhone Otomatis
+          {t('directSetupTitle')}
         </h2>
       </div>
 
@@ -121,7 +127,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               margin: 0,
             }}
           >
-            Hubungkan iPhone Anda ke <strong>Finance Tracker</strong> untuk mencatat pengeluaran otomatis via Back Tap.
+            {t('directSetupDesc')}
           </p>
 
           {/* Nama Perangkat */}
@@ -134,14 +140,14 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
                 color: 'var(--color-text-muted)',
               }}
             >
-              Label Perangkat
+              {t('labelDeviceName')}
             </label>
             <input
               id="device-label-input"
               type="text"
               value={deviceLabel}
               onChange={(e) => setDeviceLabel(e.target.value)}
-              placeholder="Contoh: iPhone Rico"
+              placeholder={t('placeholderDeviceName')}
               maxLength={40}
               style={{
                 width: '100%',
@@ -171,8 +177,8 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
           >
             <ShieldCheck size={18} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-              <strong style={{ color: 'var(--color-text)' }}>Privat &amp; Aman:</strong> Setiap perangkat
-              memiliki token unik terenkripsi dan hanya menulis transaksi ke Google Sheets akun Anda.
+              <strong style={{ color: 'var(--color-text)' }}>{t('privateAndSecure')}</strong>{' '}
+              {t('privateAndSecureDesc')}
             </div>
           </div>
 
@@ -186,7 +192,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             type="button"
             onClick={handleDirectSetup}
             disabled={loading}
-            aria-label="Buat akses dan hubungkan iPhone"
+            aria-label={t('btnCreateAccess')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -213,7 +219,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             ) : (
               <Sparkles size={18} />
             )}
-            <span>{loading ? 'Menyiapkan Akses...' : 'Buat Akses iPhone (1-Klik)'}</span>
+            <span>{loading ? t('btnCreatingAccess') : t('btnCreateAccess')}</span>
           </button>
         </>
       ) : (
@@ -234,7 +240,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             }}
           >
             <Check size={18} style={{ color: 'var(--color-accent)' }} />
-            <span>Akses iPhone Berhasil Dibuat!</span>
+            <span>{t('setupSuccessTitle')}</span>
           </div>
 
           {/* Tombol Utama: Hubungkan Otomatis ke iPhone */}
@@ -252,11 +258,11 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
               <Sparkles size={18} style={{ color: 'var(--color-accent)' }} />
               <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
-                Hubungkan ke iPhone Otomatis (1-Klik)
+                {t('autoConnectBoxTitle')}
               </strong>
             </div>
             <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
-              Ketuk tombol di bawah. iPhone Anda akan langsung membuka Pintasan dan menyambungkan akun Anda otomatis tanpa perlu ketik apapun.
+              {t('autoConnectBoxDesc')}
             </p>
             <button
               type="button"
@@ -284,7 +290,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               }}
             >
               <Sparkles size={18} />
-              <span>⚡ Hubungkan ke iPhone Sekarang</span>
+              <span>{t('btnConnectNow')}</span>
             </button>
           </div>
 
@@ -307,7 +313,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               cursor: 'pointer',
             }}
           >
-            <span>📲 Belum punya pintasan? Pasang dari iCloud</span>
+            <span>{t('btnInstallFromIcloud')}</span>
           </button>
 
           {/* Pengingat Penting: Atur Back Tap */}
@@ -324,9 +330,9 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             <Smartphone size={20} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
               <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '2px' }}>
-                💡 Jangan Lupa: Atur Back Tap di iPhone
+                {t('backTapReminderTitle')}
               </strong>
-              Buka <strong>Pengaturan</strong> &gt; <strong>Aksesibilitas</strong> &gt; <strong>Sentuh</strong> &gt; <strong>Ketuk Bagian Belakang</strong> &gt; pilih <strong>Finance Tracker</strong>{' '}pada Ketuk 2x.
+              {t('backTapReminderDesc')}
             </div>
           </div>
 
@@ -345,7 +351,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               textAlign: 'center',
             }}
           >
-            {showManualDetails ? 'Sembunyikan Nilai Teknis' : 'Ingin Salin Token / Endpoint Manual?'}
+            {showManualDetails ? t('hideManualDetails') : t('showManualDetails')}
           </button>
 
           {showManualDetails && (
@@ -363,7 +369,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             >
               <div>
                 <p style={{ margin: '0 0 var(--space-1) 0', color: 'var(--color-text-muted)' }}>
-                  URL Endpoint Capture:
+                  {t('captureEndpointUrl')}
                 </p>
                 <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                   <input
@@ -401,7 +407,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
 
               <div>
                 <p style={{ margin: '0 0 var(--space-1) 0', color: 'var(--color-text-muted)' }}>
-                  Token Perangkat Rahasia:
+                  {t('secretDeviceToken')}
                 </p>
                 <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                   <input
@@ -456,7 +462,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
             }}
           >
             <RotateCcw size={14} />
-            <span>Hubungkan Perangkat Lainnya</span>
+            <span>{t('connectAnotherDevice')}</span>
           </button>
         </div>
       )}

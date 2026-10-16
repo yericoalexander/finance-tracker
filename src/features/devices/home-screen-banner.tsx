@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { ChevronRight, Smartphone, X } from 'lucide-react'
 
 import { HomeScreenGuideCard } from './home-screen-guide-card'
+import { useI18n } from '@/lib/i18n/context'
 
 export function HomeScreenBanner() {
+  const { t } = useI18n()
   const [isDismissed, setIsDismissed] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -76,7 +78,7 @@ export function HomeScreenBanner() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                Pasang di Layar Utama iPhone
+                {t('pwaGuideCardTitle')}
               </span>
               <span
                 style={{
@@ -93,7 +95,7 @@ export function HomeScreenBanner() {
               </span>
             </div>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
-              Buka aplikasi layar penuh tanpa bilah Safari
+              {t('pwaGuideCardSub')}
             </p>
           </div>
         </div>
@@ -108,13 +110,13 @@ export function HomeScreenBanner() {
               alignItems: 'center',
             }}
           >
-            Panduan
+            {t('guideBadge')}
             <ChevronRight size={14} />
           </span>
           <button
             type="button"
             onClick={handleDismiss}
-            aria-label="Tutup saran"
+            aria-label={t('closeSuggestion')}
             style={{
               background: 'transparent',
               border: 'none',
@@ -178,7 +180,7 @@ export function HomeScreenBanner() {
                   cursor: 'pointer',
                 }}
               >
-                Saya Mengerti
+                {t('btnGotIt')}
               </button>
             </div>
           </div>

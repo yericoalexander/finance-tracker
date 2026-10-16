@@ -1,8 +1,10 @@
 'use client'
 
 import { Sparkles } from 'lucide-react'
+import { useI18n } from '@/lib/i18n/context'
 
 export function ShortcutGuideCard() {
+  const { t } = useI18n()
 
   return (
     <div
@@ -27,7 +29,7 @@ export function ShortcutGuideCard() {
             color: 'var(--color-text)',
           }}
         >
-          Panduan Pintasan & Back Tap
+          {t('guideCardTitle')}
         </h2>
       </div>
 
@@ -62,11 +64,10 @@ export function ShortcutGuideCard() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
-              Tekan Tombol &quot;Pasang &amp; Hubungkan Pintasan&quot; di Atas
+              {t('guideStep1Title')}
             </p>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Cukup ketuk tombol hitam di atas sekali saja. iPhone Anda otomatis membuka layar resmi{' '}
-              <strong>&quot;Tambahkan Pintasan&quot;</strong>.
+              {t('guideStep1Desc')}
             </p>
           </div>
         </div>
@@ -101,10 +102,10 @@ export function ShortcutGuideCard() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
-              Ketuk &quot;Hubungkan ke iPhone Otomatis&quot;
+              {t('guideStep2Title')}
             </p>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Cukup ketuk tombol satu kali. iPhone Anda akan otomatis membuka Pintasan dan menyambungkan akun Anda secara instan tanpa perlu ketik apapun.
+              {t('guideStep2Desc')}
             </p>
           </div>
         </div>
@@ -139,11 +140,10 @@ export function ShortcutGuideCard() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
-              Pilih &quot;Selalu Izinkan&quot; (Always Allow)
+              {t('guideStep3Title')}
             </p>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Saat pertama kali pintasan dipakai di iPhone, iOS meminta izin jaringan: wajib pilih{' '}
-              <strong>Selalu Izinkan</strong> agar pengiriman struk belanja tidak terblokir.
+              {t('guideStep3Desc')}
             </p>
           </div>
         </div>
@@ -178,12 +178,10 @@ export function ShortcutGuideCard() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
-              Pasang Ketuk Belakang (Back Tap)
+              {t('guideStep4Title')}
             </p>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Buka <strong>Pengaturan iPhone</strong> → <strong>Aksesibilitas</strong> →{' '}
-              <strong>Sentuh</strong> → <strong>Ketuk Bagian Belakang</strong> → Pilih{' '}
-              <strong>Finance Tracker</strong>{' '}pada Ketuk Dua Kali.
+              {t('guideStep4Desc')}
             </p>
           </div>
         </div>
@@ -205,9 +203,7 @@ export function ShortcutGuideCard() {
         }}
       >
         <span>💡</span>
-        <span>
-          <strong>Selesai!</strong> Kapan pun Anda melihat struk atau bukti transfer di iPhone, cukup ketuk 2x punggung iPhone Anda untuk mencatat pengeluaran otomatis ke Google Sheets.
-        </span>
+        <span>{t('guideDoneTip')}</span>
       </div>
     </div>
   )

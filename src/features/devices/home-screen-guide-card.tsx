@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, PlusSquare, Smartphone, Sparkles } from 'lucide-react'
+import { useI18n } from '@/lib/i18n/context'
 
 interface HomeScreenGuideCardProps {
   defaultExpanded?: boolean
@@ -9,6 +10,7 @@ interface HomeScreenGuideCardProps {
 
 export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+  const { t } = useI18n()
 
   return (
     <div
@@ -66,7 +68,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                 letterSpacing: '-0.01em',
               }}
             >
-              Pasang di Layar Utama iPhone
+              {t('pwaGuideCardTitle')}
             </h3>
             <p
               style={{
@@ -76,7 +78,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                 lineHeight: 1.3,
               }}
             >
-              Buka cepat tanpa bilah alamat Safari
+              {t('pwaGuideCardSub')}
             </p>
           </div>
         </div>
@@ -94,7 +96,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
         </div>
       </button>
 
-      {/* Konten Langkah-langkah (Bersih, Lega, Bebas Kotak Bertumpuk) */}
+      {/* Konten Langkah-langkah */}
       {isExpanded && (
         <div
           style={{
@@ -132,7 +134,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
                   <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
-                    Ketuk Bagikan
+                    {t('pwaStep1Title')}
                   </strong>
                   <span
                     style={{
@@ -153,7 +155,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                   </span>
                 </div>
                 <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
-                  Tekan ikon kotak berpanah ke atas di bilah bawah browser Safari.
+                  {t('pwaStep1Desc')}
                 </p>
               </div>
             </div>
@@ -181,7 +183,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
                   <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
-                    Pilih &ldquo;Tambah ke Layar Utama&rdquo;
+                    {t('pwaStep2Title')}
                   </strong>
                   <span
                     style={{
@@ -202,7 +204,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                   </span>
                 </div>
                 <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
-                  Gulir menu opsi ke bawah hingga menemukan menu ini.
+                  {t('pwaStep2Desc')}
                 </p>
               </div>
             </div>
@@ -230,7 +232,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
-                    Ketuk &ldquo;Tambah&rdquo;
+                    {t('pwaStep3Title')}
                   </strong>
                   <span
                     style={{
@@ -244,11 +246,11 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                       fontWeight: 700,
                     }}
                   >
-                    Tambah
+                    {t('pwaStep3Badge')}
                   </span>
                 </div>
                 <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
-                  Tombol di pojok kanan atas. Ikon aplikasi langsung terpasang di layar utama.
+                  {t('pwaStep3Desc')}
                 </p>
               </div>
             </div>
@@ -270,9 +272,7 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
             }}
           >
             <Sparkles size={15} color="var(--color-accent)" style={{ flexShrink: 0 }} />
-            <span>
-              Aplikasi akan terbuka layar penuh tanpa bilah Safari dan tanpa membuat tab browser menumpuk.
-            </span>
+            <span>{t('pwaCallout')}</span>
           </div>
         </div>
       )}
