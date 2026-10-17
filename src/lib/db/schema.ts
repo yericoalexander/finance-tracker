@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm'
 import {
+  boolean,
   index,
   integer,
   pgTable,
@@ -83,15 +84,44 @@ export const captures = pgTable(
   ],
 )
 
+// ── reminder_settings ──────────────────────────────────────────────────────
+// Pengaturan pengingat / limit budget pengeluaran per pengguna
+export const reminderSettings = pgTable('reminder_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  monthlyLimitIdr: integer('monthly_limit_idr'),
+  customMessage: text('custom_message'),
+  earlyWarningEnabled: boolean('early_warning_enabled').notNull().default(true),
+  warningThresholdPercent: integer('warning_threshold_percent').notNull().default(90),
+  lastAlertMilestone: text('last_alert_milestone'),
+  isEnabled: boolean('is_enabled').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 // ── Relations ──────────────────────────────────────────────────────────────
 export const usersRelations = relations(users, ({ one, many }) => ({
   googleToken: one(googleTokens, {
     fields: [users.id],
     references: [googleTokens.userId],
   }),
+  reminderSetting: one(reminderSettings, {
+    fields: [users.id],
+    references: [reminderSettings.userId],
+  }),
   pairingCodes: many(pairingCodes),
   devices: many(devices),
   captures: many(captures),
+}))
+
+export const reminderSettingsRelations = relations(reminderSettings, ({ one }) => ({
+  user: one(users, {
+    fields: [reminderSettings.userId],
+    references: [users.id],
+  }),
 }))
 
 export const googleTokensRelations = relations(googleTokens, ({ one }) => ({
@@ -137,3 +167,5 @@ export type Device = typeof devices.$inferSelect
 export type NewDevice = typeof devices.$inferInsert
 export type Capture = typeof captures.$inferSelect
 export type NewCapture = typeof captures.$inferInsert
+export type ReminderSetting = typeof reminderSettings.$inferSelect
+export type NewReminderSetting = typeof reminderSettings.$inferInsert

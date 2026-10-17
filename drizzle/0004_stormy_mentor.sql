@@ -1,0 +1,1 @@
+ALTER TABLE "reminder_settings" ADD COLUMN "warning_threshold_percent" integer DEFAULT 90 NOT NULL;

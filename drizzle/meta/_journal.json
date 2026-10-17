@@ -15,6 +15,27 @@
       "when": 1791899622191,
       "tag": "0001_freezing_venus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792250737899,
+      "tag": "0002_lumpy_tana_nile",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792251568750,
+      "tag": "0003_brief_rogue",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792254116840,
+      "tag": "0004_stormy_mentor",
+      "breakpoints": true
     }
   ]
 }
