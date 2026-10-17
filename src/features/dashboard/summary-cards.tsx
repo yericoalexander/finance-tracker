@@ -29,7 +29,7 @@ export function SummaryCards({
   currentMonthPrefix,
   reminderSetting,
 }: SummaryCardsProps) {
-  const { t, formatMonthName } = useI18n()
+  const { t, formatMonthName, locale } = useI18n()
   const [viewMode, setViewMode] = useState<'total' | 'daily'>('total')
   const [activeReminder, setActiveReminder] = useState<ReminderSetting | null | undefined>(reminderSetting)
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
@@ -47,6 +47,12 @@ export function SummaryCards({
   const displayDate = new Date(activeYear || now.getFullYear(), (activeMonthNum || (now.getMonth() + 1)) - 1, 1)
 
   const activeMonthName = formatMonthName(displayDate)
+  const isCurrentYear = (activeYear || now.getFullYear()) === now.getFullYear()
+  const shortMonthName = new Intl.DateTimeFormat(locale === 'id' ? 'id-ID' : 'en-US', {
+    month: 'long',
+    timeZone: 'Asia/Jakarta',
+  }).format(displayDate)
+  const headerMonthName = isCurrentYear ? shortMonthName : activeMonthName
 
   // Jumlah hari untuk pembagi rata-rata harian:
   // Jika bulan berjalan, gunakan tanggal hari ini; jika bulan lampau, gunakan total hari di bulan tersebut
@@ -119,6 +125,7 @@ export function SummaryCards({
           flexDirection: 'column',
           gap: 'var(--space-4)',
           marginBottom: 'var(--space-3)',
+          overflow: 'hidden',
         }}
       >
         {/* Baris Atas: Label & Badge + Aksi Pengingat & Toggle Total/Harian */}
@@ -128,9 +135,10 @@ export function SummaryCards({
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 'var(--space-2)',
+            width: '100%',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
             <div
               style={{
                 width: '32px',
@@ -145,7 +153,7 @@ export function SummaryCards({
             >
               <ArrowDownLeft size={16} color="var(--color-expense)" />
             </div>
-            <div>
+            <div style={{ minWidth: 0, flex: 1 }}>
               <p
                 style={{
                   fontSize: '0.72rem',
@@ -153,14 +161,16 @@ export function SummaryCards({
                   color: 'var(--color-text-muted)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.03em',
-                  whiteSpace: 'nowrap',
                   margin: 0,
+                  lineHeight: 1.25,
+                  overflowWrap: 'break-word',
+                  wordBreak: 'break-word',
                 }}
               >
                 {viewMode === 'total'
                   ? isCurrentMonth
                     ? t('expensesThisMonth')
-                    : t('expensesPeriod', { month: activeMonthName })
+                    : t('expensesPeriod', { month: headerMonthName })
                   : t('averageExpenses')}
               </p>
             </div>
@@ -172,36 +182,38 @@ export function SummaryCards({
               display: 'inline-flex',
               padding: '2px',
               borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-surface-raised)',
-                border: '1px solid var(--color-border)',
-                gap: '2px',
-              }}
-            >
-              {(['total', 'daily'] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setViewMode(mode)}
-                  style={{
-                    padding: '4px 12px',
-                    minHeight: '28px',
-                    fontSize: '0.75rem',
-                    fontWeight: viewMode === mode ? 700 : 500,
-                    color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
-                    backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
-                    borderRadius: 'calc(var(--radius-md) - 2px)',
-                    border: 'none',
-                    boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
-                    cursor: 'pointer',
-                    transition: 'all var(--duration-fast) var(--ease-default)',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  {mode === 'total' ? t('total') : t('daily')}
-                </button>
-              ))}
-            </div>
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-border)',
+              gap: '2px',
+              flexShrink: 0,
+            }}
+          >
+            {(['total', 'daily'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setViewMode(mode)}
+                style={{
+                  padding: '4px 10px',
+                  minHeight: '28px',
+                  fontSize: '0.72rem',
+                  fontWeight: viewMode === mode ? 700 : 500,
+                  color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
+                  backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
+                  borderRadius: 'calc(var(--radius-md) - 2px)',
+                  border: 'none',
+                  boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all var(--duration-fast) var(--ease-default)',
+                  fontFamily: 'inherit',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {mode === 'total' ? t('total') : t('daily')}
+              </button>
+            ))}
           </div>
+        </div>
 
         {/* Nilai Utama */}
         <div>
