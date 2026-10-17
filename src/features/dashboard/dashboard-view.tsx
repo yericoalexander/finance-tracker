@@ -454,6 +454,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
             activeDevice={data.activeDevice}
             selectedMonth={selectedMonth}
             currentMonthPrefix={currentMonthPrefix}
+            reminderSetting={data.reminderSetting}
           />
 
           <CategoryBreakdown

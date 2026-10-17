@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { FileSpreadsheet, ArrowDownLeft } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { FileSpreadsheet, ArrowDownLeft, Bell } from 'lucide-react'
 
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
+import type { ReminderSetting } from '@/lib/db/schema'
+import { BudgetModal } from './budget-modal'
 
 interface SummaryCardsProps {
   mtdTotal: number
@@ -16,6 +18,7 @@ interface SummaryCardsProps {
   } | null
   selectedMonth?: string
   currentMonthPrefix?: string
+  reminderSetting?: ReminderSetting | null
 }
 
 export function SummaryCards({
@@ -24,9 +27,16 @@ export function SummaryCards({
   sheetId,
   selectedMonth,
   currentMonthPrefix,
+  reminderSetting,
 }: SummaryCardsProps) {
   const { t, formatMonthName } = useI18n()
   const [viewMode, setViewMode] = useState<'total' | 'daily'>('total')
+  const [activeReminder, setActiveReminder] = useState<ReminderSetting | null | undefined>(reminderSetting)
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
+
+  useEffect(() => {
+    setActiveReminder(reminderSetting)
+  }, [reminderSetting])
 
   const now = new Date()
   const todayMonthPrefix = currentMonthPrefix ?? now.toISOString().slice(0, 7)
@@ -62,7 +72,7 @@ export function SummaryCards({
           marginBottom: 'var(--space-3)',
         }}
       >
-        {/* Baris Atas: Label & Badge + Toggle Mode Total / Harian */}
+        {/* Baris Atas: Label & Badge + Aksi Pengingat & Toggle Total/Harian */}
         <div
           style={{
             display: 'flex',
@@ -89,11 +99,12 @@ export function SummaryCards({
             <div>
               <p
                 style={{
-                  fontSize: '0.75rem',
+                  fontSize: '0.72rem',
                   fontWeight: 600,
                   color: 'var(--color-text-muted)',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.03em',
+                  whiteSpace: 'nowrap',
                   margin: 0,
                 }}
               >
@@ -112,36 +123,36 @@ export function SummaryCards({
               display: 'inline-flex',
               padding: '2px',
               borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--color-surface-raised)',
-              border: '1px solid var(--color-border)',
-              gap: '2px',
-            }}
-          >
-            {(['total', 'daily'] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setViewMode(mode)}
-                style={{
-                  padding: '4px 12px',
-                  minHeight: '28px',
-                  fontSize: '0.75rem',
-                  fontWeight: viewMode === mode ? 700 : 500,
-                  color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
-                  backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
-                  borderRadius: 'calc(var(--radius-md) - 2px)',
-                  border: 'none',
-                  boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all var(--duration-fast) var(--ease-default)',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {mode === 'total' ? t('total') : t('daily')}
-              </button>
-            ))}
+                backgroundColor: 'var(--color-surface-raised)',
+                border: '1px solid var(--color-border)',
+                gap: '2px',
+              }}
+            >
+              {(['total', 'daily'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode)}
+                  style={{
+                    padding: '4px 12px',
+                    minHeight: '28px',
+                    fontSize: '0.75rem',
+                    fontWeight: viewMode === mode ? 700 : 500,
+                    color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
+                    backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
+                    borderRadius: 'calc(var(--radius-md) - 2px)',
+                    border: 'none',
+                    boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
+                    cursor: 'pointer',
+                    transition: 'all var(--duration-fast) var(--ease-default)',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {mode === 'total' ? t('total') : t('daily')}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
         {/* Nilai Utama */}
         <div>
@@ -177,6 +188,122 @@ export function SummaryCards({
                 })}
           </p>
         </div>
+
+        {/* Indikator Batas Pengeluaran Bulanan (Interaktif, Rapi & Tidak Bertumpuk) */}
+        {isCurrentMonth && (
+          activeReminder?.isEnabled && activeReminder?.monthlyLimitIdr ? (
+            <button
+              type="button"
+              onClick={() => setIsBudgetModalOpen(true)}
+              title={t('budgetModalTitle')}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                padding: '12px 14px',
+                backgroundColor: 'var(--color-surface-raised)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--color-border-subtle)',
+                width: '100%',
+                textAlign: 'left',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 150ms ease',
+              }}
+            >
+              {/* Baris 1: Status Sisa / Lebih & Angkanya (1 baris lega) */}
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', width: '100%' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Bell size={12} color="var(--color-accent)" />
+                  {mtdTotal >= activeReminder.monthlyLimitIdr
+                    ? t('budgetOverLimitLabel')
+                    : t('budgetRemainingLabel')}
+                </span>
+                <span
+                  style={{
+                    fontSize: '0.92rem',
+                    fontWeight: 700,
+                    fontVariantNumeric: 'tabular-nums',
+                    color: mtdTotal >= activeReminder.monthlyLimitIdr ? 'var(--color-error)' : 'var(--color-text)',
+                  }}
+                >
+                  {mtdTotal >= activeReminder.monthlyLimitIdr
+                    ? `+${formatRupiah(mtdTotal - activeReminder.monthlyLimitIdr)}`
+                    : formatRupiah(activeReminder.monthlyLimitIdr - mtdTotal)}
+                </span>
+              </div>
+
+              {/* Baris 2: Progress track */}
+              <div
+                style={{
+                  width: '100%',
+                  height: '6px',
+                  backgroundColor: 'var(--color-border)',
+                  borderRadius: 'var(--radius-full)',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.min(100, Math.round((mtdTotal / activeReminder.monthlyLimitIdr) * 100))}%`,
+                    height: '100%',
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: (() => {
+                      if (mtdTotal >= activeReminder.monthlyLimitIdr) {
+                        return 'var(--color-error)'
+                      }
+                      const threshold = activeReminder.warningThresholdPercent ?? (activeReminder.earlyWarningEnabled ? 90 : 100)
+                      if (threshold > 0 && threshold < 100 && mtdTotal >= activeReminder.monthlyLimitIdr * (threshold / 100)) {
+                        return '#f59e0b'
+                      }
+                      return 'var(--color-accent)'
+                    })(),
+                    transition: 'width 300ms ease',
+                  }}
+                />
+              </div>
+
+              {/* Baris 3: Konteks Persentase & Tombol Ubah (1 baris rapi) */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--color-text-muted)', width: '100%' }}>
+                <span>
+                  {t('budgetPercentOfLimit', {
+                    percent: Math.min(999, Math.round((mtdTotal / activeReminder.monthlyLimitIdr) * 100)),
+                    limit: formatRupiah(activeReminder.monthlyLimitIdr),
+                  })}
+                </span>
+                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
+                  {t('budgetEditLink')}
+                </span>
+              </div>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsBudgetModalOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                backgroundColor: 'var(--color-surface-raised)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px dashed var(--color-border)',
+                color: 'var(--color-text-muted)',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                width: '100%',
+                fontFamily: 'inherit',
+                transition: 'all 150ms ease',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Bell size={13} color="var(--color-accent)" />
+                <span>{t('budgetReminderBtn')}</span>
+              </span>
+              <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>+ Atur Target</span>
+            </button>
+          )
+        )}
 
         {/* Divider & Ringkasan Transaksi */}
         <div
@@ -280,7 +407,13 @@ export function SummaryCards({
         </a>
       ) : null}
 
-
+      <BudgetModal
+        isOpen={isBudgetModalOpen}
+        onClose={() => setIsBudgetModalOpen(false)}
+        currentSetting={activeReminder}
+        currentTotal={mtdTotal}
+        onSaved={(saved) => setActiveReminder(saved)}
+      />
     </section>
   )
 }
