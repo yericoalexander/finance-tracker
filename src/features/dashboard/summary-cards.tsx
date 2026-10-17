@@ -282,7 +282,7 @@ export function SummaryCards({
                       Melebihi
                     </span>
                   ) : isAtWarning ? (
-                    <span style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: 'var(--radius-full)', backgroundColor: 'var(--color-warning)', color: '#000000', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: 'var(--radius-full)', backgroundColor: 'var(--color-warning)', color: '#ffffff', fontWeight: 700 }}>
                       {thresholdPct}%
                     </span>
                   ) : null}

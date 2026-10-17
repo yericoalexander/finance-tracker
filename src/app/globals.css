@@ -22,9 +22,9 @@ html[data-theme='light'] {
   /* Semantic */
   --color-success: #18794e;
   --color-success-subtle: #e9f6ef;
-  --color-warning: #ad5700;
-  --color-warning-subtle: #fef3c7;
-  --color-warning-text: #78350f;
+  --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.08);
+  --color-warning-text: #b45309;
   --color-error: #c62a2f;
   --color-error-subtle: #fdf2f2;
 
