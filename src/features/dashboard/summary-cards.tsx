@@ -251,15 +251,15 @@ export function SummaryCards({
                 gap: '8px',
                 padding: '12px 14px',
                 backgroundColor: isOverLimit
-                  ? 'rgba(198, 42, 47, 0.08)'
+                  ? 'var(--color-error-subtle)'
                   : isAtWarning
-                    ? 'rgba(245, 158, 11, 0.12)'
+                    ? 'var(--color-warning-subtle)'
                     : 'var(--color-surface-raised)',
                 borderRadius: 'var(--radius-lg)',
                 border: isOverLimit
                   ? '1.5px solid var(--color-error)'
                   : isAtWarning
-                    ? '1.5px solid #f59e0b'
+                    ? '1.5px solid var(--color-warning)'
                     : '1px solid var(--color-border-subtle)',
                 width: '100%',
                 textAlign: 'left',
@@ -270,8 +270,8 @@ export function SummaryCards({
             >
               {/* Baris 1: Status Sisa / Lebih & Angkanya (1 baris lega) */}
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', width: '100%' }}>
-                <span style={{ fontSize: '0.78rem', color: isOverLimit ? 'var(--color-error)' : isAtWarning ? '#92400e' : 'var(--color-text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Bell size={13} color={isOverLimit ? 'var(--color-error)' : isAtWarning ? '#f59e0b' : 'var(--color-accent)'} />
+                <span style={{ fontSize: '0.8rem', color: isOverLimit ? 'var(--color-error)' : isAtWarning ? 'var(--color-warning-text)' : 'var(--color-text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Bell size={13} color={isOverLimit ? 'var(--color-error)' : isAtWarning ? 'var(--color-warning)' : 'var(--color-accent)'} />
                   <span>
                     {mtdTotal >= activeReminder.monthlyLimitIdr
                       ? t('budgetOverLimitLabel')
@@ -282,7 +282,7 @@ export function SummaryCards({
                       Melebihi
                     </span>
                   ) : isAtWarning ? (
-                    <span style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: 'var(--radius-full)', backgroundColor: '#f59e0b', color: '#fff', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: 'var(--radius-full)', backgroundColor: 'var(--color-warning)', color: '#000000', fontWeight: 700 }}>
                       {thresholdPct}%
                     </span>
                   ) : null}
@@ -322,7 +322,7 @@ export function SummaryCards({
                       }
                       const threshold = activeReminder.warningThresholdPercent ?? (activeReminder.earlyWarningEnabled ? 90 : 100)
                       if (threshold > 0 && threshold < 100 && mtdTotal >= activeReminder.monthlyLimitIdr * (threshold / 100)) {
-                        return '#f59e0b'
+                        return 'var(--color-warning)'
                       }
                       return 'var(--color-accent)'
                     })(),
@@ -332,8 +332,8 @@ export function SummaryCards({
               </div>
 
               {/* Baris 3: Konteks Persentase & Tombol Ubah (1 baris rapi) */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--color-text-muted)', width: '100%' }}>
-                <span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.74rem', width: '100%' }}>
+                <span style={{ color: 'var(--color-text-muted)', fontWeight: 500 }}>
                   {t('budgetPercentOfLimit', {
                     percent: Math.min(999, Math.round((mtdTotal / activeReminder.monthlyLimitIdr) * 100)),
                     limit: formatRupiah(activeReminder.monthlyLimitIdr),

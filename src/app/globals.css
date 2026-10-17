@@ -79,7 +79,7 @@ html[data-theme='dark'] {
   --color-border-subtle: #1f1f1e;
 
   --color-text: #ededec;
-  --color-text-muted: #9b9b97;
+  --color-text-muted: #a3a39e;
   --color-text-placeholder: #5a5a57;
 
   --color-accent: #ededec;
@@ -89,6 +89,9 @@ html[data-theme='dark'] {
 
   --color-success: #46a758;
   --color-success-subtle: #0d2415;
+  --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.14);
+  --color-warning-text: #fbbf24;
   --color-income: #46a758;
   --color-income-bg: #0d2415;
   --color-expense: #e5484d;

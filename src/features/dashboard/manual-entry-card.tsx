@@ -151,12 +151,12 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               gap: 'var(--space-2)',
               padding: 'var(--space-3) var(--space-4)',
               borderRadius: 'var(--radius-md)',
-              backgroundColor: 'rgba(245, 158, 11, 0.12)',
-              border: '1.5px solid #f59e0b',
+              backgroundColor: 'var(--color-warning-subtle)',
+              border: '1.5px solid var(--color-warning)',
             }}
           >
-            <Bell size={16} color="#d97706" />
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#92400e' }}>
+            <Bell size={16} color="var(--color-warning)" />
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-warning-text)' }}>
               {budgetAlertMsg}
             </span>
           </div>
