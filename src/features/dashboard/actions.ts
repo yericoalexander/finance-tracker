@@ -10,6 +10,7 @@ import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
 import { captures, devices, googleTokens, reminderSettings, users, type ReminderSetting } from '@/lib/db/schema'
 import { appendTransactionRow, deleteTransactionRow } from '@/lib/google/sheets'
+import { evaluateBudgetReminder } from './reminder-evaluator'
 
 const ApproveReviewSchema = z.object({
   captureId: z.string().uuid(),
@@ -433,6 +434,10 @@ export async function deleteTransactionAction(
   await db
     .delete(captures)
     .where(and(eq(captures.id, captureId), eq(captures.userId, userId)))
+
+  // 4. Evaluasi ulang milestone pengingat jika pengeluaran turun di bawah ambang batas
+  const txMonthPrefix = captureRecord.txDate?.slice(0, 7) || new Date().toISOString().slice(0, 7)
+  await evaluateBudgetReminder(userId, txMonthPrefix).catch(() => null)
 
   revalidatePath('/dashboard')
   return { ok: true }

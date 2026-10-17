@@ -77,6 +77,11 @@ export const translations = {
     budgetWarningThreshold100: 'Hanya beri tahu saat mencapai batas 100% ({amount})',
     budgetWarningThresholdOff: 'Peringatan awal dinonaktifkan (hanya saat 100%)',
     budgetAntiSpamNote: 'Anti-Spam: Notifikasi hanya dikirim sekali saat menembus ambang batas, tidak membombardir transaksi kecil berikutnya.',
+    budgetBannerOverTitle: '🚨 Batas Anggaran Terlampaui!',
+    budgetBannerOverDesc: 'Pengeluaran bulan ini sudah {total} (melebihi batas {limit} sebesar {over}).',
+    budgetBannerWarningTitle: '⚠️ Peringatan: Pengeluaran Sudah {percent}%!',
+    budgetBannerWarningDesc: 'Pengeluaran bulan ini sudah {percent}% ({total} dari batas {limit}). Sisa: {remaining}.',
+    budgetEnableWebNotif: 'Nyalakan notifikasi browser',
 
     // Month Navigator
     prevMonth: 'Bulan sebelumnya',
@@ -428,6 +433,11 @@ export const translations = {
     budgetWarningThreshold100: 'Only notify when reaching full 100% limit ({amount})',
     budgetWarningThresholdOff: 'Early warning disabled (only 100% limit alert)',
     budgetAntiSpamNote: 'Anti-Spam: Alerts are sent once upon crossing the threshold, not spamming subsequent small transactions.',
+    budgetBannerOverTitle: '🚨 Spending Limit Exceeded!',
+    budgetBannerOverDesc: 'Spending this month has reached {total} (over limit {limit} by {over}).',
+    budgetBannerWarningTitle: '⚠️ Warning: Spending Reached {percent}%!',
+    budgetBannerWarningDesc: 'Spending this month has reached {percent}% ({total} of {limit} limit). Remaining: {remaining}.',
+    budgetEnableWebNotif: 'Enable browser notifications',
 
     // Month Navigator
     prevMonth: 'Previous month',

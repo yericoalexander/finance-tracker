@@ -27,14 +27,14 @@ export function formatReminderMessage(
   const cleanedText = customMessage?.trim() || ''
 
   if (isEarlyWarning) {
-    const baseWarning = `⚠️ Peringatan: Pengeluaran bulan ini sudah mencapai ${warningPercent}% (${formattedTotal} dari batas ${formattedLimit}).`
+    const baseWarning = `⚠️ PERINGATAN: Pengeluaran bulan ini sudah mencapai ${warningPercent}% (${formattedTotal} dari batas ${formattedLimit}).`
     if (cleanedText) {
       return `${baseWarning} ${cleanedText}`
     }
     return baseWarning
   }
 
-  const baseNotice = `⚠️ Pengingat: Pengeluaran bulan ini sudah mencapai ${formattedTotal}! (Batas: ${formattedLimit})`
+  const baseNotice = `🚨 BATAS TERLAMPAUI: Pengeluaran bulan ini sudah mencapai ${formattedTotal}! (Batas: ${formattedLimit})`
   if (!cleanedText) {
     return baseNotice
   }
@@ -54,6 +54,8 @@ export function formatReminderMessage(
 /**
  * Evaluasi apakah pengeluaran bulan berjalan pengguna telah mencapai atau melampaui limit.
  * Dilengkapi Anti-Spam / Throttle agar notifikasi tidak membombardir HP pada transaksi-transaksi kecil berikutnya.
+ * Jika pengeluaran turun di bawah ambang batas (karena transaksi dihapus), milestone di-reset otomatis
+ * agar notifikasi dapat berbunyi kembali saat melampaui ambang batas lagi.
  */
 export async function evaluateBudgetReminder(
   userId: string,
@@ -85,6 +87,13 @@ export async function evaluateBudgetReminder(
   const currentMonthTotal = sumResult?.total ?? 0
   const limit = settings.monthlyLimitIdr
   const lastMilestone = settings.lastAlertMilestone
+
+  const thresholdPct =
+    settings.warningThresholdPercent ?? (settings.earlyWarningEnabled ? 90 : 0)
+  const thresholdAmount =
+    thresholdPct > 0 && thresholdPct < 100
+      ? Math.round((limit * thresholdPct) / 100)
+      : limit
 
   // 1. Cek Batas Penuh (100%)
   if (currentMonthTotal >= limit) {
@@ -125,13 +134,10 @@ export async function evaluateBudgetReminder(
   }
 
   // 2. Cek Ambang Peringatan Dini jika diset > 0 dan < 100
-  const thresholdPct =
-    settings.warningThresholdPercent ?? (settings.earlyWarningEnabled ? 90 : 0)
-
   if (
     thresholdPct > 0 &&
     thresholdPct < 100 &&
-    currentMonthTotal >= Math.round((limit * thresholdPct) / 100)
+    currentMonthTotal >= thresholdAmount
   ) {
     const targetMilestone = `${txMonthPrefix}:${thresholdPct}`
 
@@ -168,6 +174,31 @@ export async function evaluateBudgetReminder(
       alertMessage,
       milestone: String(thresholdPct),
     }
+  }
+
+  // 3. Reset milestone jika pengeluaran turun di bawah ambang batas (misal karena transaksi dihapus/dikoreksi)
+  // Dengan reset ini, saat pengeluaran naik kembali dan menyentuh ambang batas, notifikasi PASTI akan berbunyi lagi!
+  if (lastMilestone && currentMonthTotal < thresholdAmount) {
+    await db
+      .update(reminderSettings)
+      .set({
+        lastAlertMilestone: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(reminderSettings.userId, userId))
+  } else if (
+    lastMilestone === `${txMonthPrefix}:100` &&
+    currentMonthTotal < limit &&
+    currentMonthTotal >= thresholdAmount
+  ) {
+    // Pengeluaran turun dari 100% ke rentang ambang batas
+    await db
+      .update(reminderSettings)
+      .set({
+        lastAlertMilestone: `${txMonthPrefix}:${thresholdPct}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(reminderSettings.userId, userId))
   }
 
   return {

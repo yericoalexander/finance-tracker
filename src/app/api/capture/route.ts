@@ -356,7 +356,7 @@ export async function POST(request: NextRequest) {
 
     let responseMessage = `Tercatat: ${formattedAmount} di ${extraction.merchant}`
     if (reminderEval.shouldAlert && reminderEval.alertMessage) {
-      responseMessage += `\n${reminderEval.alertMessage}`
+      responseMessage = `${reminderEval.alertMessage}\n(Tercatat: ${formattedAmount} di ${extraction.merchant})`
     }
 
     return NextResponse.json({

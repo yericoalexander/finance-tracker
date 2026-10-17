@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, AlertCircle, Loader2, ArrowRight } from 'lucide-react'
+import { CheckCircle2, AlertCircle, Loader2, ArrowRight, Bell } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CATEGORIES, type Category } from '@/lib/ai/types'
@@ -29,6 +29,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [budgetAlertMsg, setBudgetAlertMsg] = useState<string | null>(null)
 
   const numericAmount = parseInt(amountStr.replace(/\D/g, ''), 10) || 0
 
@@ -76,12 +77,17 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
         setErrorMsg(res.error ?? t('errSaveFailed'))
       } else {
         setSuccessMsg(t('manualSuccessMsg', { amount: formatRupiah(numericAmount), merchant: merchant.trim() }))
+        if (res.budgetAlert?.alertMessage) {
+          setBudgetAlertMsg(res.budgetAlert.alertMessage)
+        } else {
+          setBudgetAlertMsg(null)
+        }
         resetForm()
         router.refresh()
         if (onSuccess) {
           setTimeout(() => {
             onSuccess()
-          }, 700)
+          }, res.budgetAlert?.alertMessage ? 2500 : 700)
         }
       }
     } catch (err) {
@@ -136,6 +142,26 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
         </div>
 
         {/* Feedback Pesan Sukses */}
+        {budgetAlertMsg ? (
+          <div
+            role="alert"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--space-2)',
+              padding: 'var(--space-3) var(--space-4)',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              border: '1.5px solid #f59e0b',
+            }}
+          >
+            <Bell size={16} color="#d97706" />
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#92400e' }}>
+              {budgetAlertMsg}
+            </span>
+          </div>
+        ) : null}
+
         {successMsg ? (
           <div
             style={{

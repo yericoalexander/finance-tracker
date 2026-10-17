@@ -11,6 +11,7 @@ import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
 import { captures, googleTokens, users } from '@/lib/db/schema'
 import { appendTransactionRow } from '@/lib/google/sheets'
+import { evaluateBudgetReminder, type BudgetReminderEvaluation } from './reminder-evaluator'
 
 const CreateManualTransactionSchema = z.object({
   merchant: z.string().trim().min(1, 'Nama merchant tidak boleh kosong').max(100),
@@ -61,7 +62,17 @@ async function getUserGoogleCredentials(userId: string) {
  */
 export async function createManualTransactionAction(
   rawInput: unknown,
-): Promise<{ ok: boolean; error?: string; id?: string }> {
+): Promise<{
+  ok: boolean
+  error?: string
+  id?: string
+  budgetAlert?: {
+    alertMessage?: string
+    milestone?: string
+    currentTotal?: number
+    limit?: number
+  }
+}> {
   const session = await auth()
   if (!session?.user?.id) {
     return { ok: false, error: 'Sesi telah berakhir, silakan login kembali' }
@@ -110,8 +121,25 @@ export async function createManualTransactionAction(
 
     await Promise.all([insertDbPromise, appendSheetPromise])
 
+    const txMonthPrefix = data.txDate.slice(0, 7)
+    const reminderEval: BudgetReminderEvaluation = await evaluateBudgetReminder(
+      userId,
+      txMonthPrefix,
+    ).catch((): BudgetReminderEvaluation => ({ shouldAlert: false }))
+
     revalidatePath('/dashboard')
-    return { ok: true, id: captureId }
+    return {
+      ok: true,
+      id: captureId,
+      budgetAlert: reminderEval.shouldAlert
+        ? {
+            alertMessage: reminderEval.alertMessage,
+            milestone: reminderEval.milestone,
+            currentTotal: reminderEval.currentMonthTotal,
+            limit: reminderEval.monthlyLimitIdr,
+          }
+        : undefined,
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Gagal menyimpan transaksi'
     return { ok: false, error: msg }

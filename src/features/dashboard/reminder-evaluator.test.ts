@@ -6,7 +6,7 @@ import { formatReminderMessage } from './reminder-evaluator'
 describe('formatReminderMessage', () => {
   it('menghasilkan pesan default saat customMessage kosong atau null', () => {
     const result = formatReminderMessage(null, 1500000, 1500000)
-    expect(result).toContain('⚠️ Pengingat: Pengeluaran bulan ini sudah mencapai')
+    expect(result).toContain('🚨 BATAS TERLAMPAUI: Pengeluaran bulan ini sudah mencapai')
     expect(result).toContain(formatRupiah(1500000))
   })
 
@@ -34,7 +34,7 @@ describe('formatReminderMessage', () => {
   it('menghasilkan pesan peringatan dini 90% dengan benar saat isEarlyWarning true', () => {
     const result = formatReminderMessage(null, 1350000, 1500000, true)
 
-    expect(result).toContain('⚠️ Peringatan: Pengeluaran bulan ini sudah mencapai 90%')
+    expect(result).toContain('⚠️ PERINGATAN: Pengeluaran bulan ini sudah mencapai 90%')
     expect(result).toContain(formatRupiah(1350000))
     expect(result).toContain(formatRupiah(1500000))
   })
@@ -45,7 +45,7 @@ describe('formatReminderMessage', () => {
 
     expect(result).toContain(formatRupiah(1500000))
     expect(result).toContain('Yuk ngerem jajan, ingat tabungan!')
-    expect(result).toContain('⚠️ Pengingat:')
+    expect(result).toContain('🚨 BATAS TERLAMPAUI:')
   })
 
   it('menyertakan teks custom murni pada peringatan dini 90%', () => {

@@ -91,6 +91,7 @@ export async function updateReminderSettingsAction(
           earlyWarningEnabled: isEarlyWarningActive,
           warningThresholdPercent: finalThreshold,
           isEnabled,
+          lastAlertMilestone: null,
           updatedAt: new Date(),
         },
       })
