@@ -70,14 +70,6 @@ export function SummaryCards({
       !isOverLimit,
   )
 
-  const [notifPermission, setNotifPermission] = useState<NotificationPermission | 'unsupported'>('unsupported')
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotifPermission(Notification.permission)
-    }
-  }, [])
-
   useEffect(() => {
     if (typeof window === 'undefined' || !('Notification' in window)) return
     if (!isCurrentMonth || !activeReminder?.isEnabled || !monthlyLimit) return
@@ -105,8 +97,7 @@ export function SummaryCards({
   const handleOpenBudgetModal = async () => {
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
       try {
-        const perm = await Notification.requestPermission()
-        setNotifPermission(perm)
+        await Notification.requestPermission()
       } catch {
         // Fallback silent
       }
@@ -348,15 +339,8 @@ export function SummaryCards({
                     limit: formatRupiah(activeReminder.monthlyLimitIdr),
                   })}
                 </span>
-                <span style={{ color: 'var(--color-accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                  {notifPermission === 'default' ? (
-                    <>
-                      <Bell size={11} strokeWidth={2.5} />
-                      {t('budgetEnableNotifAndEdit')}
-                    </>
-                  ) : (
-                    t('budgetEditLink')
-                  )}
+                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
+                  {t('budgetEditLink')}
                 </span>
               </div>
             </button>

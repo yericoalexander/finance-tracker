@@ -82,9 +82,6 @@ export const translations = {
     budgetBannerWarningTitle: '⚠️ Peringatan: Pengeluaran Sudah {percent}%!',
     budgetBannerWarningDesc: 'Pengeluaran bulan ini sudah {percent}% ({total} dari batas {limit}). Sisa: {remaining}.',
     budgetEnableWebNotif: 'Nyalakan notifikasi browser',
-    budgetEnableNotifAndEdit: 'Nyalakan Notif',
-    budgetNotifGranted: 'Notifikasi HP aktif',
-    budgetNotifHint: 'Izin notifikasi HP akan diminta saat menyimpan',
 
     // Month Navigator
     prevMonth: 'Bulan sebelumnya',
@@ -441,9 +438,6 @@ export const translations = {
     budgetBannerWarningTitle: '⚠️ Warning: Spending Reached {percent}%!',
     budgetBannerWarningDesc: 'Spending this month has reached {percent}% ({total} of {limit} limit). Remaining: {remaining}.',
     budgetEnableWebNotif: 'Enable browser notifications',
-    budgetEnableNotifAndEdit: 'Enable Notif',
-    budgetNotifGranted: 'Phone notifications enabled',
-    budgetNotifHint: 'Phone notification permission will be requested when saving',
 
     // Month Navigator
     prevMonth: 'Previous month',
