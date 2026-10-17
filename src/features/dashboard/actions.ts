@@ -8,7 +8,7 @@ import { auth } from '@/auth'
 import { CATEGORIES } from '@/lib/ai/types'
 import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
-import { captures, devices, googleTokens, users } from '@/lib/db/schema'
+import { captures, devices, googleTokens, reminderSettings, users, type ReminderSetting } from '@/lib/db/schema'
 import { appendTransactionRow, deleteTransactionRow } from '@/lib/google/sheets'
 
 const ApproveReviewSchema = z.object({
@@ -53,6 +53,7 @@ export interface DashboardData {
     lastSeenAt: Date | null
   } | null
   availableMonths?: string[]
+  reminderSetting?: ReminderSetting | null
 }
 
 /**
@@ -62,7 +63,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
   const currentMonthPrefix = new Date().toISOString().slice(0, 7) // 'YYYY-MM'
 
   // Eksekusi semua query secara paralel untuk memangkas waktu tunggu database
-  const [reviewQueue, monthOkCaptures, recentTransactions, activeDeviceList, monthRows] = await Promise.all([
+  const [reviewQueue, monthOkCaptures, recentTransactions, activeDeviceList, monthRows, userReminder] = await Promise.all([
     // 1. Antrean review (needs_review)
     db
       .select({
@@ -143,6 +144,13 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
       )
       .limit(12)
       .catch(() => []),
+
+    // 6. Pengaturan limit & pengingat budget pengguna
+    db.query.reminderSettings
+      .findFirst({
+        where: eq(reminderSettings.userId, userId),
+      })
+      .catch(() => null),
   ])
 
   const mtdTotal = monthOkCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
@@ -186,6 +194,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     categoryBreakdown,
     activeDevice,
     availableMonths,
+    reminderSetting: userReminder ?? null,
   }
 }
 

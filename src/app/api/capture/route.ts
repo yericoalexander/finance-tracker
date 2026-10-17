@@ -10,6 +10,7 @@ import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
 import { captures, devices, googleTokens, users } from '@/lib/db/schema'
 import { appendTransactionRow, ensureSpreadsheet, GoogleApiError } from '@/lib/google/sheets'
+import { evaluateBudgetReminder, type BudgetReminderEvaluation } from '@/features/dashboard/reminder-evaluator'
 import { validateImageBuffer } from '@/lib/security/magic-bytes'
 import { checkRateLimit } from '@/lib/security/rate-limit'
 
@@ -346,11 +347,31 @@ export async function POST(request: NextRequest) {
 
     revalidatePath('/dashboard')
 
+    // Evaluasi pengingat batas pengeluaran bulanan pengguna
+    const txMonthPrefix = extraction.date?.slice(0, 7) || new Date().toISOString().slice(0, 7)
+    const reminderEval: BudgetReminderEvaluation = await evaluateBudgetReminder(
+      device.userId,
+      txMonthPrefix,
+    ).catch((): BudgetReminderEvaluation => ({ shouldAlert: false }))
+
+    let responseMessage = `Tercatat: ${formattedAmount} di ${extraction.merchant}`
+    if (reminderEval.shouldAlert && reminderEval.alertMessage) {
+      responseMessage += `\n${reminderEval.alertMessage}`
+    }
+
     return NextResponse.json({
       status: 'ok',
       merchant: extraction.merchant,
       amount: formattedAmount,
-      message: `Tercatat: ${formattedAmount} di ${extraction.merchant}`,
+      message: responseMessage,
+      budgetAlert: reminderEval.shouldAlert
+        ? {
+            exceeded: true,
+            currentTotal: reminderEval.currentMonthTotal,
+            limit: reminderEval.monthlyLimitIdr,
+            alertMessage: reminderEval.alertMessage,
+          }
+        : undefined,
     })
   } catch (err) {
     const isGoogleAuthError =
