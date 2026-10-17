@@ -88,9 +88,10 @@ export function SummaryCards({
 
     if (Notification.permission === 'granted') {
       const title = isOverLimit ? '🚨 Batas Anggaran Terlampaui!' : `⚠️ Peringatan: Pengeluaran Sudah ${thresholdPct}%!`
+      const customMsgSuffix = activeReminder.customMessage ? ` — ${activeReminder.customMessage}` : ''
       const body = isOverLimit
-        ? `Pengeluaran bulan ini sudah ${formatRupiah(mtdTotal)} (Batas: ${formatRupiah(monthlyLimit)})`
-        : `Pengeluaran bulan ini sudah mencapai ${thresholdPct}% (${formatRupiah(mtdTotal)} dari ${formatRupiah(monthlyLimit)})`
+        ? `Pengeluaran bulan ini sudah ${formatRupiah(mtdTotal)} (Batas: ${formatRupiah(monthlyLimit)})${customMsgSuffix}`
+        : `Pengeluaran bulan ini sudah mencapai ${thresholdPct}% (${formatRupiah(mtdTotal)} dari ${formatRupiah(monthlyLimit)})${customMsgSuffix}`
 
       try {
         new Notification(title, { body, icon: '/favicon.ico' })
@@ -101,167 +102,20 @@ export function SummaryCards({
     }
   }, [isAtWarning, isOverLimit, mtdTotal, activeReminder, activeMonth, thresholdPct, isCurrentMonth, monthlyLimit])
 
-  const handleRequestNotif = async () => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
+  const handleOpenBudgetModal = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
       try {
         const perm = await Notification.requestPermission()
         setNotifPermission(perm)
-        if (perm === 'granted') {
-          const title = isOverLimit ? '🚨 Batas Anggaran Terlampaui!' : `⚠️ Peringatan: Pengeluaran Sudah ${thresholdPct}%!`
-          const body = `Pengeluaran: ${formatRupiah(mtdTotal)} dari batas ${formatRupiah(monthlyLimit)}`
-          new Notification(title, { body, icon: '/favicon.ico' })
-        }
       } catch {
         // Fallback silent
       }
     }
+    setIsBudgetModalOpen(true)
   }
 
   return (
     <section aria-label="Ringkasan keuangan">
-      {/* Highlight Alert Banner Saat Pengeluaran Mencapai Ambang Batas atau Melampaui Limit */}
-      {isCurrentMonth && activeReminder?.isEnabled && (isOverLimit || isAtWarning) ? (
-        <div
-          role="alert"
-          className="animate-slide-up"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            padding: '14px 16px',
-            marginBottom: 'var(--space-4)',
-            backgroundColor: isOverLimit
-              ? 'rgba(198, 42, 47, 0.08)'
-              : 'rgba(245, 158, 11, 0.12)',
-            borderRadius: 'var(--radius-xl)',
-            border: `1.5px solid ${isOverLimit ? 'var(--color-error)' : '#f59e0b'}`,
-            boxShadow: 'var(--shadow-sm)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: isOverLimit ? 'var(--color-error)' : '#f59e0b',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  marginTop: '1px',
-                }}
-              >
-                <Bell size={16} strokeWidth={2.5} />
-              </div>
-              <div>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: '0.88rem',
-                    fontWeight: 700,
-                    color: isOverLimit ? 'var(--color-error)' : '#92400e',
-                  }}
-                >
-                  {isOverLimit
-                    ? t('budgetBannerOverTitle')
-                    : t('budgetBannerWarningTitle', { percent: thresholdPct })}
-                </p>
-                <p
-                  style={{
-                    margin: '3px 0 0',
-                    fontSize: '0.78rem',
-                    color: isOverLimit ? 'var(--color-error)' : '#78350f',
-                    fontWeight: 500,
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {isOverLimit
-                    ? t('budgetBannerOverDesc', {
-                        total: formatRupiah(mtdTotal),
-                        limit: formatRupiah(monthlyLimit),
-                        over: formatRupiah(mtdTotal - monthlyLimit),
-                      })
-                    : t('budgetBannerWarningDesc', {
-                        percent: thresholdPct,
-                        total: formatRupiah(mtdTotal),
-                        limit: formatRupiah(monthlyLimit),
-                        remaining: formatRupiah(monthlyLimit - mtdTotal),
-                      })}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsBudgetModalOpen(true)}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: isOverLimit ? 'var(--color-error)' : '#f59e0b',
-                color: '#ffffff',
-                borderRadius: 'var(--radius-full)',
-                border: 'none',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                minHeight: '36px',
-                fontFamily: 'inherit',
-                flexShrink: 0,
-              }}
-            >
-              {t('budgetEditLink')}
-            </button>
-          </div>
-
-          {activeReminder.customMessage ? (
-            <div
-              style={{
-                padding: '6px 12px',
-                backgroundColor: 'rgba(255, 255, 255, 0.75)',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '0.75rem',
-                color: 'var(--color-text)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <span>💬</span>
-              <span style={{ fontStyle: 'italic', fontWeight: 500 }}>
-                {activeReminder.customMessage}
-              </span>
-            </div>
-          ) : null}
-
-          {notifPermission === 'default' ? (
-            <button
-              type="button"
-              onClick={handleRequestNotif}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                fontSize: '0.73rem',
-                fontWeight: 600,
-                color: isOverLimit ? 'var(--color-error)' : '#92400e',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                textAlign: 'left',
-                fontFamily: 'inherit',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              <span>🔔</span> {t('budgetEnableWebNotif')}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
       {/* Hero Card: Pengeluaran Utama */}
       <div
         style={{
@@ -398,7 +252,7 @@ export function SummaryCards({
           activeReminder?.isEnabled && activeReminder?.monthlyLimitIdr ? (
             <button
               type="button"
-              onClick={() => setIsBudgetModalOpen(true)}
+              onClick={handleOpenBudgetModal}
               title={t('budgetModalTitle')}
               style={{
                 display: 'flex',
@@ -494,15 +348,22 @@ export function SummaryCards({
                     limit: formatRupiah(activeReminder.monthlyLimitIdr),
                   })}
                 </span>
-                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
-                  {t('budgetEditLink')}
+                <span style={{ color: 'var(--color-accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  {notifPermission === 'default' ? (
+                    <>
+                      <Bell size={11} strokeWidth={2.5} />
+                      {t('budgetEnableNotifAndEdit')}
+                    </>
+                  ) : (
+                    t('budgetEditLink')
+                  )}
                 </span>
               </div>
             </button>
           ) : (
             <button
               type="button"
-              onClick={() => setIsBudgetModalOpen(true)}
+              onClick={handleOpenBudgetModal}
               style={{
                 display: 'flex',
                 alignItems: 'center',

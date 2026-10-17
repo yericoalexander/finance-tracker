@@ -42,10 +42,14 @@ export function BudgetModal({
   const [isSaving, setIsSaving] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission | 'unsupported'>('unsupported')
   const wasOpenRef = useRef(false)
 
   useEffect(() => {
     setMounted(true)
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotifPerm(Notification.permission)
+    }
   }, [])
 
   // Inisialisasi hanya saat modal dibuka dari tertutup (mencegah reset ke default saat memilih opsi chip)
@@ -100,6 +104,15 @@ export function BudgetModal({
 
     setIsSaving(true)
     try {
+      if (isEnabled && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+        try {
+          const perm = await Notification.requestPermission()
+          setNotifPerm(perm)
+        } catch {
+          // Fallback silent
+        }
+      }
+
       const res = await updateReminderSettingsAction({
         monthlyLimitIdr: isEnabled ? numericLimit : null,
         customMessage: customMsg.trim() || null,
@@ -523,6 +536,30 @@ export function BudgetModal({
                 </p>
               </div>
             </>
+          )}
+
+          {/* Status Izin Notifikasi HP */}
+          {isEnabled && notifPerm !== 'unsupported' && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '9px 12px',
+                backgroundColor: notifPerm === 'granted' ? 'var(--color-surface-raised)' : 'rgba(245, 158, 11, 0.08)',
+                borderRadius: 'var(--radius-lg)',
+                fontSize: '0.75rem',
+                color: notifPerm === 'granted' ? 'var(--color-text-muted)' : '#b45309',
+                border: notifPerm === 'granted' ? '1px solid var(--color-border)' : '1px solid rgba(245, 158, 11, 0.25)',
+              }}
+            >
+              <span style={{ fontSize: '0.85rem' }}>{notifPerm === 'granted' ? '🔔' : '💡'}</span>
+              <span>
+                {notifPerm === 'granted'
+                  ? t('budgetNotifGranted')
+                  : t('budgetNotifHint')}
+              </span>
+            </div>
           )}
 
           {/* Tombol Simpan (Selalu Terlihat & Nyaman) */}
