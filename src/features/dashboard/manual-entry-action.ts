@@ -11,6 +11,7 @@ import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
 import { captures, googleTokens, users } from '@/lib/db/schema'
 import { appendTransactionRow } from '@/lib/google/sheets'
+import { sendPushNotificationToUser } from '@/lib/push/send-push'
 import { evaluateBudgetReminder, type BudgetReminderEvaluation } from './reminder-evaluator'
 
 const CreateManualTransactionSchema = z.object({
@@ -60,9 +61,7 @@ async function getUserGoogleCredentials(userId: string) {
 /**
  * Record a manual transaction directly to Google Sheets and the database.
  */
-export async function createManualTransactionAction(
-  rawInput: unknown,
-): Promise<{
+export async function createManualTransactionAction(rawInput: unknown): Promise<{
   ok: boolean
   error?: string
   id?: string
@@ -80,7 +79,10 @@ export async function createManualTransactionAction(
 
   const parseResult = CreateManualTransactionSchema.safeParse(rawInput)
   if (!parseResult.success) {
-    return { ok: false, error: parseResult.error.issues[0]?.message ?? 'Data transaksi tidak valid' }
+    return {
+      ok: false,
+      error: parseResult.error.issues[0]?.message ?? 'Data transaksi tidak valid',
+    }
   }
 
   const data = parseResult.data
@@ -126,6 +128,19 @@ export async function createManualTransactionAction(
       userId,
       txMonthPrefix,
     ).catch((): BudgetReminderEvaluation => ({ shouldAlert: false }))
+
+    if (reminderEval.shouldAlert && reminderEval.alertMessage) {
+      const pushTitle =
+        reminderEval.milestone === '100'
+          ? '🚨 Batas Anggaran Terlampaui!'
+          : `⚠️ Peringatan: Pengeluaran Mencapai ${reminderEval.milestone}%!`
+      sendPushNotificationToUser(userId, {
+        title: pushTitle,
+        body: reminderEval.alertMessage,
+        url: '/dashboard',
+        tag: `budget-alert-${reminderEval.milestone}`,
+      }).catch(() => null)
+    }
 
     revalidatePath('/dashboard')
     return {

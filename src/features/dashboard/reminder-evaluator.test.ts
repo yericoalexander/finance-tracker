@@ -14,14 +14,18 @@ describe('formatReminderMessage', () => {
     const template = 'Pengeluaran kamu udah {total}! Batas bulanan: {limit}. Hemat ya!'
     const result = formatReminderMessage(template, 1600000, 1500000)
 
-    expect(result).toBe(`Pengeluaran kamu udah ${formatRupiah(1600000)}! Batas bulanan: ${formatRupiah(1500000)}. Hemat ya!`)
+    expect(result).toBe(
+      `Pengeluaran kamu udah ${formatRupiah(1600000)}! Batas bulanan: ${formatRupiah(1500000)}. Hemat ya!`,
+    )
   })
 
   it('mengganti placeholder {sisa} dengan selisih yang tersisa', () => {
     const template = 'Pengeluaran {total}, sisa budget kamu {sisa}'
     const result = formatReminderMessage(template, 1200000, 1500000)
 
-    expect(result).toBe(`Pengeluaran ${formatRupiah(1200000)}, sisa budget kamu ${formatRupiah(300000)}`)
+    expect(result).toBe(
+      `Pengeluaran ${formatRupiah(1200000)}, sisa budget kamu ${formatRupiah(300000)}`,
+    )
   })
 
   it('menghasilkan sisa Rp 0 jika total sudah melebihi limit', () => {
@@ -65,4 +69,3 @@ describe('formatReminderMessage', () => {
     expect(result).toContain(formatRupiah(1500000))
   })
 })
-

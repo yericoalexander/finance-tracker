@@ -1,14 +1,6 @@
 'use client'
 
-import {
-  Check,
-  Copy,
-  Loader2,
-  RotateCcw,
-  ShieldCheck,
-  Smartphone,
-  Sparkles,
-} from 'lucide-react'
+import { Check, Copy, Loader2, RotateCcw, ShieldCheck, Smartphone, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 
 import { createDirectDeviceTokenAction } from './actions'
@@ -35,8 +27,12 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
   const { t, locale } = useI18n()
   const userFirstName = userName?.split(' ')[0]
   const defaultLabel = userFirstName
-    ? (locale === 'en' ? `${userFirstName}'s iPhone` : `iPhone ${userFirstName}`)
-    : (locale === 'en' ? 'My iPhone' : 'iPhone Saya')
+    ? locale === 'en'
+      ? `${userFirstName}'s iPhone`
+      : `iPhone ${userFirstName}`
+    : locale === 'en'
+      ? 'My iPhone'
+      : 'iPhone Saya'
 
   const [deviceLabel, setDeviceLabel] = useState(defaultLabel)
   const [loading, setLoading] = useState(false)
@@ -175,7 +171,10 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               border: '1px solid var(--color-border)',
             }}
           >
-            <ShieldCheck size={18} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
+            <ShieldCheck
+              size={18}
+              style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }}
+            />
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
               <strong style={{ color: 'var(--color-text)' }}>{t('privateAndSecure')}</strong>{' '}
               {t('privateAndSecureDesc')}
@@ -183,9 +182,7 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
           </div>
 
           {error && (
-            <p style={{ color: 'var(--color-error)', fontSize: '0.8rem', margin: 0 }}>
-              {error}
-            </p>
+            <p style={{ color: 'var(--color-error)', fontSize: '0.8rem', margin: 0 }}>{error}</p>
           )}
 
           <button
@@ -261,7 +258,14 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
                 {t('autoConnectBoxTitle')}
               </strong>
             </div>
-            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.78rem',
+                color: 'var(--color-text-muted)',
+                lineHeight: 1.45,
+              }}
+            >
               {t('autoConnectBoxDesc')}
             </p>
             <button
@@ -327,7 +331,10 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
               border: '1px solid var(--color-accent)',
             }}
           >
-            <Smartphone size={20} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
+            <Smartphone
+              size={20}
+              style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }}
+            />
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
               <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '2px' }}>
                 {t('backTapReminderTitle')}

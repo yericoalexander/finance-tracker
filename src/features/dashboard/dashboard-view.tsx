@@ -33,9 +33,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
   const [newTxAlert, setNewTxAlert] = useState<{ id: string; merchant: string } | null>(null)
 
   // Catat transaksi yang sudah ada sejak awal agar refresh tidak pernah memicu notifikasi untuk data lama
-  const seenTxIds = useRef<Set<string>>(
-    new Set(data.recentTransactions.map((tx) => tx.id)),
-  )
+  const seenTxIds = useRef<Set<string>>(new Set(data.recentTransactions.map((tx) => tx.id)))
   const dismissedTxIds = useRef<Set<string>>(new Set())
 
   const headerContainerRef = useRef<HTMLDivElement>(null)
@@ -396,7 +394,16 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
 
       {/* Tab: Ringkasan */}
       {activeTab === 'overview' && (
-        <div key="overview" className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingTop: 'var(--space-1)' }}>
+        <div
+          key="overview"
+          className="animate-fade-in"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-4)',
+            paddingTop: 'var(--space-1)',
+          }}
+        >
           {/* Banner Pemasangan Shortcut iPhone jika Belum Terhubung */}
           <DeviceSetupBanner hasActiveDevice={Boolean(data.activeDevice)} />
 
@@ -408,7 +415,9 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
               justifyContent: 'space-between',
             }}
           >
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+            <span
+              style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}
+            >
               {t('syncedToSheets')}
             </span>
             <button

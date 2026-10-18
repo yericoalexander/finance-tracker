@@ -63,10 +63,24 @@ export function ShortcutGuideCard() {
             1
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: 600,
+                fontSize: '0.86rem',
+                color: 'var(--color-text)',
+              }}
+            >
               {t('guideStep1Title')}
             </p>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.8rem',
+                color: 'var(--color-text-muted)',
+                lineHeight: 1.4,
+              }}
+            >
               {t('guideStep1Desc')}
             </p>
           </div>
@@ -101,10 +115,24 @@ export function ShortcutGuideCard() {
             2
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: 600,
+                fontSize: '0.86rem',
+                color: 'var(--color-text)',
+              }}
+            >
               {t('guideStep2Title')}
             </p>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.8rem',
+                color: 'var(--color-text-muted)',
+                lineHeight: 1.4,
+              }}
+            >
               {t('guideStep2Desc')}
             </p>
           </div>
@@ -139,10 +167,24 @@ export function ShortcutGuideCard() {
             3
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: 600,
+                fontSize: '0.86rem',
+                color: 'var(--color-text)',
+              }}
+            >
               {t('guideStep3Title')}
             </p>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.8rem',
+                color: 'var(--color-text-muted)',
+                lineHeight: 1.4,
+              }}
+            >
               {t('guideStep3Desc')}
             </p>
           </div>
@@ -177,10 +219,24 @@ export function ShortcutGuideCard() {
             4
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.86rem', color: 'var(--color-text)' }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: 600,
+                fontSize: '0.86rem',
+                color: 'var(--color-text)',
+              }}
+            >
               {t('guideStep4Title')}
             </p>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.8rem',
+                color: 'var(--color-text-muted)',
+                lineHeight: 1.4,
+              }}
+            >
               {t('guideStep4Desc')}
             </p>
           </div>

@@ -28,7 +28,8 @@ export default function PrivacyPage() {
         minHeight: '100svh',
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text)',
-        padding: 'var(--space-4) var(--space-4) calc(var(--space-10) + env(safe-area-inset-bottom))',
+        padding:
+          'var(--space-4) var(--space-4) calc(var(--space-10) + env(safe-area-inset-bottom))',
       }}
     >
       <div
@@ -244,16 +245,36 @@ export default function PrivacyPage() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-              <CheckCircle2 size={16} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span>Data pengeluaran Anda disimpan langsung di Google Spreadsheet akun Anda sendiri.</span>
+              <CheckCircle2
+                size={16}
+                color="var(--color-success)"
+                style={{ flexShrink: 0, marginTop: '2px' }}
+              />
+              <span>
+                Data pengeluaran Anda disimpan langsung di Google Spreadsheet akun Anda sendiri.
+              </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-              <CheckCircle2 size={16} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span>Kami tidak pernah menjual atau membagikan data transaksi Anda ke pihak ketiga manapun.</span>
+              <CheckCircle2
+                size={16}
+                color="var(--color-success)"
+                style={{ flexShrink: 0, marginTop: '2px' }}
+              />
+              <span>
+                Kami tidak pernah menjual atau membagikan data transaksi Anda ke pihak ketiga
+                manapun.
+              </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-              <CheckCircle2 size={16} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span>Izin akses Google Drive hanya mencakup file yang dibuat oleh aplikasi ini (<code>drive.file</code>).</span>
+              <CheckCircle2
+                size={16}
+                color="var(--color-success)"
+                style={{ flexShrink: 0, marginTop: '2px' }}
+              />
+              <span>
+                Izin akses Google Drive hanya mencakup file yang dibuat oleh aplikasi ini (
+                <code>drive.file</code>).
+              </span>
             </div>
           </div>
         </div>
@@ -305,8 +326,8 @@ export default function PrivacyPage() {
               }}
             >
               Kebijakan Privasi ini menjelaskan bagaimana Finance Tracker (&ldquo;kami&rdquo;)
-              memproses, mengamankan, dan menghormati data Anda ketika Anda menggunakan aplikasi web kami
-              beserta integrasi iOS Shortcut untuk pencatatan keuangan pribadi.
+              memproses, mengamankan, dan menghormati data Anda ketika Anda menggunakan aplikasi web
+              kami beserta integrasi iOS Shortcut untuk pencatatan keuangan pribadi.
             </p>
           </section>
 
@@ -377,7 +398,15 @@ export default function PrivacyPage() {
                   <Database size={18} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '6px',
+                    }}
+                  >
                     <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
                       Profil Akun Google
                     </strong>
@@ -396,8 +425,16 @@ export default function PrivacyPage() {
                       Autentikasi
                     </span>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-                    Nama, alamat email, dan foto profil Anda saat masuk melalui Google OAuth untuk mengidentifikasi akun Anda.
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '0.875rem',
+                      color: 'var(--color-text-muted)',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    Nama, alamat email, dan foto profil Anda saat masuk melalui Google OAuth untuk
+                    mengidentifikasi akun Anda.
                   </p>
                 </div>
               </div>
@@ -432,7 +469,15 @@ export default function PrivacyPage() {
                     <Lock size={18} />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '6px',
+                      }}
+                    >
                       <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
                         Google Sheets & Google Drive
                       </strong>
@@ -452,7 +497,9 @@ export default function PrivacyPage() {
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Cakupan Izin:</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                        Cakupan Izin:
+                      </span>
                       <code
                         style={{
                           fontSize: '0.75rem',
@@ -470,9 +517,16 @@ export default function PrivacyPage() {
                   </div>
                 </div>
 
-                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-                  Aplikasi hanya meminta izin resmi untuk membuat dan memperbarui lembar kerja spreadsheet
-                  transaksi milik akun Google Anda sendiri.
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '0.875rem',
+                    color: 'var(--color-text-muted)',
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Aplikasi hanya meminta izin resmi untuk membuat dan memperbarui lembar kerja
+                  spreadsheet transaksi milik akun Google Anda sendiri.
                 </p>
 
                 {/* Sub-kotak perbandingan rapi */}
@@ -488,15 +542,25 @@ export default function PrivacyPage() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-                    <Check size={15} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <Check
+                      size={15}
+                      color="var(--color-success)"
+                      style={{ flexShrink: 0, marginTop: '2px' }}
+                    />
                     <span style={{ color: 'var(--color-text)' }}>
-                      <strong>Dapat diakses:</strong> File spreadsheet &ldquo;Finance Tracker — Transaksi&rdquo; yang dibuat oleh aplikasi.
+                      <strong>Dapat diakses:</strong> File spreadsheet &ldquo;Finance Tracker —
+                      Transaksi&rdquo; yang dibuat oleh aplikasi.
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-                    <X size={15} color="var(--color-error, #c62a2f)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <X
+                      size={15}
+                      color="var(--color-error, #c62a2f)"
+                      style={{ flexShrink: 0, marginTop: '2px' }}
+                    />
                     <span style={{ color: 'var(--color-text-muted)' }}>
-                      <strong>Tidak dapat diakses:</strong> Dokumen, foto, atau berkas pribadi Anda lainnya di Google Drive.
+                      <strong>Tidak dapat diakses:</strong> Dokumen, foto, atau berkas pribadi Anda
+                      lainnya di Google Drive.
                     </span>
                   </div>
                 </div>
@@ -531,7 +595,15 @@ export default function PrivacyPage() {
                   <Sparkles size={18} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '6px',
+                    }}
+                  >
                     <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
                       Tangkapan Layar Struk & Bukti Bayar
                     </strong>
@@ -550,8 +622,17 @@ export default function PrivacyPage() {
                       AI Vision
                     </span>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-                    Gambar diproses sementara secara real-time untuk mengekstrak nominal, nama merchant, dan tanggal, lalu langsung dibersihkan dari server begitu data tercatat.
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '0.875rem',
+                      color: 'var(--color-text-muted)',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    Gambar diproses sementara secara real-time untuk mengekstrak nominal, nama
+                    merchant, dan tanggal, lalu langsung dibersihkan dari server begitu data
+                    tercatat.
                   </p>
                 </div>
               </div>
@@ -603,8 +684,8 @@ export default function PrivacyPage() {
                 color: 'var(--color-text-muted)',
               }}
             >
-              Penggunaan dan pemindahan informasi yang diterima dari Google API oleh Finance Tracker ke aplikasi lain
-              sepenuhnya mematuhi{' '}
+              Penggunaan dan pemindahan informasi yang diterima dari Google API oleh Finance Tracker
+              ke aplikasi lain sepenuhnya mematuhi{' '}
               <a
                 href="https://developers.google.com/terms/api-services-user-data-policy"
                 target="_blank"
@@ -621,7 +702,8 @@ export default function PrivacyPage() {
                 <span>Google API Services User Data Policy</span>
                 <ExternalLink size={13} />
               </a>
-              , termasuk seluruh persyaratan <strong>Penggunaan Terbatas (Limited Use Requirements)</strong>.
+              , termasuk seluruh persyaratan{' '}
+              <strong>Penggunaan Terbatas (Limited Use Requirements)</strong>.
             </p>
 
             <ul
@@ -634,8 +716,13 @@ export default function PrivacyPage() {
               }}
             >
               <li>Data Anda tidak digunakan untuk melatih model AI umum.</li>
-              <li>Data Anda tidak pernah dijual atau ditransfer ke pengiklan/broker data pihak ketiga.</li>
-              <li>Akses manusia terhadap data transaksi hanya dilakukan jika Anda secara eksplisit meminta dukungan teknis atas persetujuan Anda.</li>
+              <li>
+                Data Anda tidak pernah dijual atau ditransfer ke pengiklan/broker data pihak ketiga.
+              </li>
+              <li>
+                Akses manusia terhadap data transaksi hanya dilakukan jika Anda secara eksplisit
+                meminta dukungan teknis atas persetujuan Anda.
+              </li>
             </ul>
           </section>
 
@@ -684,10 +771,10 @@ export default function PrivacyPage() {
                 color: 'var(--color-text-muted)',
               }}
             >
-              Setiap token otorisasi Google OAuth disimpan dalam basis data terisolasi menggunakan enkripsi
-              kriptografi simetris <strong>AES-256-GCM</strong> dengan kunci 256-bit. Tangkapan layar yang diunggah
-              hanya diproses di dalam memori komputasi sementara dan tidak disimpan secara permanen di server setelah
-              pencatatan ke spreadsheet selesai.
+              Setiap token otorisasi Google OAuth disimpan dalam basis data terisolasi menggunakan
+              enkripsi kriptografi simetris <strong>AES-256-GCM</strong> dengan kunci 256-bit.
+              Tangkapan layar yang diunggah hanya diproses di dalam memori komputasi sementara dan
+              tidak disimpan secara permanen di server setelah pencatatan ke spreadsheet selesai.
             </p>
           </section>
 
@@ -829,7 +916,8 @@ export default function PrivacyPage() {
                 color: 'var(--color-text-muted)',
               }}
             >
-              Apabila Anda memiliki pertanyaan, masukan, atau kendala seputar privasi data Anda, silakan hubungi kami:
+              Apabila Anda memiliki pertanyaan, masukan, atau kendala seputar privasi data Anda,
+              silakan hubungi kami:
             </p>
 
             <a

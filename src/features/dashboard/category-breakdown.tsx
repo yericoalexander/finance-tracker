@@ -2,6 +2,7 @@
 
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
+import { usePrivacy } from '@/lib/privacy/context'
 import type { CategorySummary } from './actions'
 
 interface CategoryBreakdownProps {
@@ -20,7 +21,10 @@ export function CategoryBreakdown({
   monthLabel,
 }: CategoryBreakdownProps) {
   const { t, translateCategory } = useI18n()
-  const displayTitle = monthLabel ? t('categoriesTitle', { month: monthLabel }) : t('categoriesThisMonth')
+  const { isPrivate } = usePrivacy()
+  const displayTitle = monthLabel
+    ? t('categoriesTitle', { month: monthLabel })
+    : t('categoriesThisMonth')
 
   if (categories.length === 0) {
     return (
@@ -150,7 +154,9 @@ export function CategoryBreakdown({
                 padding: 'var(--space-3)',
                 borderRadius: 'var(--radius-lg)',
                 backgroundColor: isSelected ? 'var(--color-surface-raised)' : 'transparent',
-                border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border-subtle)',
+                border: isSelected
+                  ? '1px solid var(--color-accent)'
+                  : '1px solid var(--color-border-subtle)',
                 textAlign: 'left',
                 display: 'flex',
                 flexDirection: 'column',
@@ -183,7 +189,7 @@ export function CategoryBreakdown({
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
-                    {formatRupiah(cat.total)}
+                    {isPrivate ? 'Rp ••••••' : formatRupiah(cat.total)}
                   </span>
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
                     ({cat.percentage}%)

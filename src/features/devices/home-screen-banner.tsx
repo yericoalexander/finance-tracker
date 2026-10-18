@@ -15,7 +15,8 @@ export function HomeScreenBanner() {
     // 1. Cek apakah sudah berjalan di mode PWA Standalone (dari Layar Utama)
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      ('standalone' in window.navigator && Boolean((window.navigator as unknown as { standalone: boolean }).standalone))
+      ('standalone' in window.navigator &&
+        Boolean((window.navigator as unknown as { standalone: boolean }).standalone))
 
     if (isStandalone) {
       return

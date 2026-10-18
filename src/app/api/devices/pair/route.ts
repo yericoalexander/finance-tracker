@@ -8,10 +8,7 @@ import { devices, pairingCodes } from '@/lib/db/schema'
 import { checkRateLimit } from '@/lib/security/rate-limit'
 
 const PairRequestSchema = z.object({
-  code: z
-    .string()
-    .length(8, 'Kode pairing harus terdiri dari 8 karakter')
-    .toUpperCase(),
+  code: z.string().length(8, 'Kode pairing harus terdiri dari 8 karakter').toUpperCase(),
   label: z
     .string()
     .min(1, 'Nama perangkat tidak boleh kosong')
@@ -86,10 +83,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Tandai kode sudah dipakai
-  await db
-    .update(pairingCodes)
-    .set({ usedAt: now })
-    .where(eq(pairingCodes.id, match.id))
+  await db.update(pairingCodes).set({ usedAt: now }).where(eq(pairingCodes.id, match.id))
 
   // Buat device token acak 32 byte (64 hex characters)
   const deviceToken = randomBytes(32).toString('hex')

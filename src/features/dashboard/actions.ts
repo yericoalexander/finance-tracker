@@ -8,7 +8,14 @@ import { auth } from '@/auth'
 import { CATEGORIES } from '@/lib/ai/types'
 import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
-import { captures, devices, googleTokens, reminderSettings, users, type ReminderSetting } from '@/lib/db/schema'
+import {
+  captures,
+  devices,
+  googleTokens,
+  reminderSettings,
+  users,
+  type ReminderSetting,
+} from '@/lib/db/schema'
 import { appendTransactionRow, deleteTransactionRow } from '@/lib/google/sheets'
 import { evaluateBudgetReminder } from './reminder-evaluator'
 
@@ -64,7 +71,14 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
   const currentMonthPrefix = new Date().toISOString().slice(0, 7) // 'YYYY-MM'
 
   // Eksekusi semua query secara paralel untuk memangkas waktu tunggu database
-  const [reviewQueue, monthOkCaptures, recentTransactions, activeDeviceList, monthRows, userReminder] = await Promise.all([
+  const [
+    reviewQueue,
+    monthOkCaptures,
+    recentTransactions,
+    activeDeviceList,
+    monthRows,
+    userReminder,
+  ] = await Promise.all([
     // 1. Antrean review (needs_review)
     db
       .select({
@@ -397,16 +411,8 @@ export async function deleteTransactionAction(
 
   // 2. Jika user memiliki Google Sheet yang terhubung, hapus barisnya di Google Sheets
   const [userList, tokenList] = await Promise.all([
-    db
-      .select({ sheetId: users.sheetId })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1),
-    db
-      .select()
-      .from(googleTokens)
-      .where(eq(googleTokens.userId, userId))
-      .limit(1),
+    db.select({ sheetId: users.sheetId }).from(users).where(eq(users.id, userId)).limit(1),
+    db.select().from(googleTokens).where(eq(googleTokens.userId, userId)).limit(1),
   ])
 
   const userRecord = userList[0]
@@ -431,9 +437,7 @@ export async function deleteTransactionAction(
   }
 
   // 3. Hapus capture dari database
-  await db
-    .delete(captures)
-    .where(and(eq(captures.id, captureId), eq(captures.userId, userId)))
+  await db.delete(captures).where(and(eq(captures.id, captureId), eq(captures.userId, userId)))
 
   // 4. Evaluasi ulang milestone pengingat jika pengeluaran turun di bawah ambang batas
   const txMonthPrefix = captureRecord.txDate?.slice(0, 7) || new Date().toISOString().slice(0, 7)
@@ -442,5 +446,3 @@ export async function deleteTransactionAction(
   revalidatePath('/dashboard')
   return { ok: true }
 }
-
-

@@ -84,7 +84,9 @@ export async function getActivePairingCodeAction(): Promise<PairingCodeResult> {
 /**
  * Cabut akses perangkat terhubung.
  */
-export async function revokeDeviceAction(deviceId: string): Promise<{ ok: boolean; error?: string }> {
+export async function revokeDeviceAction(
+  deviceId: string,
+): Promise<{ ok: boolean; error?: string }> {
   const session = await auth()
   if (!session?.user?.id) {
     return { ok: false, error: 'Sesi tidak valid' }
@@ -114,7 +116,9 @@ export interface DirectTokenResult {
  * Buat device token langsung tanpa input kode manual.
  * Digunakan untuk 1-klik otomatisasi Shortcut iOS via URL scheme.
  */
-export async function createDirectDeviceTokenAction(deviceLabel?: string): Promise<DirectTokenResult> {
+export async function createDirectDeviceTokenAction(
+  deviceLabel?: string,
+): Promise<DirectTokenResult> {
   const session = await auth()
   if (!session?.user?.id) {
     return { ok: false, error: 'Sesi telah berakhir. Silakan login kembali.' }

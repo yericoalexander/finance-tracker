@@ -24,6 +24,7 @@ import {
 import { CATEGORIES } from '@/lib/ai/types'
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
+import { usePrivacy } from '@/lib/privacy/context'
 import { deleteTransactionAction } from './actions'
 
 interface TransactionItem {
@@ -105,6 +106,7 @@ export function RecentTransactions({
 }: RecentTransactionsProps) {
   const router = useRouter()
   const { t, translateCategory, locale } = useI18n()
+  const { isPrivate } = usePrivacy()
   const [searchQuery, setSearchQuery] = useState('')
   const [quickDate, setQuickDate] = useState<QuickDateOption>('all')
   const [startDate, setStartDate] = useState<string>('')
@@ -259,7 +261,8 @@ export function RecentTransactions({
       }
 
       // 2. Waktu / Tanggal
-      const txDate = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
+      const txDate =
+        tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
 
       if (quickDate === 'today') {
         if (txDate !== todayStr) return false
@@ -344,7 +347,12 @@ export function RecentTransactions({
   const handleApplyFilterModal = () => {
     setQuickDate(draftQuickDate)
     onSelectCategory(draftCategory)
-    if (draftQuickDate === 'range' && draftStartDate && draftEndDate && draftStartDate > draftEndDate) {
+    if (
+      draftQuickDate === 'range' &&
+      draftStartDate &&
+      draftEndDate &&
+      draftStartDate > draftEndDate
+    ) {
       setStartDate(draftEndDate)
       setEndDate(draftStartDate)
     } else {
@@ -411,385 +419,396 @@ export function RecentTransactions({
             justifyContent: 'space-between',
           }}
         >
-        <div>
-          <h2
-            style={{
-              fontSize: '1rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              margin: 0,
-              letterSpacing: '-0.01em',
-            }}
-          >
-            {t('allTransactions')}
-          </h2>
-          <p
-            style={{
-              margin: '2px 0 0 0',
-              fontSize: '0.78rem',
-              color: 'var(--color-text-muted)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {activeTransactions.length === 0
-              ? t('txRecorded', { count: 0 })
-              : hasActiveFilters
-                ? t('txCountFiltered', { filtered: filtered.length, total: activeTransactions.length })
-                : t('txRecorded', { count: activeTransactions.length })}
-          </p>
-        </div>
-
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '4px 10px',
-              borderRadius: 'var(--radius-full)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface)',
-              color: 'var(--color-text-muted)',
-              fontSize: '0.74rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            <RotateCcw size={11} />
-            {t('resetFilter')}
-          </button>
-        )}
-      </div>
-
-      {/* Notifikasi Transaksi Berhasil Dihapus — Tepat di atas pencarian & di dalam shell mobile */}
-      {deleteSuccessNotice && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="animate-slide-up"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 'var(--space-2)',
-            padding: '8px 12px 8px 14px',
-            backgroundColor: 'var(--color-surface)',
-            border: '1.5px solid var(--color-success)',
-            borderRadius: 'var(--radius-lg)',
-            boxShadow: 'var(--shadow-sm)',
-            width: '100%',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-            <div
+          <div>
+            <h2
               style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-success-subtle)',
-                color: 'var(--color-success)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
+                fontSize: '1rem',
+                fontWeight: 700,
+                color: 'var(--color-text)',
+                margin: 0,
+                letterSpacing: '-0.01em',
               }}
             >
-              <Check size={14} strokeWidth={2.5} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p
-                style={{
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  color: 'var(--color-text)',
-                  margin: 0,
-                  lineHeight: 1.2,
-                }}
-              >
-                {t('txDeletedSuccess')}
-              </p>
-              <p
-                style={{
-                  fontSize: '0.72rem',
-                  color: 'var(--color-text-muted)',
-                  margin: '2px 0 0 0',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  lineHeight: 1.2,
-                }}
-              >
-                <strong style={{ color: 'var(--color-text)', fontWeight: 600 }}>
-                  {deleteSuccessNotice.merchant}
-                </strong>
-                {deleteSuccessNotice.amountIdr != null
-                  ? ` (${formatRupiah(deleteSuccessNotice.amountIdr)})`
-                  : ''}{' '}
-                {t('deletedFromSheetsNotice')}
-              </p>
-            </div>
+              {t('allTransactions')}
+            </h2>
+            <p
+              style={{
+                margin: '2px 0 0 0',
+                fontSize: '0.78rem',
+                color: 'var(--color-text-muted)',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {activeTransactions.length === 0
+                ? t('txRecorded', { count: 0 })
+                : hasActiveFilters
+                  ? t('txCountFiltered', {
+                      filtered: filtered.length,
+                      total: activeTransactions.length,
+                    })
+                  : t('txRecorded', { count: activeTransactions.length })}
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setDeleteSuccessNotice(null)}
-            aria-label={t('closeNotification')}
-            style={{
-              width: '44px',
-              height: '44px',
-              minWidth: '44px',
-              minHeight: '44px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'transparent',
-              border: 'none',
-              color: 'var(--color-text-muted)',
-              cursor: 'pointer',
-              padding: 0,
-              borderRadius: 'var(--radius-md)',
-              flexShrink: 0,
-              marginRight: '-6px',
-            }}
-          >
-            <X size={15} />
-          </button>
-        </div>
-      )}
 
-      {/* Baris Pencarian & Tombol Filter (Persis seperti referensi Image 1 & 3) */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          width: '100%',
-        }}
-      >
-        {/* Input Pencarian dengan ikon search */}
-        <div
-          style={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            flex: 1,
-          }}
-        >
-          <Search
-            size={16}
-            color="var(--color-text-placeholder)"
-            style={{ position: 'absolute', left: '14px', pointerEvents: 'none' }}
-          />
-          <input
-            type="text"
-            placeholder={t('searchTxPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              minHeight: '44px',
-              paddingLeft: '38px',
-              paddingRight: searchQuery ? '36px' : '14px',
-              borderRadius: 'var(--radius-xl)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface-raised)',
-              color: 'var(--color-text)',
-              fontSize: '0.84rem',
-              fontFamily: 'inherit',
-              outline: 'none',
-              transition: 'border-color var(--duration-fast)',
-            }}
-          />
-          {searchQuery && (
+          {hasActiveFilters && (
             <button
               type="button"
-              onClick={() => setSearchQuery('')}
-              aria-label={t('clearSearch')}
+              onClick={handleResetFilters}
               style={{
-                position: 'absolute',
-                right: '10px',
-                width: '24px',
-                height: '24px',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '50%',
-                border: 'none',
-                backgroundColor: 'var(--color-border)',
+                gap: '4px',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
                 color: 'var(--color-text-muted)',
+                fontSize: '0.74rem',
+                fontWeight: 600,
                 cursor: 'pointer',
-                padding: 0,
+                fontFamily: 'inherit',
               }}
             >
-              <X size={13} />
+              <RotateCcw size={11} />
+              {t('resetFilter')}
             </button>
           )}
         </div>
 
-        {/* Tombol Filter — Pill Button dengan SlidersHorizontal (Persis Image 3) */}
-        <button
-          type="button"
-          onClick={handleOpenFilterModal}
-          aria-label={t('openFilter')}
-          style={{
-            minHeight: '44px',
-            padding: '0 16px',
-            borderRadius: 'var(--radius-full)',
-            border: hasActiveFilters ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
-            backgroundColor: hasActiveFilters ? 'var(--color-accent)' : 'var(--color-surface-raised)',
-            color: hasActiveFilters ? 'var(--color-accent-text)' : 'var(--color-text)',
-            fontSize: '0.84rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontFamily: 'inherit',
-            flexShrink: 0,
-            transition: 'all var(--duration-fast)',
-            boxShadow: hasActiveFilters ? 'var(--shadow-sm)' : 'none',
-          }}
-        >
-          <SlidersHorizontal size={15} />
-          <span>{t('filterBtn')}</span>
-          {activeFilterCount > 0 && (
-            <span
+        {/* Notifikasi Transaksi Berhasil Dihapus — Tepat di atas pencarian & di dalam shell mobile */}
+        {deleteSuccessNotice && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="animate-slide-up"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 'var(--space-2)',
+              padding: '8px 12px 8px 14px',
+              backgroundColor: 'var(--color-surface)',
+              border: '1.5px solid var(--color-success)',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: 'var(--shadow-sm)',
+              width: '100%',
+            }}
+          >
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}
+            >
+              <div
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--color-success-subtle)',
+                  color: 'var(--color-success)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Check size={14} strokeWidth={2.5} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: 'var(--color-text)',
+                    margin: 0,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {t('txDeletedSuccess')}
+                </p>
+                <p
+                  style={{
+                    fontSize: '0.72rem',
+                    color: 'var(--color-text-muted)',
+                    margin: '2px 0 0 0',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  <strong style={{ color: 'var(--color-text)', fontWeight: 600 }}>
+                    {deleteSuccessNotice.merchant}
+                  </strong>
+                  {deleteSuccessNotice.amountIdr != null
+                    ? ` (${isPrivate ? 'Rp ••••••' : formatRupiah(deleteSuccessNotice.amountIdr)})`
+                    : ''}{' '}
+                  {t('deletedFromSheetsNotice')}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDeleteSuccessNotice(null)}
+              aria-label={t('closeNotification')}
               style={{
-                display: 'inline-flex',
+                width: '44px',
+                height: '44px',
+                minWidth: '44px',
+                minHeight: '44px',
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                backgroundColor: hasActiveFilters ? 'var(--color-accent-text)' : 'var(--color-accent)',
-                color: hasActiveFilters ? 'var(--color-accent)' : 'var(--color-accent-text)',
-                fontSize: '0.68rem',
-                fontWeight: 800,
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer',
+                padding: 0,
+                borderRadius: 'var(--radius-md)',
+                flexShrink: 0,
+                marginRight: '-6px',
               }}
             >
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
-      </div>
+              <X size={15} />
+            </button>
+          </div>
+        )}
 
-      {/* Active Filter Tags Bar (Jika ada filter aktif) */}
-      {hasActiveFilters && (
+        {/* Baris Pencarian & Tombol Filter (Persis seperti referensi Image 1 & 3) */}
         <div
-          className="animate-fade-in"
           style={{
             display: 'flex',
-            flexWrap: 'wrap',
-            gap: '6px',
             alignItems: 'center',
+            gap: '8px',
+            width: '100%',
           }}
         >
-          {quickDate !== 'all' && (
-            <span
+          {/* Input Pencarian dengan ikon search */}
+          <div
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              flex: 1,
+            }}
+          >
+            <Search
+              size={16}
+              color="var(--color-text-placeholder)"
+              style={{ position: 'absolute', left: '14px', pointerEvents: 'none' }}
+            />
+            <input
+              type="text"
+              placeholder={t('searchTxPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-surface)',
+                width: '100%',
+                minHeight: '44px',
+                paddingLeft: '38px',
+                paddingRight: searchQuery ? '36px' : '14px',
+                borderRadius: 'var(--radius-xl)',
                 border: '1px solid var(--color-border)',
-                fontSize: '0.72rem',
-                fontWeight: 600,
+                backgroundColor: 'var(--color-surface-raised)',
                 color: 'var(--color-text)',
+                fontSize: '0.84rem',
+                fontFamily: 'inherit',
+                outline: 'none',
+                transition: 'border-color var(--duration-fast)',
               }}
-            >
-              <Calendar size={11} color="var(--color-text-muted)" />
-              {quickDate === 'range' && startDate && endDate
-                ? `${formatDateLabel(startDate, locale)} – ${formatDateLabel(endDate, locale)}`
-                : quickDateLabels[quickDate]}
-              <button
-                type="button"
-                onClick={() => setQuickDate('all')}
-                style={{
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-text-muted)',
-                  cursor: 'pointer',
-                  padding: 0,
-                  display: 'flex',
-                }}
-              >
-                <X size={12} />
-              </button>
-            </span>
-          )}
-
-          {selectedCategory !== null && (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                color: 'var(--color-text)',
-              }}
-            >
-              <Tag size={11} color="var(--color-text-muted)" />
-              {translateCategory(selectedCategory)}
-              <button
-                type="button"
-                onClick={() => onSelectCategory(null)}
-                style={{
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-text-muted)',
-                  cursor: 'pointer',
-                  padding: 0,
-                  display: 'flex',
-                }}
-              >
-                <X size={12} />
-              </button>
-            </span>
-          )}
-
-          {searchQuery && (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                color: 'var(--color-text)',
-              }}
-            >
-              &ldquo;{searchQuery}&rdquo;
+            />
+            {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
+                aria-label={t('clearSearch')}
                 style={{
+                  position: 'absolute',
+                  right: '10px',
+                  width: '24px',
+                  height: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
                   border: 'none',
-                  backgroundColor: 'transparent',
+                  backgroundColor: 'var(--color-border)',
                   color: 'var(--color-text-muted)',
                   cursor: 'pointer',
                   padding: 0,
-                  display: 'flex',
                 }}
               >
-                <X size={12} />
+                <X size={13} />
               </button>
-            </span>
-          )}
+            )}
+          </div>
+
+          {/* Tombol Filter — Pill Button dengan SlidersHorizontal (Persis Image 3) */}
+          <button
+            type="button"
+            onClick={handleOpenFilterModal}
+            aria-label={t('openFilter')}
+            style={{
+              minHeight: '44px',
+              padding: '0 16px',
+              borderRadius: 'var(--radius-full)',
+              border: hasActiveFilters
+                ? '1.5px solid var(--color-accent)'
+                : '1px solid var(--color-border)',
+              backgroundColor: hasActiveFilters
+                ? 'var(--color-accent)'
+                : 'var(--color-surface-raised)',
+              color: hasActiveFilters ? 'var(--color-accent-text)' : 'var(--color-text)',
+              fontSize: '0.84rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontFamily: 'inherit',
+              flexShrink: 0,
+              transition: 'all var(--duration-fast)',
+              boxShadow: hasActiveFilters ? 'var(--shadow-sm)' : 'none',
+            }}
+          >
+            <SlidersHorizontal size={15} />
+            <span>{t('filterBtn')}</span>
+            {activeFilterCount > 0 && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  backgroundColor: hasActiveFilters
+                    ? 'var(--color-accent-text)'
+                    : 'var(--color-accent)',
+                  color: hasActiveFilters ? 'var(--color-accent)' : 'var(--color-accent-text)',
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                }}
+              >
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
         </div>
-      )}
+
+        {/* Active Filter Tags Bar (Jika ada filter aktif) */}
+        {hasActiveFilters && (
+          <div
+            className="animate-fade-in"
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '6px',
+              alignItems: 'center',
+            }}
+          >
+            {quickDate !== 'all' && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  color: 'var(--color-text)',
+                }}
+              >
+                <Calendar size={11} color="var(--color-text-muted)" />
+                {quickDate === 'range' && startDate && endDate
+                  ? `${formatDateLabel(startDate, locale)} – ${formatDateLabel(endDate, locale)}`
+                  : quickDateLabels[quickDate]}
+                <button
+                  type="button"
+                  onClick={() => setQuickDate('all')}
+                  style={{
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    padding: 0,
+                    display: 'flex',
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            )}
+
+            {selectedCategory !== null && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  color: 'var(--color-text)',
+                }}
+              >
+                <Tag size={11} color="var(--color-text-muted)" />
+                {translateCategory(selectedCategory)}
+                <button
+                  type="button"
+                  onClick={() => onSelectCategory(null)}
+                  style={{
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    padding: 0,
+                    display: 'flex',
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            )}
+
+            {searchQuery && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  color: 'var(--color-text)',
+                }}
+              >
+                &ldquo;{searchQuery}&rdquo;
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    padding: 0,
+                    display: 'flex',
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Rincian Kategori Dinamis dari Hasil Filter */}
@@ -807,7 +826,9 @@ export function RecentTransactions({
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
+            <p
+              style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}
+            >
               {t('filteredCategoryBreakdown')}
             </p>
             <span
@@ -818,7 +839,7 @@ export function RecentTransactions({
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              {formatRupiah(totalFilteredAmount)}
+              {isPrivate ? 'Rp ••••••' : formatRupiah(totalFilteredAmount)}
             </span>
           </div>
 
@@ -837,7 +858,9 @@ export function RecentTransactions({
                     width: '100%',
                     padding: '6px 8px',
                     borderRadius: 'var(--radius-md)',
-                    border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid transparent',
+                    border: isSelected
+                      ? '1.5px solid var(--color-accent)'
+                      : '1px solid transparent',
                     backgroundColor: isSelected ? 'var(--color-surface-raised)' : 'transparent',
                     cursor: 'pointer',
                     textAlign: 'left',
@@ -845,7 +868,9 @@ export function RecentTransactions({
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                    <span
+                      style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}
+                    >
                       {translateCategory(cat.category)}
                     </span>
                     <span
@@ -856,7 +881,7 @@ export function RecentTransactions({
                         fontVariantNumeric: 'tabular-nums',
                       }}
                     >
-                      {formatRupiah(cat.total)} ({cat.percentage}%)
+                      {isPrivate ? 'Rp ••••••' : formatRupiah(cat.total)} ({cat.percentage}%)
                     </span>
                   </div>
                   <div
@@ -907,9 +932,7 @@ export function RecentTransactions({
               margin: 0,
             }}
           >
-            {hasActiveFilters
-              ? t('noTxMatchFilter')
-              : t('noTxRecordedYet')}
+            {hasActiveFilters ? t('noTxMatchFilter') : t('noTxRecordedYet')}
           </p>
           {hasActiveFilters ? (
             <button
@@ -962,7 +985,8 @@ export function RecentTransactions({
           {filtered.map((tx) => {
             const isNew = isRecentNew(tx.createdAt)
             const isAnimatingOut = animatingOutId === tx.id
-            const dateStr = tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
+            const dateStr =
+              tx.txDate || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : '')
 
             return (
               <div
@@ -974,7 +998,11 @@ export function RecentTransactions({
                   padding: isAnimatingOut ? '0 var(--space-4)' : 'var(--space-3) var(--space-4)',
                   backgroundColor: 'var(--color-surface)',
                   borderRadius: 'var(--radius-xl)',
-                  border: isAnimatingOut ? 'none' : isNew ? '1.5px solid var(--color-success)' : '1px solid var(--color-border)',
+                  border: isAnimatingOut
+                    ? 'none'
+                    : isNew
+                      ? '1.5px solid var(--color-success)'
+                      : '1px solid var(--color-border)',
                   boxShadow: isAnimatingOut ? 'none' : 'var(--shadow-sm)',
                   opacity: isAnimatingOut ? 0 : 1,
                   transform: isAnimatingOut ? 'scale(0.95) translateY(-8px)' : 'none',
@@ -1040,7 +1068,8 @@ export function RecentTransactions({
                       margin: '2px 0 0 0',
                     }}
                   >
-                    {translateCategory(tx.category) || t('fallbackOther')} · {formatDateLabel(dateStr, locale)}
+                    {translateCategory(tx.category) || t('fallbackOther')} ·{' '}
+                    {formatDateLabel(dateStr, locale)}
                   </p>
                 </div>
 
@@ -1057,7 +1086,7 @@ export function RecentTransactions({
                         margin: 0,
                       }}
                     >
-                      -{formatRupiah(tx.amountIdr ?? 0)}
+                      {isPrivate ? '-Rp ••••••' : `-${formatRupiah(tx.amountIdr ?? 0)}`}
                     </p>
                   </div>
 
@@ -1068,7 +1097,9 @@ export function RecentTransactions({
                       setDeleteError(null)
                       setDeleteTarget(tx)
                     }}
-                    aria-label={t('deleteTxAria', { merchant: tx.merchant ?? t('fallbackExpense') })}
+                    aria-label={t('deleteTxAria', {
+                      merchant: tx.merchant ?? t('fallbackExpense'),
+                    })}
                     title={t('btnDeleteTx')}
                     style={{
                       minWidth: '44px',
@@ -1084,7 +1115,8 @@ export function RecentTransactions({
                       color: 'var(--color-text-placeholder)',
                       cursor: 'pointer',
                       padding: 0,
-                      transition: 'color var(--duration-fast), background-color var(--duration-fast)',
+                      transition:
+                        'color var(--duration-fast), background-color var(--duration-fast)',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.color = 'var(--color-error)'
@@ -1105,670 +1137,749 @@ export function RecentTransactions({
       )}
 
       {/* Modal / Bottom Drawer Filter (Portaled ke document.body agar fix ke layar) */}
-      {mounted && filterModalOpen && createPortal(
-        <div
-          className="animate-fade-in"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-            zIndex: 9999,
-          }}
-          onClick={() => setFilterModalOpen(false)}
-        >
+      {mounted &&
+        filterModalOpen &&
+        createPortal(
           <div
-            className="animate-drawer-up"
+            className="animate-fade-in"
             style={{
-              backgroundColor: 'var(--color-surface)',
-              borderTopLeftRadius: 'var(--radius-xl)',
-              borderTopRightRadius: 'var(--radius-xl)',
-              borderTop: '1px solid var(--color-border)',
-              padding: 'var(--space-4) var(--space-5)',
-              paddingBottom: 'calc(var(--space-5) + env(safe-area-inset-bottom, 0px))',
-              width: '100%',
-              maxWidth: '430px',
-              maxHeight: '85vh',
-              overflowY: 'auto',
-              boxShadow: 'var(--shadow-lg)',
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(4px)',
               display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-4)',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              zIndex: 9999,
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={() => setFilterModalOpen(false)}
           >
-            {/* Grabber handle bar for iOS bottom sheet */}
             <div
+              className="animate-drawer-up"
               style={{
-                width: '36px',
-                height: '4px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-border)',
-                margin: '0 auto',
-                flexShrink: 0,
-              }}
-            />
-
-            {/* Header Modal */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingBottom: 'var(--space-2)',
-                borderBottom: '1px solid var(--color-border)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <SlidersHorizontal size={18} color="var(--color-accent)" />
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-                  {t('filterTransactions')}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFilterModalOpen(false)}
-                aria-label={t('closeFilter')}
-                style={{
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-text-muted)',
-                  cursor: 'pointer',
-                  width: '44px',
-                  height: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 'var(--radius-md)',
-                  margin: '-8px -8px -8px 0',
-                }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Bagian 1: Periode Waktu */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                {t('timePeriod')}
-              </label>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '6px',
-                }}
-              >
-                {(
-                  [
-                    { id: 'all', label: t('allTime') },
-                    { id: 'today', label: t('optToday') },
-                    { id: 'yesterday', label: t('optYesterday') },
-                    { id: '7days', label: t('opt7Days') },
-                    { id: 'month', label: t('optMonth') },
-                    { id: 'range', label: t('optRange') },
-                  ] as const
-                ).map((opt) => {
-                  const isSelected = draftQuickDate === opt.id
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => {
-                        setDraftQuickDate(opt.id)
-                        if (opt.id === 'range') {
-                          if (!draftStartDate) setDraftStartDate(sevenDaysAgoStr)
-                          if (!draftEndDate) setDraftEndDate(todayStr)
-                        }
-                      }}
-                      style={{
-                        minHeight: '44px',
-                        padding: '8px 10px',
-                        borderRadius: 'var(--radius-md)',
-                        border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
-                        backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
-                        color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
-                        fontSize: '0.8rem',
-                        fontWeight: isSelected ? 700 : 500,
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        transition: 'all var(--duration-fast)',
-                        fontFamily: 'inherit',
-                        touchAction: 'manipulation',
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Input Rentang Tanggal jika opsi 'range' dipilih */}
-              {draftQuickDate === 'range' && (
-                <div
-                  className="animate-slide-up"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 'var(--space-3)',
-                    marginTop: '8px',
-                    padding: 'var(--space-3) var(--space-4)',
-                    backgroundColor: 'var(--color-surface-raised)',
-                    borderRadius: 'var(--radius-xl)',
-                    border: '1px solid var(--color-border)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Calendar size={14} color="var(--color-accent)" />
-                      {t('dateRange')}
-                    </span>
-                    {draftStartDate && draftEndDate && (
-                      <span
-                        style={{
-                          fontSize: '0.7rem',
-                          fontWeight: 600,
-                          color: draftStartDate > draftEndDate ? 'var(--color-expense)' : 'var(--color-text-muted)',
-                          fontVariantNumeric: 'tabular-nums',
-                        }}
-                      >
-                        {draftStartDate > draftEndDate
-                          ? '⚠️ Mulai > Akhir'
-                          : `${formatDateLabel(draftStartDate, locale)} – ${formatDateLabel(draftEndDate, locale)}`}
-                      </span>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr auto 1fr',
-                      alignItems: 'center',
-                      gap: '8px',
-                    }}
-                  >
-                    {/* Dari */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                        {t('fromDate')}
-                      </label>
-                      <input
-                        type="date"
-                        value={draftStartDate}
-                        onChange={(e) => setDraftStartDate(e.target.value)}
-                        style={{
-                          width: '100%',
-                          minHeight: '44px',
-                          padding: '8px 10px',
-                          borderRadius: 'var(--radius-lg)',
-                          border: '1px solid var(--color-border)',
-                          backgroundColor: 'var(--color-surface)',
-                          color: 'var(--color-text)',
-                          fontSize: '0.82rem',
-                          fontWeight: 600,
-                          fontFamily: 'inherit',
-                          outline: 'none',
-                          boxShadow: 'var(--shadow-sm)',
-                          textAlign: 'center',
-                          WebkitAppearance: 'none',
-                        }}
-                      />
-                    </div>
-
-                    {/* Arrow Divider */}
-                    <div
-                      style={{
-                        marginTop: '16px',
-                        color: 'var(--color-text-muted)',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                      }}
-                    >
-                      →
-                    </div>
-
-                    {/* Sampai */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                        {t('toDate')}
-                      </label>
-                      <input
-                        type="date"
-                        value={draftEndDate}
-                        onChange={(e) => setDraftEndDate(e.target.value)}
-                        style={{
-                          width: '100%',
-                          minHeight: '44px',
-                          padding: '8px 10px',
-                          borderRadius: 'var(--radius-lg)',
-                          border: '1px solid var(--color-border)',
-                          backgroundColor: 'var(--color-surface)',
-                          color: 'var(--color-text)',
-                          fontSize: '0.82rem',
-                          fontWeight: 600,
-                          fontFamily: 'inherit',
-                          outline: 'none',
-                          boxShadow: 'var(--shadow-sm)',
-                          textAlign: 'center',
-                          WebkitAppearance: 'none',
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Bagian 2: Kategori */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                {t('fieldCategory')}
-              </label>
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '6px',
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setDraftCategory(null)}
-                  style={{
-                    minHeight: '40px',
-                    padding: '8px 14px',
-                    borderRadius: 'var(--radius-full)',
-                    border: draftCategory === null ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
-                    backgroundColor: draftCategory === null ? 'var(--color-accent)' : 'var(--color-surface-raised)',
-                    color: draftCategory === null ? 'var(--color-accent-text)' : 'var(--color-text)',
-                    fontSize: '0.78rem',
-                    fontWeight: draftCategory === null ? 700 : 500,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    transition: 'all var(--duration-fast)',
-                    touchAction: 'manipulation',
-                  }}
-                >
-                  {t('allCategories')}
-                </button>
-                {CATEGORIES.map((cat) => {
-                  const isSelected = draftCategory === cat
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setDraftCategory(cat)}
-                      style={{
-                        minHeight: '40px',
-                        padding: '8px 14px',
-                        borderRadius: 'var(--radius-full)',
-                        border: isSelected ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border)',
-                        backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
-                        color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
-                        fontSize: '0.78rem',
-                        fontWeight: isSelected ? 700 : 500,
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        transition: 'all var(--duration-fast)',
-                        touchAction: 'manipulation',
-                      }}
-                    >
-                      {translateCategory(cat)}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Footer Aksi Modal */}
-            <div
-              style={{
-                display: 'flex',
-                gap: '8px',
-                marginTop: 'var(--space-2)',
-                paddingTop: 'var(--space-3)',
+                backgroundColor: 'var(--color-surface)',
+                borderTopLeftRadius: 'var(--radius-xl)',
+                borderTopRightRadius: 'var(--radius-xl)',
                 borderTop: '1px solid var(--color-border)',
-              }}
-            >
-              <button
-                type="button"
-                onClick={handleResetFilterModal}
-                style={{
-                  flex: 1,
-                  minHeight: '44px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-surface-raised)',
-                  color: 'var(--color-text)',
-                  fontWeight: 600,
-                  fontSize: '0.84rem',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {t('resetFilter')}
-              </button>
-              <button
-                type="button"
-                onClick={handleApplyFilterModal}
-                style={{
-                  flex: 2,
-                  minHeight: '44px',
-                  borderRadius: 'var(--radius-md)',
-                  border: 'none',
-                  backgroundColor: 'var(--color-accent)',
-                  color: 'var(--color-accent-text)',
-                  fontWeight: 700,
-                  fontSize: '0.84rem',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                }}
-              >
-                <Check size={16} />
-                {t('applyFilter')}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* Modal Konfirmasi Hapus Transaksi */}
-      {mounted && deleteTarget && createPortal(
-        <div
-          className={deleteStep === 'closing' ? '' : 'animate-fade-in'}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            backgroundColor: 'rgba(0, 0, 0, 0.45)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'var(--space-4)',
-            opacity: deleteStep === 'closing' ? 0 : 1,
-            transition: 'opacity 240ms ease',
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget && deleteStep === 'idle') {
-              handleCloseDeleteModal()
-            }
-          }}
-        >
-          <div
-            className={deleteStep === 'closing' ? '' : 'animate-slide-up'}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-dialog-title"
-            style={{
-              width: '100%',
-              maxWidth: '380px',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-xl)',
-              border: '1px solid var(--color-border)',
-              boxShadow: 'var(--shadow-lg)',
-              padding: 'var(--space-5)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-4)',
-              transform: deleteStep === 'closing' ? 'scale(0.95) translateY(12px)' : 'none',
-              opacity: deleteStep === 'closing' ? 0 : 1,
-              transition: 'transform 240ms cubic-bezier(0.4, 0, 0.2, 1), opacity 240ms ease',
-            }}
-          >
-            {/* Header Dialog */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: 'var(--radius-lg)',
-                  backgroundColor:
-                    deleteStep === 'success'
-                      ? 'var(--color-success)'
-                      : deleteStep === 'deleting'
-                        ? 'var(--color-surface-raised)'
-                        : 'var(--color-error-subtle)',
-                  color:
-                    deleteStep === 'success'
-                      ? '#ffffff'
-                      : deleteStep === 'deleting'
-                        ? 'var(--color-accent)'
-                        : 'var(--color-error)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  transition: 'all 200ms ease',
-                }}
-              >
-                {deleteStep === 'success' ? (
-                  <Check size={22} strokeWidth={2.5} className="animate-scale-in" />
-                ) : deleteStep === 'deleting' ? (
-                  <Loader2 size={20} className="animate-spin" />
-                ) : (
-                  <Trash2 size={20} />
-                )}
-              </div>
-              <div style={{ flex: 1 }}>
-                <h3
-                  id="delete-dialog-title"
-                  style={{
-                    fontSize: '1.05rem',
-                    fontWeight: 700,
-                    color: deleteStep === 'success' ? 'var(--color-success)' : 'var(--color-text)',
-                    margin: 0,
-                    transition: 'color 200ms ease',
-                  }}
-                >
-                  {deleteStep === 'success'
-                    ? t('deleteDialogSuccess')
-                    : deleteStep === 'deleting'
-                      ? t('deleteDialogDeleting')
-                      : t('deleteDialogTitle')}
-                </h3>
-                <p
-                  style={{
-                    fontSize: '0.8rem',
-                    color: 'var(--color-text-muted)',
-                    margin: '4px 0 0 0',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {deleteStep === 'success'
-                    ? t('deleteDialogDescSuccess')
-                    : deleteStep === 'deleting'
-                      ? t('deleteDialogDescDeleting')
-                      : t('deleteDialogDesc')}
-                </p>
-              </div>
-            </div>
-
-            {/* Indikator progress bar interaktif saat menghapus */}
-            {deleteStep === 'deleting' && (
-              <div
-                style={{
-                  height: '3px',
-                  borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--color-border)',
-                  overflow: 'hidden',
-                  width: '100%',
-                }}
-              >
-                <div
-                  className="splash-progress-bar"
-                  style={{
-                    height: '100%',
-                    width: '45%',
-                    backgroundColor: 'var(--color-error)',
-                    borderRadius: 'var(--radius-full)',
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Rincian Transaksi yang Dihapus */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface-raised)',
-                borderRadius: 'var(--radius-lg)',
-                padding: 'var(--space-3) var(--space-4)',
-                border: '1px solid var(--color-border-subtle)',
+                padding: 'var(--space-4) var(--space-5)',
+                paddingBottom: 'calc(var(--space-5) + env(safe-area-inset-bottom, 0px))',
+                width: '100%',
+                maxWidth: '430px',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+                boxShadow: 'var(--shadow-lg)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '6px',
-                opacity: deleteStep === 'deleting' ? 0.6 : 1,
-                transform: deleteStep === 'deleting' ? 'scale(0.99)' : 'none',
-                transition: 'opacity 200ms ease, transform 200ms ease',
+                gap: 'var(--space-4)',
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{t('fieldMerchant')}</span>
-                <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                  {deleteTarget.merchant ?? t('fallbackExpense')}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{t('fieldAmount')}</span>
-                <span
-                  style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 800,
-                    color: 'var(--color-expense)',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
-                  -{formatRupiah(deleteTarget.amountIdr ?? 0)}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{t('fieldCategory')}</span>
-                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}>
-                  {translateCategory(deleteTarget.category) || t('fallbackOther')}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{t('fieldDate')}</span>
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-text)' }}>
-                  {formatDateLabel(
-                    deleteTarget.txDate ||
-                      (deleteTarget.createdAt
-                        ? new Date(deleteTarget.createdAt).toISOString().slice(0, 10)
-                        : ''),
-                    locale
-                  )}
-                </span>
-              </div>
-            </div>
-
-            {/* Error Message jika gagal */}
-            {deleteError && (
+              {/* Grabber handle bar for iOS bottom sheet */}
               <div
                 style={{
-                  padding: '8px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--color-error-subtle)',
-                  color: 'var(--color-error)',
-                  fontSize: '0.78rem',
-                  lineHeight: 1.4,
+                  width: '36px',
+                  height: '4px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-border)',
+                  margin: '0 auto',
+                  flexShrink: 0,
                 }}
-              >
-                {deleteError}
-              </div>
-            )}
+              />
 
-            {/* Tombol Aksi & Loading Selesai State */}
-            {deleteStep === 'success' ? (
+              {/* Header Modal */}
               <div
-                className="animate-scale-in"
                 style={{
-                  width: '100%',
-                  minHeight: '44px',
-                  borderRadius: 'var(--radius-lg)',
-                  backgroundColor: 'var(--color-success)',
-                  color: '#ffffff',
-                  fontSize: '0.86rem',
-                  fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  boxShadow: 'var(--shadow-sm)',
+                  justifyContent: 'space-between',
+                  paddingBottom: 'var(--space-2)',
+                  borderBottom: '1px solid var(--color-border)',
                 }}
               >
-                <Check size={18} strokeWidth={2.5} />
-                <span>{t('loadingDone')}</span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <SlidersHorizontal size={18} color="var(--color-accent)" />
+                  <h3
+                    style={{
+                      fontSize: '1.05rem',
+                      fontWeight: 700,
+                      color: 'var(--color-text)',
+                      margin: 0,
+                    }}
+                  >
+                    {t('filterTransactions')}
+                  </h3>
+                </div>
                 <button
                   type="button"
-                  disabled={deleteStep !== 'idle'}
-                  onClick={handleCloseDeleteModal}
+                  onClick={() => setFilterModalOpen(false)}
+                  aria-label={t('closeFilter')}
+                  style={{
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    width: '44px',
+                    height: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 'var(--radius-md)',
+                    margin: '-8px -8px -8px 0',
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Bagian 1: Periode Waktu */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                  {t('timePeriod')}
+                </label>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '6px',
+                  }}
+                >
+                  {(
+                    [
+                      { id: 'all', label: t('allTime') },
+                      { id: 'today', label: t('optToday') },
+                      { id: 'yesterday', label: t('optYesterday') },
+                      { id: '7days', label: t('opt7Days') },
+                      { id: 'month', label: t('optMonth') },
+                      { id: 'range', label: t('optRange') },
+                    ] as const
+                  ).map((opt) => {
+                    const isSelected = draftQuickDate === opt.id
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          setDraftQuickDate(opt.id)
+                          if (opt.id === 'range') {
+                            if (!draftStartDate) setDraftStartDate(sevenDaysAgoStr)
+                            if (!draftEndDate) setDraftEndDate(todayStr)
+                          }
+                        }}
+                        style={{
+                          minHeight: '44px',
+                          padding: '8px 10px',
+                          borderRadius: 'var(--radius-md)',
+                          border: isSelected
+                            ? '1.5px solid var(--color-accent)'
+                            : '1px solid var(--color-border)',
+                          backgroundColor: isSelected
+                            ? 'var(--color-accent)'
+                            : 'var(--color-surface-raised)',
+                          color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
+                          fontSize: '0.8rem',
+                          fontWeight: isSelected ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all var(--duration-fast)',
+                          fontFamily: 'inherit',
+                          touchAction: 'manipulation',
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Input Rentang Tanggal jika opsi 'range' dipilih */}
+                {draftQuickDate === 'range' && (
+                  <div
+                    className="animate-slide-up"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 'var(--space-3)',
+                      marginTop: '8px',
+                      padding: 'var(--space-3) var(--space-4)',
+                      backgroundColor: 'var(--color-surface-raised)',
+                      borderRadius: 'var(--radius-xl)',
+                      border: '1px solid var(--color-border)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          color: 'var(--color-text)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <Calendar size={14} color="var(--color-accent)" />
+                        {t('dateRange')}
+                      </span>
+                      {draftStartDate && draftEndDate && (
+                        <span
+                          style={{
+                            fontSize: '0.7rem',
+                            fontWeight: 600,
+                            color:
+                              draftStartDate > draftEndDate
+                                ? 'var(--color-expense)'
+                                : 'var(--color-text-muted)',
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          {draftStartDate > draftEndDate
+                            ? '⚠️ Mulai > Akhir'
+                            : `${formatDateLabel(draftStartDate, locale)} – ${formatDateLabel(draftEndDate, locale)}`}
+                        </span>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr auto 1fr',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
+                      {/* Dari */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label
+                          style={{
+                            fontSize: '0.7rem',
+                            fontWeight: 600,
+                            color: 'var(--color-text-muted)',
+                          }}
+                        >
+                          {t('fromDate')}
+                        </label>
+                        <input
+                          type="date"
+                          value={draftStartDate}
+                          onChange={(e) => setDraftStartDate(e.target.value)}
+                          style={{
+                            width: '100%',
+                            minHeight: '44px',
+                            padding: '8px 10px',
+                            borderRadius: 'var(--radius-lg)',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
+                            fontSize: '0.82rem',
+                            fontWeight: 600,
+                            fontFamily: 'inherit',
+                            outline: 'none',
+                            boxShadow: 'var(--shadow-sm)',
+                            textAlign: 'center',
+                            WebkitAppearance: 'none',
+                          }}
+                        />
+                      </div>
+
+                      {/* Arrow Divider */}
+                      <div
+                        style={{
+                          marginTop: '16px',
+                          color: 'var(--color-text-muted)',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        →
+                      </div>
+
+                      {/* Sampai */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label
+                          style={{
+                            fontSize: '0.7rem',
+                            fontWeight: 600,
+                            color: 'var(--color-text-muted)',
+                          }}
+                        >
+                          {t('toDate')}
+                        </label>
+                        <input
+                          type="date"
+                          value={draftEndDate}
+                          onChange={(e) => setDraftEndDate(e.target.value)}
+                          style={{
+                            width: '100%',
+                            minHeight: '44px',
+                            padding: '8px 10px',
+                            borderRadius: 'var(--radius-lg)',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
+                            fontSize: '0.82rem',
+                            fontWeight: 600,
+                            fontFamily: 'inherit',
+                            outline: 'none',
+                            boxShadow: 'var(--shadow-sm)',
+                            textAlign: 'center',
+                            WebkitAppearance: 'none',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Bagian 2: Kategori */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                  {t('fieldCategory')}
+                </label>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '6px',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setDraftCategory(null)}
+                    style={{
+                      minHeight: '40px',
+                      padding: '8px 14px',
+                      borderRadius: 'var(--radius-full)',
+                      border:
+                        draftCategory === null
+                          ? '1.5px solid var(--color-accent)'
+                          : '1px solid var(--color-border)',
+                      backgroundColor:
+                        draftCategory === null
+                          ? 'var(--color-accent)'
+                          : 'var(--color-surface-raised)',
+                      color:
+                        draftCategory === null ? 'var(--color-accent-text)' : 'var(--color-text)',
+                      fontSize: '0.78rem',
+                      fontWeight: draftCategory === null ? 700 : 500,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'all var(--duration-fast)',
+                      touchAction: 'manipulation',
+                    }}
+                  >
+                    {t('allCategories')}
+                  </button>
+                  {CATEGORIES.map((cat) => {
+                    const isSelected = draftCategory === cat
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setDraftCategory(cat)}
+                        style={{
+                          minHeight: '40px',
+                          padding: '8px 14px',
+                          borderRadius: 'var(--radius-full)',
+                          border: isSelected
+                            ? '1.5px solid var(--color-accent)'
+                            : '1px solid var(--color-border)',
+                          backgroundColor: isSelected
+                            ? 'var(--color-accent)'
+                            : 'var(--color-surface-raised)',
+                          color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
+                          fontSize: '0.78rem',
+                          fontWeight: isSelected ? 700 : 500,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          transition: 'all var(--duration-fast)',
+                          touchAction: 'manipulation',
+                        }}
+                      >
+                        {translateCategory(cat)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Footer Aksi Modal */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '8px',
+                  marginTop: 'var(--space-2)',
+                  paddingTop: 'var(--space-3)',
+                  borderTop: '1px solid var(--color-border)',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleResetFilterModal}
                   style={{
                     flex: 1,
                     minHeight: '44px',
-                    borderRadius: 'var(--radius-lg)',
+                    borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-surface)',
+                    backgroundColor: 'var(--color-surface-raised)',
                     color: 'var(--color-text)',
-                    fontSize: '0.86rem',
                     fontWeight: 600,
-                    cursor: deleteStep !== 'idle' ? 'not-allowed' : 'pointer',
+                    fontSize: '0.84rem',
+                    cursor: 'pointer',
                     fontFamily: 'inherit',
-                    opacity: deleteStep !== 'idle' ? 0.5 : 1,
-                    transition: 'all var(--duration-fast)',
                   }}
                 >
-                  {t('btnCancel')}
+                  {t('resetFilter')}
                 </button>
                 <button
                   type="button"
-                  disabled={deleteStep !== 'idle'}
-                  onClick={handleConfirmDelete}
+                  onClick={handleApplyFilterModal}
                   style={{
-                    flex: 1,
+                    flex: 2,
                     minHeight: '44px',
-                    borderRadius: 'var(--radius-lg)',
+                    borderRadius: 'var(--radius-md)',
                     border: 'none',
-                    backgroundColor: 'var(--color-error)',
-                    color: '#ffffff',
-                    fontSize: '0.86rem',
+                    backgroundColor: 'var(--color-accent)',
+                    color: 'var(--color-accent-text)',
                     fontWeight: 700,
-                    cursor: deleteStep !== 'idle' ? 'not-allowed' : 'pointer',
+                    fontSize: '0.84rem',
+                    cursor: 'pointer',
                     fontFamily: 'inherit',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '6px',
-                    opacity: deleteStep === 'deleting' ? 0.85 : 1,
-                    transition: 'all var(--duration-fast)',
                   }}
                 >
-                  {deleteStep === 'deleting' ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      <span>{t('deletingStatus')}</span>
-                    </>
-                  ) : (
-                    <span>{t('btnConfirmDelete')}</span>
-                  )}
+                  <Check size={16} />
+                  {t('applyFilter')}
                 </button>
               </div>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {/* Modal Konfirmasi Hapus Transaksi */}
+      {mounted &&
+        deleteTarget &&
+        createPortal(
+          <div
+            className={deleteStep === 'closing' ? '' : 'animate-fade-in'}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              backgroundColor: 'rgba(0, 0, 0, 0.45)',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(3px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 'var(--space-4)',
+              opacity: deleteStep === 'closing' ? 0 : 1,
+              transition: 'opacity 240ms ease',
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget && deleteStep === 'idle') {
+                handleCloseDeleteModal()
+              }
+            }}
+          >
+            <div
+              className={deleteStep === 'closing' ? '' : 'animate-slide-up'}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-dialog-title"
+              style={{
+                width: '100%',
+                maxWidth: '380px',
+                backgroundColor: 'var(--color-surface)',
+                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--color-border)',
+                boxShadow: 'var(--shadow-lg)',
+                padding: 'var(--space-5)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-4)',
+                transform: deleteStep === 'closing' ? 'scale(0.95) translateY(12px)' : 'none',
+                opacity: deleteStep === 'closing' ? 0 : 1,
+                transition: 'transform 240ms cubic-bezier(0.4, 0, 0.2, 1), opacity 240ms ease',
+              }}
+            >
+              {/* Header Dialog */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: 'var(--radius-lg)',
+                    backgroundColor:
+                      deleteStep === 'success'
+                        ? 'var(--color-success)'
+                        : deleteStep === 'deleting'
+                          ? 'var(--color-surface-raised)'
+                          : 'var(--color-error-subtle)',
+                    color:
+                      deleteStep === 'success'
+                        ? '#ffffff'
+                        : deleteStep === 'deleting'
+                          ? 'var(--color-accent)'
+                          : 'var(--color-error)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    transition: 'all 200ms ease',
+                  }}
+                >
+                  {deleteStep === 'success' ? (
+                    <Check size={22} strokeWidth={2.5} className="animate-scale-in" />
+                  ) : deleteStep === 'deleting' ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={20} />
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3
+                    id="delete-dialog-title"
+                    style={{
+                      fontSize: '1.05rem',
+                      fontWeight: 700,
+                      color:
+                        deleteStep === 'success' ? 'var(--color-success)' : 'var(--color-text)',
+                      margin: 0,
+                      transition: 'color 200ms ease',
+                    }}
+                  >
+                    {deleteStep === 'success'
+                      ? t('deleteDialogSuccess')
+                      : deleteStep === 'deleting'
+                        ? t('deleteDialogDeleting')
+                        : t('deleteDialogTitle')}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: '0.8rem',
+                      color: 'var(--color-text-muted)',
+                      margin: '4px 0 0 0',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {deleteStep === 'success'
+                      ? t('deleteDialogDescSuccess')
+                      : deleteStep === 'deleting'
+                        ? t('deleteDialogDescDeleting')
+                        : t('deleteDialogDesc')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Indikator progress bar interaktif saat menghapus */}
+              {deleteStep === 'deleting' && (
+                <div
+                  style={{
+                    height: '3px',
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: 'var(--color-border)',
+                    overflow: 'hidden',
+                    width: '100%',
+                  }}
+                >
+                  <div
+                    className="splash-progress-bar"
+                    style={{
+                      height: '100%',
+                      width: '45%',
+                      backgroundColor: 'var(--color-error)',
+                      borderRadius: 'var(--radius-full)',
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Rincian Transaksi yang Dihapus */}
+              <div
+                style={{
+                  backgroundColor: 'var(--color-surface-raised)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: 'var(--space-3) var(--space-4)',
+                  border: '1px solid var(--color-border-subtle)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                  opacity: deleteStep === 'deleting' ? 0.6 : 1,
+                  transform: deleteStep === 'deleting' ? 'scale(0.99)' : 'none',
+                  transition: 'opacity 200ms ease, transform 200ms ease',
+                }}
+              >
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    {t('fieldMerchant')}
+                  </span>
+                  <span
+                    style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--color-text)' }}
+                  >
+                    {deleteTarget.merchant ?? t('fallbackExpense')}
+                  </span>
+                </div>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    {t('fieldAmount')}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.9rem',
+                      fontWeight: 800,
+                      color: 'var(--color-expense)',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {isPrivate ? '-Rp ••••••' : `-${formatRupiah(deleteTarget.amountIdr ?? 0)}`}
+                  </span>
+                </div>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    {t('fieldCategory')}
+                  </span>
+                  <span
+                    style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text)' }}
+                  >
+                    {translateCategory(deleteTarget.category) || t('fallbackOther')}
+                  </span>
+                </div>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    {t('fieldDate')}
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text)' }}>
+                    {formatDateLabel(
+                      deleteTarget.txDate ||
+                        (deleteTarget.createdAt
+                          ? new Date(deleteTarget.createdAt).toISOString().slice(0, 10)
+                          : ''),
+                      locale,
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Error Message jika gagal */}
+              {deleteError && (
+                <div
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--color-error-subtle)',
+                    color: 'var(--color-error)',
+                    fontSize: '0.78rem',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {deleteError}
+                </div>
+              )}
+
+              {/* Tombol Aksi & Loading Selesai State */}
+              {deleteStep === 'success' ? (
+                <div
+                  className="animate-scale-in"
+                  style={{
+                    width: '100%',
+                    minHeight: '44px',
+                    borderRadius: 'var(--radius-lg)',
+                    backgroundColor: 'var(--color-success)',
+                    color: '#ffffff',
+                    fontSize: '0.86rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    boxShadow: 'var(--shadow-sm)',
+                  }}
+                >
+                  <Check size={18} strokeWidth={2.5} />
+                  <span>{t('loadingDone')}</span>
+                </div>
+              ) : (
+                <div
+                  style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}
+                >
+                  <button
+                    type="button"
+                    disabled={deleteStep !== 'idle'}
+                    onClick={handleCloseDeleteModal}
+                    style={{
+                      flex: 1,
+                      minHeight: '44px',
+                      borderRadius: 'var(--radius-lg)',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-surface)',
+                      color: 'var(--color-text)',
+                      fontSize: '0.86rem',
+                      fontWeight: 600,
+                      cursor: deleteStep !== 'idle' ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      opacity: deleteStep !== 'idle' ? 0.5 : 1,
+                      transition: 'all var(--duration-fast)',
+                    }}
+                  >
+                    {t('btnCancel')}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deleteStep !== 'idle'}
+                    onClick={handleConfirmDelete}
+                    style={{
+                      flex: 1,
+                      minHeight: '44px',
+                      borderRadius: 'var(--radius-lg)',
+                      border: 'none',
+                      backgroundColor: 'var(--color-error)',
+                      color: '#ffffff',
+                      fontSize: '0.86rem',
+                      fontWeight: 700,
+                      cursor: deleteStep !== 'idle' ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      opacity: deleteStep === 'deleting' ? 0.85 : 1,
+                      transition: 'all var(--duration-fast)',
+                    }}
+                  >
+                    {deleteStep === 'deleting' ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>{t('deletingStatus')}</span>
+                      </>
+                    ) : (
+                      <span>{t('btnConfirmDelete')}</span>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
     </section>
   )
 }

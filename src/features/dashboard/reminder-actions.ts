@@ -7,6 +7,8 @@ import { z } from 'zod'
 import { auth } from '@/auth'
 import { db } from '@/lib/db/client'
 import { reminderSettings, type ReminderSetting } from '@/lib/db/schema'
+import { sendPushNotificationToUser } from '@/lib/push/send-push'
+import { evaluateBudgetReminder } from './reminder-evaluator'
 
 const UpdateReminderSchema = z.object({
   monthlyLimitIdr: z
@@ -15,11 +17,7 @@ const UpdateReminderSchema = z.object({
     .min(10000, 'Batas pengeluaran minimal Rp 10.000')
     .max(1000000000, 'Batas pengeluaran maksimal Rp 1 Miliar')
     .nullable(),
-  customMessage: z
-    .string()
-    .max(150, 'Pesan pengingat maksimal 150 karakter')
-    .nullable()
-    .optional(),
+  customMessage: z.string().max(150, 'Pesan pengingat maksimal 150 karakter').nullable().optional(),
   earlyWarningEnabled: z.boolean().optional(),
   warningThresholdPercent: z.number().int().min(0).max(100).default(90).optional(),
   isEnabled: z.boolean(),
@@ -66,7 +64,13 @@ export async function updateReminderSettingsAction(
   }
 
   const userId = session.user.id
-  const { monthlyLimitIdr, customMessage, earlyWarningEnabled, warningThresholdPercent, isEnabled } = parsed.data
+  const {
+    monthlyLimitIdr,
+    customMessage,
+    earlyWarningEnabled,
+    warningThresholdPercent,
+    isEnabled,
+  } = parsed.data
   const sanitizedMessage = customMessage?.trim() ? customMessage.trim() : null
   const finalThreshold = warningThresholdPercent ?? (earlyWarningEnabled === false ? 0 : 90)
   const isEarlyWarningActive = finalThreshold > 0 && finalThreshold < 100
@@ -96,6 +100,26 @@ export async function updateReminderSettingsAction(
         },
       })
       .returning()
+
+    // Evaluasi apakah dengan pengaturan limit/threshold baru ini pengeluaran saat ini langsung menyentuh batas
+    if (isEnabled && monthlyLimitIdr) {
+      const currentMonthPrefix = new Date().toISOString().slice(0, 7)
+      const reminderEval = await evaluateBudgetReminder(userId, currentMonthPrefix).catch(
+        () => null,
+      )
+      if (reminderEval?.shouldAlert && reminderEval.alertMessage) {
+        const pushTitle =
+          reminderEval.milestone === '100'
+            ? '🚨 Batas Anggaran Terlampaui!'
+            : `⚠️ Peringatan: Pengeluaran Mencapai ${reminderEval.milestone}%!`
+        sendPushNotificationToUser(userId, {
+          title: pushTitle,
+          body: reminderEval.alertMessage,
+          url: '/dashboard',
+          tag: `budget-alert-${reminderEval.milestone}`,
+        }).catch(() => null)
+      }
+    }
 
     revalidatePath('/dashboard')
 

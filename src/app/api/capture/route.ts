@@ -10,7 +10,11 @@ import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
 import { captures, devices, googleTokens, users } from '@/lib/db/schema'
 import { appendTransactionRow, ensureSpreadsheet, GoogleApiError } from '@/lib/google/sheets'
-import { evaluateBudgetReminder, type BudgetReminderEvaluation } from '@/features/dashboard/reminder-evaluator'
+import {
+  evaluateBudgetReminder,
+  type BudgetReminderEvaluation,
+} from '@/features/dashboard/reminder-evaluator'
+import { sendPushNotificationToUser } from '@/lib/push/send-push'
 import { validateImageBuffer } from '@/lib/security/magic-bytes'
 import { checkRateLimit } from '@/lib/security/rate-limit'
 
@@ -115,10 +119,7 @@ export async function POST(request: NextRequest) {
   // 1. Autentikasi token perangkat
   const authResult = await authenticateDevice(request.headers.get('Authorization'))
   if (!authResult.ok) {
-    return NextResponse.json(
-      { status: 'failed', message: authResult.error },
-      { status: 401 },
-    )
+    return NextResponse.json({ status: 'failed', message: authResult.error }, { status: 401 })
   }
 
   const device = authResult.device
@@ -136,7 +137,11 @@ export async function POST(request: NextRequest) {
   }
 
   // Update last seen perangkat di background (tanpa await agar tidak memperlambat)
-  void db.update(devices).set({ lastSeenAt: new Date() }).where(eq(devices.id, device.id)).catch(() => {})
+  void db
+    .update(devices)
+    .set({ lastSeenAt: new Date() })
+    .where(eq(devices.id, device.id))
+    .catch(() => {})
 
   // 3. Validasi multipart & file gambar
   let imageBuffer: Buffer | null = null
@@ -181,7 +186,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!file || (file instanceof Blob && file.size === 0) || (typeof file === 'string' && file.trim() === '')) {
+    if (
+      !file ||
+      (file instanceof Blob && file.size === 0) ||
+      (typeof file === 'string' && file.trim() === '')
+    ) {
       return NextResponse.json(
         {
           status: 'failed',
@@ -245,9 +254,7 @@ export async function POST(request: NextRequest) {
 
   // 5. Ekstraksi model AI secara paralel dengan pre-load data Google Sheets
   const [extractionResult, authData] = await Promise.all([
-    Promise.resolve(
-      defaultExtractionProvider.extractReceipt(imageBuffer, validation.mimeType),
-    )
+    Promise.resolve(defaultExtractionProvider.extractReceipt(imageBuffer, validation.mimeType))
       .then((val) => ({ ok: true as const, value: val }))
       .catch((err) => ({ ok: false as const, error: err })),
     Promise.all([
@@ -290,32 +297,8 @@ export async function POST(request: NextRequest) {
     tokenRecord: preloadedToken,
   }
 
-  // 6. Tangani alur confidence & Google Sheets
+  // 6. Simpan transaksi langsung dengan status 'ok' dan tulis ke Google Sheets
   const formattedAmount = formatRupiah(extraction.amountIdr)
-  const isConfident = extraction.confidence >= 0.7
-
-  if (!isConfident) {
-    await db.insert(captures).values({
-      userId: device.userId,
-      deviceId: device.id,
-      imageHash,
-      status: 'needs_review',
-      confidence: extraction.confidence,
-      merchant: extraction.merchant,
-      amountIdr: extraction.amountIdr,
-      category: extraction.category,
-      txDate: extraction.date,
-    })
-
-    revalidatePath('/dashboard')
-
-    return NextResponse.json({
-      status: 'needs_review',
-      merchant: extraction.merchant,
-      amount: formattedAmount,
-      message: `Tercatat di Perlu Dicek: ${formattedAmount} (perlu konfirmasi)`,
-    })
-  }
 
   // Simpan record capture status ok
   const [newCapture] = await db
@@ -357,6 +340,18 @@ export async function POST(request: NextRequest) {
     let responseMessage = `Tercatat: ${formattedAmount} di ${extraction.merchant}`
     if (reminderEval.shouldAlert && reminderEval.alertMessage) {
       responseMessage = `${reminderEval.alertMessage}\n(Tercatat: ${formattedAmount} di ${extraction.merchant})`
+      const pushTitle =
+        reminderEval.milestone === '100'
+          ? '🚨 Batas Anggaran Terlampaui!'
+          : `⚠️ Peringatan: Pengeluaran Mencapai ${reminderEval.milestone}%!`
+
+      // Kirim Web Push ke perangkat HP pengguna (tampil di lockscreen tanpa perlu buka app)
+      sendPushNotificationToUser(device.userId, {
+        title: pushTitle,
+        body: reminderEval.alertMessage,
+        url: '/dashboard',
+        tag: `budget-alert-${reminderEval.milestone}`,
+      }).catch(() => null)
     }
 
     return NextResponse.json({

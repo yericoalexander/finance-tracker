@@ -185,8 +185,12 @@ textarea::placeholder {
 
 /* ─── Animations ─────────────────────────────────────────────────────── */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
@@ -289,8 +293,9 @@ textarea::placeholder {
 }
 
 @keyframes splashAmbientGlow {
-  0%, 100% {
-    opacity: 0.10;
+  0%,
+  100% {
+    opacity: 0.1;
     transform: scale(0.92);
   }
   50% {
@@ -319,9 +324,10 @@ textarea::placeholder {
   transform: scale(1.03) !important;
   filter: blur(2px) !important;
   pointer-events: none !important;
-  transition: opacity 240ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
-              filter 240ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition:
+    opacity 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 240ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -371,9 +377,13 @@ textarea::placeholder {
   border-radius: 50%;
   background: #ffffff;
   border: 1.5px solid var(--color-border);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
   cursor: grab;
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .ios-range-slider::-webkit-slider-thumb:active {
@@ -388,9 +398,13 @@ textarea::placeholder {
   border-radius: 50%;
   background: #ffffff;
   border: 1.5px solid var(--color-border);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
   cursor: grab;
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .ios-range-slider::-moz-range-thumb:active {
@@ -398,4 +412,3 @@ textarea::placeholder {
   transform: scale(1.12);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
 }
-

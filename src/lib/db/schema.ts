@@ -102,6 +102,25 @@ export const reminderSettings = pgTable('reminder_settings', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// ── push_subscriptions ─────────────────────────────────────────────────────
+// Langganan Web Push per pengguna untuk pengiriman notifikasi latar belakang (lockscreen HP)
+export const pushSubscriptions = pgTable(
+  'push_subscriptions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    endpoint: text('endpoint').notNull().unique(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('push_subscriptions_user_id_idx').on(table.userId)],
+)
+
 // ── Relations ──────────────────────────────────────────────────────────────
 export const usersRelations = relations(users, ({ one, many }) => ({
   googleToken: one(googleTokens, {
@@ -115,11 +134,19 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   pairingCodes: many(pairingCodes),
   devices: many(devices),
   captures: many(captures),
+  pushSubscriptions: many(pushSubscriptions),
 }))
 
 export const reminderSettingsRelations = relations(reminderSettings, ({ one }) => ({
   user: one(users, {
     fields: [reminderSettings.userId],
+    references: [users.id],
+  }),
+}))
+
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [pushSubscriptions.userId],
     references: [users.id],
   }),
 }))
@@ -169,3 +196,5 @@ export type Capture = typeof captures.$inferSelect
 export type NewCapture = typeof captures.$inferInsert
 export type ReminderSetting = typeof reminderSettings.$inferSelect
 export type NewReminderSetting = typeof reminderSettings.$inferInsert
+export type PushSubscription = typeof pushSubscriptions.$inferSelect
+export type NewPushSubscription = typeof pushSubscriptions.$inferInsert

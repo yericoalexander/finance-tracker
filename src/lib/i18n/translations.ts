@@ -8,6 +8,8 @@ export const translations = {
     themeDark: 'Mode Gelap',
     switchThemeLight: 'Beralih ke mode terang',
     switchThemeDark: 'Beralih ke mode gelap',
+    hideAmounts: 'Sembunyikan nominal uang',
+    showAmounts: 'Tampilkan nominal uang',
     langToggle: 'Ganti ke English',
     langName: 'Indonesia',
     accountMenu: 'Menu akun',
@@ -46,7 +48,8 @@ export const translations = {
     budgetReminderBtn: 'Atur Batas',
     budgetReminderActive: 'Batas: {limit}',
     budgetModalTitle: 'Batas Pengeluaran',
-    budgetModalDesc: 'Dapatkan notifikasi otomatis di ponsel saat pengeluaran Anda mencapai batas yang ditentukan.',
+    budgetModalDesc:
+      'Dapatkan notifikasi otomatis di ponsel saat pengeluaran Anda mencapai batas yang ditentukan.',
     budgetActiveToggle: 'Aktifkan Pengingat Pengeluaran',
     budgetLimitLabel: 'Batas Pengeluaran Bulanan',
     budgetLimitPlaceholder: 'Misal: 1.500.000',
@@ -76,11 +79,14 @@ export const translations = {
     budgetWarningThresholdDesc: 'Beri tahu saat {percent}% ({amount}) & batas 100%',
     budgetWarningThreshold100: 'Hanya beri tahu saat mencapai batas 100% ({amount})',
     budgetWarningThresholdOff: 'Peringatan awal dinonaktifkan (hanya saat 100%)',
-    budgetAntiSpamNote: 'Anti-Spam: Notifikasi hanya dikirim sekali saat menembus ambang batas, tidak membombardir transaksi kecil berikutnya.',
+    budgetAntiSpamNote:
+      'Anti-Spam: Notifikasi hanya dikirim sekali saat menembus ambang batas, tidak membombardir transaksi kecil berikutnya.',
     budgetBannerOverTitle: '🚨 Batas Anggaran Terlampaui!',
-    budgetBannerOverDesc: 'Pengeluaran bulan ini sudah {total} (melebihi batas {limit} sebesar {over}).',
+    budgetBannerOverDesc:
+      'Pengeluaran bulan ini sudah {total} (melebihi batas {limit} sebesar {over}).',
     budgetBannerWarningTitle: '⚠️ Peringatan: Pengeluaran Sudah {percent}%!',
-    budgetBannerWarningDesc: 'Pengeluaran bulan ini sudah {percent}% ({total} dari batas {limit}). Sisa: {remaining}.',
+    budgetBannerWarningDesc:
+      'Pengeluaran bulan ini sudah {percent}% ({total} dari batas {limit}). Sisa: {remaining}.',
     budgetEnableWebNotif: 'Nyalakan notifikasi browser',
 
     // Month Navigator
@@ -119,7 +125,8 @@ export const translations = {
     filterOther: 'Lainnya',
     noTransactionsFound: 'Tidak ada transaksi yang cocok',
     noTransactionsPeriod: 'Belum ada transaksi di bulan ini',
-    noTransactionsSub: 'Ambil screenshot struk/bukti transfer di iPhone lalu Back Tap, atau catat manual.',
+    noTransactionsSub:
+      'Ambil screenshot struk/bukti transfer di iPhone lalu Back Tap, atau catat manual.',
     goToAdd: '+ Catat Transaksi Baru',
     resetSearch: 'Reset Pencarian',
     clearFilter: 'Hapus Filter',
@@ -163,12 +170,15 @@ export const translations = {
 
     // Delete Confirmation Modal
     deleteConfirmTitle: 'Hapus Transaksi Ini?',
-    deleteConfirmWarning: 'Data transaksi ini akan dihapus permanen dari Google Sheets dan tidak dapat dikembalikan.',
+    deleteConfirmWarning:
+      'Data transaksi ini akan dihapus permanen dari Google Sheets dan tidak dapat dikembalikan.',
     deleteDialogTitle: 'Hapus Transaksi?',
     deleteDialogDeleting: 'Menghapus Transaksi...',
     deleteDialogSuccess: 'Berhasil Dihapus!',
-    deleteDialogDesc: 'Transaksi akan dihapus dari aplikasi dan baris di Google Sheets Anda akan otomatis dirapikan tanpa celah kosong.',
-    deleteDialogDescDeleting: 'Sedang menghapus data dari sistem dan merapikan Google Sheets Anda...',
+    deleteDialogDesc:
+      'Transaksi akan dihapus dari aplikasi dan baris di Google Sheets Anda akan otomatis dirapikan tanpa celah kosong.',
+    deleteDialogDescDeleting:
+      'Sedang menghapus data dari sistem dan merapikan Google Sheets Anda...',
     deleteDialogDescSuccess: 'Transaksi dan baris di Google Sheets telah selesai dirapikan.',
     fieldMerchant: 'Merchant',
     fieldAmount: 'Nominal',
@@ -220,7 +230,8 @@ export const translations = {
     // Shortcut Onboarding Modal
     onboardingModalTitle: 'Pasang Pintasan iPhone',
     onboardingModalSub: 'Halo {name}, siapkan integrasi otomatis',
-    onboardingModalDescPart1: 'Aplikasi ini mencatat pengeluaran langsung dari tangkapan layar iPhone Anda via',
+    onboardingModalDescPart1:
+      'Aplikasi ini mencatat pengeluaran langsung dari tangkapan layar iPhone Anda via',
     onboardingModalDescStrong: 'Ketuk Bagian Belakang (Back Tap)',
     onboardingModalDescPart2: 'dalam 2 detik.',
     onboardingWarningTitle: 'Wajib: Pilih "Selalu Izinkan"',
@@ -255,9 +266,11 @@ export const translations = {
 
     modalHelpTitle: 'Bantuan & Panduan',
     guideBackTapTitle: '⚡ Cara Catat dengan Back Tap',
-    guideBackTapText: '1. Ambil screenshot bukti transfer/struk di iPhone.\n2. Ketuk 2x bagian belakang iPhone.\n3. Transaksi otomatis diekstrak AI dan masuk ke Google Sheets & Dashboard ini!',
+    guideBackTapText:
+      '1. Ambil screenshot bukti transfer/struk di iPhone.\n2. Ketuk 2x bagian belakang iPhone.\n3. Transaksi otomatis diekstrak AI dan masuk ke Google Sheets & Dashboard ini!',
     guidePwaTitle: '📱 Pasang di Layar Utama (Add to Home Screen)',
-    guidePwaText: '1. Buka website ini di Safari iPhone.\n2. Ketuk ikon Bagikan (Share).\n3. Pilih "Tambah ke Layar Utama" (Add to Home Screen).',
+    guidePwaText:
+      '1. Buka website ini di Safari iPhone.\n2. Ketuk ikon Bagikan (Share).\n3. Pilih "Tambah ke Layar Utama" (Add to Home Screen).',
     btnGotIt: 'Mengerti',
 
     modalFeedbackTitle: 'Beri Masukan',
@@ -272,24 +285,28 @@ export const translations = {
 
     // Direct Setup Card
     directSetupTitle: 'Hubungkan iPhone Otomatis',
-    directSetupDesc: 'Hubungkan iPhone Anda ke Finance Tracker untuk mencatat pengeluaran otomatis via Back Tap.',
+    directSetupDesc:
+      'Hubungkan iPhone Anda ke Finance Tracker untuk mencatat pengeluaran otomatis via Back Tap.',
     labelDeviceName: 'Label Perangkat',
     placeholderDeviceName: 'Contoh: iPhone Rico',
     defaultDevicePrefix: 'iPhone',
     defaultDeviceSuffix: 'Saya',
     privateAndSecure: 'Privat & Aman:',
-    privateAndSecureDesc: 'Setiap perangkat memiliki token unik terenkripsi dan hanya menulis transaksi ke Google Sheets akun Anda.',
+    privateAndSecureDesc:
+      'Setiap perangkat memiliki token unik terenkripsi dan hanya menulis transaksi ke Google Sheets akun Anda.',
     btnCreateAccess: 'Buat Akses iPhone (1-Klik)',
     btnCreatingAccess: 'Menyiapkan Akses...',
     errCreateAccess: 'Gagal membuat akses perangkat',
     errNetworkConnect: 'Terjadi kendala jaringan saat menghubungkan',
     setupSuccessTitle: 'Akses iPhone Berhasil Dibuat!',
     autoConnectBoxTitle: 'Hubungkan ke iPhone Otomatis (1-Klik)',
-    autoConnectBoxDesc: 'Ketuk tombol di bawah. iPhone Anda akan langsung membuka Pintasan dan menyambungkan akun Anda otomatis tanpa perlu ketik apapun.',
+    autoConnectBoxDesc:
+      'Ketuk tombol di bawah. iPhone Anda akan langsung membuka Pintasan dan menyambungkan akun Anda otomatis tanpa perlu ketik apapun.',
     btnConnectNow: '⚡ Hubungkan ke iPhone Sekarang',
     btnInstallFromIcloud: '📲 Belum punya pintasan? Pasang dari iCloud',
     backTapReminderTitle: '💡 Jangan Lupa: Atur Back Tap di iPhone',
-    backTapReminderDesc: 'Buka Pengaturan > Aksesibilitas > Sentuh > Ketuk Bagian Belakang > pilih Finance Tracker pada Ketuk 2x.',
+    backTapReminderDesc:
+      'Buka Pengaturan > Aksesibilitas > Sentuh > Ketuk Bagian Belakang > pilih Finance Tracker pada Ketuk 2x.',
     showManualDetails: 'Ingin Salin Token / Endpoint Manual?',
     hideManualDetails: 'Sembunyikan Nilai Teknis',
     captureEndpointUrl: 'URL Endpoint Capture:',
@@ -299,14 +316,19 @@ export const translations = {
     // Shortcut Guide Card
     guideCardTitle: 'Panduan Pintasan & Back Tap',
     guideStep1Title: 'Tekan Tombol "Pasang & Hubungkan Pintasan" di Atas',
-    guideStep1Desc: 'Cukup ketuk tombol hitam di atas sekali saja. iPhone Anda otomatis membuka layar resmi "Tambahkan Pintasan".',
+    guideStep1Desc:
+      'Cukup ketuk tombol hitam di atas sekali saja. iPhone Anda otomatis membuka layar resmi "Tambahkan Pintasan".',
     guideStep2Title: 'Ketuk "Hubungkan ke iPhone Otomatis"',
-    guideStep2Desc: 'Cukup ketuk tombol satu kali. iPhone Anda akan otomatis membuka Pintasan dan menyambungkan akun Anda secara instan tanpa perlu ketik apapun.',
+    guideStep2Desc:
+      'Cukup ketuk tombol satu kali. iPhone Anda akan otomatis membuka Pintasan dan menyambungkan akun Anda secara instan tanpa perlu ketik apapun.',
     guideStep3Title: 'Pilih "Selalu Izinkan" (Always Allow)',
-    guideStep3Desc: 'Saat pertama kali pintasan dipakai di iPhone, iOS meminta izin jaringan: wajib pilih Selalu Izinkan agar pengiriman struk belanja tidak terblokir.',
+    guideStep3Desc:
+      'Saat pertama kali pintasan dipakai di iPhone, iOS meminta izin jaringan: wajib pilih Selalu Izinkan agar pengiriman struk belanja tidak terblokir.',
     guideStep4Title: 'Pasang Ketuk Belakang (Back Tap)',
-    guideStep4Desc: 'Buka Pengaturan iPhone → Aksesibilitas → Sentuh → Ketuk Bagian Belakang → Pilih Finance Tracker pada Ketuk Dua Kali.',
-    guideDoneTip: 'Selesai! Kapan pun Anda melihat struk atau bukti transfer di iPhone, cukup ketuk 2x punggung iPhone Anda untuk mencatat pengeluaran otomatis ke Google Sheets.',
+    guideStep4Desc:
+      'Buka Pengaturan iPhone → Aksesibilitas → Sentuh → Ketuk Bagian Belakang → Pilih Finance Tracker pada Ketuk Dua Kali.',
+    guideDoneTip:
+      'Selesai! Kapan pun Anda melihat struk atau bukti transfer di iPhone, cukup ketuk 2x punggung iPhone Anda untuk mencatat pengeluaran otomatis ke Google Sheets.',
 
     // Device List
     connectedDevicesTitle: 'Perangkat Terhubung ({count})',
@@ -321,11 +343,13 @@ export const translations = {
 
     // Setup Gate
     setupGateTitle: 'Pasang Pintasan iPhone',
-    setupGateSubtitle: 'Halo {name}! Pasang pintasan Finance Tracker ke iPhone Anda untuk mulai mencatat pengeluaran otomatis ke Google Sheets pribadi.',
+    setupGateSubtitle:
+      'Halo {name}! Pasang pintasan Finance Tracker ke iPhone Anda untuk mulai mencatat pengeluaran otomatis ke Google Sheets pribadi.',
     setupGateReadyTitle: 'Siap Dihubungkan ke iPhone!',
     setupGateReadySub: 'Koneksi otomatis langsung ke Google Sheets ({email})',
     setupGateStepTitle: 'Langkah 1-Klik Otomatis:',
-    setupGateStepDesc: 'Ketuk tombol di bawah. iPhone Anda akan otomatis membuka Pintasan dan menyimpan koneksi akun Anda tanpa perlu ketik apapun.',
+    setupGateStepDesc:
+      'Ketuk tombol di bawah. iPhone Anda akan otomatis membuka Pintasan dan menyimpan koneksi akun Anda tanpa perlu ketik apapun.',
     setupGateBtnConnectAuto: 'Hubungkan ke iPhone Otomatis',
     setupGateNotInstalledYet: 'Belum punya pintasan di iPhone? Pasang sekali saja:',
     setupGateBtnInstallIcloud: 'Pasang Pintasan (iCloud)',
@@ -349,7 +373,8 @@ export const translations = {
     pwaStep3Title: 'Ketuk "Tambah"',
     pwaStep3Badge: 'Tambah',
     pwaStep3Desc: 'Tombol di pojok kanan atas. Ikon aplikasi langsung terpasang di layar utama.',
-    pwaCallout: 'Aplikasi akan terbuka layar penuh tanpa bilah Safari dan tanpa membuat tab browser menumpuk.',
+    pwaCallout:
+      'Aplikasi akan terbuka layar penuh tanpa bilah Safari dan tanpa membuat tab browser menumpuk.',
     guideBadge: 'Panduan',
     closeSuggestion: 'Tutup saran',
 
@@ -364,6 +389,8 @@ export const translations = {
     themeDark: 'Dark Mode',
     switchThemeLight: 'Switch to light mode',
     switchThemeDark: 'Switch to dark mode',
+    hideAmounts: 'Hide monetary amounts',
+    showAmounts: 'Show monetary amounts',
     langToggle: 'Switch to Indonesia',
     langName: 'English',
     accountMenu: 'Account menu',
@@ -402,7 +429,8 @@ export const translations = {
     budgetReminderBtn: 'Set Limit',
     budgetReminderActive: 'Limit: {limit}',
     budgetModalTitle: 'Spending Limit',
-    budgetModalDesc: 'Get automatic notifications on your phone when your spending hits your monthly threshold.',
+    budgetModalDesc:
+      'Get automatic notifications on your phone when your spending hits your monthly threshold.',
     budgetActiveToggle: 'Enable Spending Reminder',
     budgetLimitLabel: 'Monthly Spending Limit',
     budgetLimitPlaceholder: 'E.g., 1,500,000',
@@ -432,11 +460,13 @@ export const translations = {
     budgetWarningThresholdDesc: 'Notify at {percent}% ({amount}) & 100% limit',
     budgetWarningThreshold100: 'Only notify when reaching full 100% limit ({amount})',
     budgetWarningThresholdOff: 'Early warning disabled (only 100% limit alert)',
-    budgetAntiSpamNote: 'Anti-Spam: Alerts are sent once upon crossing the threshold, not spamming subsequent small transactions.',
+    budgetAntiSpamNote:
+      'Anti-Spam: Alerts are sent once upon crossing the threshold, not spamming subsequent small transactions.',
     budgetBannerOverTitle: '🚨 Spending Limit Exceeded!',
     budgetBannerOverDesc: 'Spending this month has reached {total} (over limit {limit} by {over}).',
     budgetBannerWarningTitle: '⚠️ Warning: Spending Reached {percent}%!',
-    budgetBannerWarningDesc: 'Spending this month has reached {percent}% ({total} of {limit} limit). Remaining: {remaining}.',
+    budgetBannerWarningDesc:
+      'Spending this month has reached {percent}% ({total} of {limit} limit). Remaining: {remaining}.',
     budgetEnableWebNotif: 'Enable browser notifications',
 
     // Month Navigator
@@ -475,7 +505,8 @@ export const translations = {
     filterOther: 'Others',
     noTransactionsFound: 'No matching transactions found',
     noTransactionsPeriod: 'No transactions recorded for this month',
-    noTransactionsSub: 'Take a screenshot of receipts/transfers on your iPhone then Back Tap, or add manually.',
+    noTransactionsSub:
+      'Take a screenshot of receipts/transfers on your iPhone then Back Tap, or add manually.',
     goToAdd: '+ Record New Transaction',
     resetSearch: 'Reset Search',
     clearFilter: 'Clear Filter',
@@ -519,11 +550,13 @@ export const translations = {
 
     // Delete Confirmation Modal
     deleteConfirmTitle: 'Delete This Transaction?',
-    deleteConfirmWarning: 'This transaction will be permanently removed from Google Sheets and cannot be undone.',
+    deleteConfirmWarning:
+      'This transaction will be permanently removed from Google Sheets and cannot be undone.',
     deleteDialogTitle: 'Delete Transaction?',
     deleteDialogDeleting: 'Deleting Transaction...',
     deleteDialogSuccess: 'Deleted Successfully!',
-    deleteDialogDesc: 'The transaction will be deleted from the app and the row in your Google Sheets will be neatly removed without empty gaps.',
+    deleteDialogDesc:
+      'The transaction will be deleted from the app and the row in your Google Sheets will be neatly removed without empty gaps.',
     deleteDialogDescDeleting: 'Removing data from system and tidying your Google Sheets...',
     deleteDialogDescSuccess: 'Transaction and rows in Google Sheets have been neatly updated.',
     fieldMerchant: 'Merchant',
@@ -590,8 +623,7 @@ export const translations = {
 
     // Retry Sheet Card
     sheetNotConnected: 'Google Sheet not connected',
-    sheetNotConnectedDesc:
-      'Transaction spreadsheet was not finished during previous login.',
+    sheetNotConnectedDesc: 'Transaction spreadsheet was not finished during previous login.',
     btnRetrySheet: 'Retry connecting Google Sheet',
     btnRetrySheetAction: 'Reconnect',
     btnRetryingSheet: 'Connecting...',
@@ -611,9 +643,11 @@ export const translations = {
 
     modalHelpTitle: 'Help & Guides',
     guideBackTapTitle: '⚡ How to Record with Back Tap',
-    guideBackTapText: '1. Take a screenshot of your receipt/payment on iPhone.\n2. Double-tap the back of your iPhone.\n3. AI automatically extracts the transaction into Google Sheets & this Dashboard!',
+    guideBackTapText:
+      '1. Take a screenshot of your receipt/payment on iPhone.\n2. Double-tap the back of your iPhone.\n3. AI automatically extracts the transaction into Google Sheets & this Dashboard!',
     guidePwaTitle: '📱 Add to Home Screen',
-    guidePwaText: '1. Open this website in Safari on iPhone.\n2. Tap the Share button.\n3. Choose "Add to Home Screen".',
+    guidePwaText:
+      '1. Open this website in Safari on iPhone.\n2. Tap the Share button.\n3. Choose "Add to Home Screen".',
     btnGotIt: 'Got it',
 
     modalFeedbackTitle: 'Send Feedback',
@@ -628,24 +662,28 @@ export const translations = {
 
     // Direct Setup Card
     directSetupTitle: 'Automatic iPhone Setup',
-    directSetupDesc: 'Connect your iPhone to Finance Tracker to automatically record expenses via Back Tap.',
+    directSetupDesc:
+      'Connect your iPhone to Finance Tracker to automatically record expenses via Back Tap.',
     labelDeviceName: 'Device Label',
     placeholderDeviceName: "e.g. Rico's iPhone",
     defaultDevicePrefix: 'iPhone',
     defaultDeviceSuffix: 'My',
     privateAndSecure: 'Private & Secure:',
-    privateAndSecureDesc: 'Each device has an encrypted unique token and only writes transactions to your account Google Sheets.',
+    privateAndSecureDesc:
+      'Each device has an encrypted unique token and only writes transactions to your account Google Sheets.',
     btnCreateAccess: 'Create iPhone Access (1-Click)',
     btnCreatingAccess: 'Setting up Access...',
     errCreateAccess: 'Failed to create device access',
     errNetworkConnect: 'Network issue while connecting',
     setupSuccessTitle: 'iPhone Access Created Successfully!',
     autoConnectBoxTitle: 'Connect to iPhone Automatically (1-Click)',
-    autoConnectBoxDesc: 'Tap the button below. Your iPhone will immediately open Shortcuts and link your account automatically without typing anything.',
+    autoConnectBoxDesc:
+      'Tap the button below. Your iPhone will immediately open Shortcuts and link your account automatically without typing anything.',
     btnConnectNow: '⚡ Connect to iPhone Now',
     btnInstallFromIcloud: "📲 Don't have the shortcut yet? Install from iCloud",
     backTapReminderTitle: "💡 Don't Forget: Set Up Back Tap on iPhone",
-    backTapReminderDesc: 'Open Settings > Accessibility > Touch > Back Tap > select Finance Tracker on Double Tap.',
+    backTapReminderDesc:
+      'Open Settings > Accessibility > Touch > Back Tap > select Finance Tracker on Double Tap.',
     showManualDetails: 'Want to Copy Token / Endpoint Manually?',
     hideManualDetails: 'Hide Technical Details',
     captureEndpointUrl: 'Capture Endpoint URL:',
@@ -655,14 +693,19 @@ export const translations = {
     // Shortcut Guide Card
     guideCardTitle: 'Shortcuts & Back Tap Guide',
     guideStep1Title: 'Tap "Install & Connect Shortcut" Above',
-    guideStep1Desc: 'Just tap the button above once. Your iPhone will automatically open the official "Add Shortcut" screen.',
+    guideStep1Desc:
+      'Just tap the button above once. Your iPhone will automatically open the official "Add Shortcut" screen.',
     guideStep2Title: 'Tap "Connect to iPhone Automatically"',
-    guideStep2Desc: 'Simply tap the button once. Your iPhone will automatically open Shortcuts and link your account instantly without typing anything.',
+    guideStep2Desc:
+      'Simply tap the button once. Your iPhone will automatically open Shortcuts and link your account instantly without typing anything.',
     guideStep3Title: 'Select "Always Allow"',
-    guideStep3Desc: 'When the shortcut runs for the first time on iPhone, iOS requests network permission: make sure to select Always Allow so receipt submissions are never blocked.',
+    guideStep3Desc:
+      'When the shortcut runs for the first time on iPhone, iOS requests network permission: make sure to select Always Allow so receipt submissions are never blocked.',
     guideStep4Title: 'Configure Back Tap',
-    guideStep4Desc: 'Open iPhone Settings → Accessibility → Touch → Back Tap → select Finance Tracker on Double Tap.',
-    guideDoneTip: 'All set! Whenever you see a receipt or transfer proof on your iPhone, simply double tap the back of your iPhone to automatically record the expense into Google Sheets.',
+    guideStep4Desc:
+      'Open iPhone Settings → Accessibility → Touch → Back Tap → select Finance Tracker on Double Tap.',
+    guideDoneTip:
+      'All set! Whenever you see a receipt or transfer proof on your iPhone, simply double tap the back of your iPhone to automatically record the expense into Google Sheets.',
 
     // Device List
     connectedDevicesTitle: 'Connected Devices ({count})',
@@ -677,11 +720,13 @@ export const translations = {
 
     // Setup Gate
     setupGateTitle: 'Install iPhone Shortcut',
-    setupGateSubtitle: 'Hello {name}! Install the Finance Tracker shortcut on your iPhone to start recording expenses automatically to your personal Google Sheets.',
+    setupGateSubtitle:
+      'Hello {name}! Install the Finance Tracker shortcut on your iPhone to start recording expenses automatically to your personal Google Sheets.',
     setupGateReadyTitle: 'Ready to Connect to iPhone!',
     setupGateReadySub: 'Automatic connection directly to Google Sheets ({email})',
     setupGateStepTitle: '1-Click Automatic Step:',
-    setupGateStepDesc: 'Tap the button below. Your iPhone will automatically open Shortcuts and save your account connection without typing anything.',
+    setupGateStepDesc:
+      'Tap the button below. Your iPhone will automatically open Shortcuts and save your account connection without typing anything.',
     setupGateBtnConnectAuto: 'Connect to iPhone Automatically',
     setupGateNotInstalledYet: "Don't have the shortcut on iPhone yet? Install once:",
     setupGateBtnInstallIcloud: 'Install Shortcut (iCloud)',
@@ -704,8 +749,10 @@ export const translations = {
     pwaStep2Desc: 'Scroll down the options menu until you find this option.',
     pwaStep3Title: 'Tap "Add"',
     pwaStep3Badge: 'Add',
-    pwaStep3Desc: 'Button in the top right corner. The app icon will appear directly on your home screen.',
-    pwaCallout: 'The app will open in full screen without the Safari toolbar and without cluttering browser tabs.',
+    pwaStep3Desc:
+      'Button in the top right corner. The app icon will appear directly on your home screen.',
+    pwaCallout:
+      'The app will open in full screen without the Safari toolbar and without cluttering browser tabs.',
     guideBadge: 'Guide',
     closeSuggestion: 'Dismiss suggestion',
 
@@ -719,19 +766,19 @@ export type TranslationKey = keyof typeof translations.id
 
 export const categoryTranslations: Record<string, { id: string; en: string }> = {
   'Makanan & Minuman': { id: 'Makanan & Minuman', en: 'Food & Beverage' },
-  'Transportasi': { id: 'Transportasi', en: 'Transportation' },
-  'Belanja': { id: 'Belanja', en: 'Shopping' },
+  Transportasi: { id: 'Transportasi', en: 'Transportation' },
+  Belanja: { id: 'Belanja', en: 'Shopping' },
   'Tagihan & Utilitas': { id: 'Tagihan & Utilitas', en: 'Bills & Utilities' },
-  'Hiburan': { id: 'Hiburan', en: 'Entertainment' },
-  'Kesehatan': { id: 'Kesehatan', en: 'Healthcare' },
-  'Lainnya': { id: 'Lainnya', en: 'Others' },
+  Hiburan: { id: 'Hiburan', en: 'Entertainment' },
+  Kesehatan: { id: 'Kesehatan', en: 'Healthcare' },
+  Lainnya: { id: 'Lainnya', en: 'Others' },
 }
 
 export const paymentMethodTranslations: Record<string, { id: string; en: string }> = {
-  'QRIS': { id: 'QRIS', en: 'QRIS' },
+  QRIS: { id: 'QRIS', en: 'QRIS' },
   'Transfer BCA': { id: 'Transfer BCA', en: 'BCA Transfer' },
   'Transfer Mandiri': { id: 'Transfer Mandiri', en: 'Mandiri Transfer' },
   'Kartu Debit': { id: 'Kartu Debit', en: 'Debit Card' },
-  'Tunai': { id: 'Tunai', en: 'Cash' },
-  'Lainnya': { id: 'Lainnya', en: 'Others' },
+  Tunai: { id: 'Tunai', en: 'Cash' },
+  Lainnya: { id: 'Lainnya', en: 'Others' },
 }

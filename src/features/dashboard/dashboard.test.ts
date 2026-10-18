@@ -18,6 +18,10 @@ vi.mock('next/cache', () => ({
   revalidatePath: (path: string) => mockRevalidatePath(path),
 }))
 
+vi.mock('@/lib/push/send-push', () => ({
+  sendPushNotificationToUser: vi.fn().mockResolvedValue({ sent: 1, failed: 0 }),
+}))
+
 vi.mock('@/lib/db/client', () => ({
   db: {
     select: () => ({
@@ -55,7 +59,8 @@ vi.mock('@/lib/google/sheets', () => ({
   deleteTransactionRow: (...args: unknown[]) => mockDeleteTransactionRow(...args),
 }))
 
-const { approveReviewAction, dismissReviewAction, getMonthSummaryAction, deleteTransactionAction } = await import('./actions')
+const { approveReviewAction, dismissReviewAction, getMonthSummaryAction, deleteTransactionAction } =
+  await import('./actions')
 const { createManualTransactionAction } = await import('./manual-entry-action')
 
 describe('Dashboard Actions', () => {
@@ -139,9 +144,7 @@ describe('Dashboard Actions', () => {
       mockAuth.mockResolvedValue({ user: { id: 'user-123' } })
       mockDbSelect
         .mockResolvedValueOnce([{ sheetId: 'mock-sheet-id' }])
-        .mockResolvedValueOnce([
-          { refreshTokenEncrypted: 'enc', iv: 'iv', authTag: 'tag' },
-        ])
+        .mockResolvedValueOnce([{ refreshTokenEncrypted: 'enc', iv: 'iv', authTag: 'tag' }])
       mockAppendTransactionRow.mockResolvedValue(undefined)
       mockDbInsert.mockResolvedValue({ rowCount: 1 })
 
@@ -251,4 +254,3 @@ describe('Dashboard Actions', () => {
     })
   })
 })
-

@@ -17,8 +17,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
-          scope:
-            'openid email profile https://www.googleapis.com/auth/drive.file',
+          scope: 'openid email profile https://www.googleapis.com/auth/drive.file',
           access_type: 'offline',
           prompt: 'consent',
         },
@@ -75,10 +74,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         try {
           const sheetId = await ensureSpreadsheet(refreshToken, user.sheetId ?? null)
           if (sheetId !== user.sheetId) {
-            await db
-              .update(users)
-              .set({ sheetId })
-              .where(eq(users.id, user.id))
+            await db.update(users).set({ sheetId }).where(eq(users.id, user.id))
           }
         } catch (sheetErr) {
           if (sheetErr instanceof GoogleApiError) {

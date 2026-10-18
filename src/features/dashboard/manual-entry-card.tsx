@@ -9,7 +9,14 @@ import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
 import { createManualTransactionAction } from './manual-entry-action'
 
-const PAYMENT_METHODS = ['QRIS', 'Transfer BCA', 'Transfer Mandiri', 'Kartu Debit', 'Tunai', 'Lainnya']
+const PAYMENT_METHODS = [
+  'QRIS',
+  'Transfer BCA',
+  'Transfer Mandiri',
+  'Kartu Debit',
+  'Tunai',
+  'Lainnya',
+]
 
 interface ManualEntryCardProps {
   onSuccess?: () => void
@@ -76,7 +83,9 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
       if (!res.ok) {
         setErrorMsg(res.error ?? t('errSaveFailed'))
       } else {
-        setSuccessMsg(t('manualSuccessMsg', { amount: formatRupiah(numericAmount), merchant: merchant.trim() }))
+        setSuccessMsg(
+          t('manualSuccessMsg', { amount: formatRupiah(numericAmount), merchant: merchant.trim() }),
+        )
         if (res.budgetAlert?.alertMessage) {
           setBudgetAlertMsg(res.budgetAlert.alertMessage)
         } else {
@@ -85,9 +94,12 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
         resetForm()
         router.refresh()
         if (onSuccess) {
-          setTimeout(() => {
-            onSuccess()
-          }, res.budgetAlert?.alertMessage ? 2500 : 700)
+          setTimeout(
+            () => {
+              onSuccess()
+            },
+            res.budgetAlert?.alertMessage ? 2500 : 700,
+          )
         }
       }
     } catch (err) {
@@ -156,7 +168,9 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
             }}
           >
             <Bell size={16} color="var(--color-warning)" />
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-warning-text)' }}>
+            <span
+              style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-warning-text)' }}
+            >
               {budgetAlertMsg}
             </span>
           </div>
@@ -351,8 +365,12 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                     fontFamily: 'inherit',
                     fontSize: '0.78rem',
                     fontWeight: isSelected ? 600 : 500,
-                    border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                    backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+                    border: isSelected
+                      ? '1px solid var(--color-accent)'
+                      : '1px solid var(--color-border)',
+                    backgroundColor: isSelected
+                      ? 'var(--color-accent)'
+                      : 'var(--color-surface-raised)',
                     color: isSelected ? 'var(--color-accent-text)' : 'var(--color-text)',
                     cursor: 'pointer',
                     transition: 'all var(--duration-fast) var(--ease-default)',
@@ -408,7 +426,8 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                 padding: '0 var(--space-3)',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--color-border)',
-                backgroundColor: txDate === todayStr ? 'var(--color-surface-raised)' : 'transparent',
+                backgroundColor:
+                  txDate === todayStr ? 'var(--color-surface-raised)' : 'transparent',
                 color: 'var(--color-text)',
                 fontFamily: 'inherit',
                 fontSize: '0.78rem',
@@ -450,8 +469,12 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                     fontFamily: 'inherit',
                     fontSize: '0.76rem',
                     fontWeight: isSelected ? 600 : 500,
-                    border: isSelected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                    backgroundColor: isSelected ? 'var(--color-accent-subtle)' : 'var(--color-surface-raised)',
+                    border: isSelected
+                      ? '1px solid var(--color-accent)'
+                      : '1px solid var(--color-border)',
+                    backgroundColor: isSelected
+                      ? 'var(--color-accent-subtle)'
+                      : 'var(--color-surface-raised)',
                     color: isSelected ? 'var(--color-accent)' : 'var(--color-text)',
                     cursor: 'pointer',
                   }}

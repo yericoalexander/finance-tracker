@@ -19,7 +19,15 @@ export function PairHeader() {
         gap: 'var(--space-2)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: 1 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--space-3)',
+          minWidth: 0,
+          flex: 1,
+        }}
+      >
         <Link
           href="/dashboard"
           prefetch={true}

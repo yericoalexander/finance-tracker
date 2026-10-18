@@ -56,10 +56,7 @@ export async function retryEnsureSpreadsheetAction(): Promise<RetrySheetResult> 
 
     const sheetId = await ensureSpreadsheet(refreshToken, null)
 
-    await db
-      .update(users)
-      .set({ sheetId })
-      .where(eq(users.id, userId))
+    await db.update(users).set({ sheetId }).where(eq(users.id, userId))
 
     revalidatePath('/dashboard')
     return { ok: true, sheetId }
@@ -68,7 +65,8 @@ export async function retryEnsureSpreadsheetAction(): Promise<RetrySheetResult> 
       if (err.action === 're-auth') {
         return {
           ok: false,
-          error: 'Izin Google Drive/Sheets ditolak. Silakan keluar dan login ulang dengan menyetujui izin Google.',
+          error:
+            'Izin Google Drive/Sheets ditolak. Silakan keluar dan login ulang dengan menyetujui izin Google.',
         }
       }
       return {

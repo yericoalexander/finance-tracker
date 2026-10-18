@@ -61,19 +61,14 @@ export function LanguageToggle() {
           padding: '0 8px',
           borderRadius: 'var(--radius-full)',
           border: 'none',
-          backgroundColor:
-            locale === 'id' ? 'var(--color-accent)' : 'transparent',
-          color:
-            locale === 'id'
-              ? 'var(--color-accent-text)'
-              : 'var(--color-text-muted)',
+          backgroundColor: locale === 'id' ? 'var(--color-accent)' : 'transparent',
+          color: locale === 'id' ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
           fontSize: '0.74rem',
           fontWeight: locale === 'id' ? 800 : 600,
           letterSpacing: '0.04em',
           cursor: 'pointer',
           transition: 'all 160ms cubic-bezier(0.16, 1, 0.3, 1)',
-          boxShadow:
-            locale === 'id' ? '0 1px 3px rgba(0, 0, 0, 0.16)' : 'none',
+          boxShadow: locale === 'id' ? '0 1px 3px rgba(0, 0, 0, 0.16)' : 'none',
         }}
       >
         ID
@@ -98,19 +93,14 @@ export function LanguageToggle() {
           padding: '0 8px',
           borderRadius: 'var(--radius-full)',
           border: 'none',
-          backgroundColor:
-            locale === 'en' ? 'var(--color-accent)' : 'transparent',
-          color:
-            locale === 'en'
-              ? 'var(--color-accent-text)'
-              : 'var(--color-text-muted)',
+          backgroundColor: locale === 'en' ? 'var(--color-accent)' : 'transparent',
+          color: locale === 'en' ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
           fontSize: '0.74rem',
           fontWeight: locale === 'en' ? 800 : 600,
           letterSpacing: '0.04em',
           cursor: 'pointer',
           transition: 'all 160ms cubic-bezier(0.16, 1, 0.3, 1)',
-          boxShadow:
-            locale === 'en' ? '0 1px 3px rgba(0, 0, 0, 0.16)' : 'none',
+          boxShadow: locale === 'en' ? '0 1px 3px rgba(0, 0, 0, 0.16)' : 'none',
         }}
       >
         EN

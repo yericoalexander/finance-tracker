@@ -41,12 +41,7 @@ export function validateImageBuffer(buffer: Buffer): ImageValidationResult {
   }
 
   // 2. JPEG: FF D8 FF
-  if (
-    buffer.length >= 3 &&
-    buffer[0] === 0xff &&
-    buffer[1] === 0xd8 &&
-    buffer[2] === 0xff
-  ) {
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
     return { valid: true, mimeType: 'image/jpeg' }
   }
 

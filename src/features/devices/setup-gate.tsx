@@ -83,13 +83,28 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
       }}
     >
       {/* Top Bar Switchers */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 'var(--space-2)' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          gap: 'var(--space-2)',
+        }}
+      >
         <ThemeToggle />
         <LanguageToggle />
       </div>
 
       {/* Header Selamat Datang */}
-      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)' }}>
+      <div
+        style={{
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 'var(--space-2)',
+        }}
+      >
         <div
           style={{
             width: '56px',
@@ -146,10 +161,23 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <CheckCircle2 size={24} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
             <div>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>
+              <h2
+                style={{
+                  fontSize: '1.05rem',
+                  fontWeight: 700,
+                  margin: 0,
+                  color: 'var(--color-text)',
+                }}
+              >
                 {t('setupGateReadyTitle')}
               </h2>
-              <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>
+              <p
+                style={{
+                  fontSize: '0.78rem',
+                  color: 'var(--color-text-muted)',
+                  margin: '2px 0 0 0',
+                }}
+              >
                 {t('setupGateReadySub', { email: user.email ?? '' })}
               </p>
             </div>
@@ -173,7 +201,14 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
                 {t('setupGateStepTitle')}
               </strong>
             </div>
-            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.45 }}>
+            <p
+              style={{
+                fontSize: '0.78rem',
+                color: 'var(--color-text-muted)',
+                margin: 0,
+                lineHeight: 1.45,
+              }}
+            >
               {t('setupGateStepDesc')}
             </p>
             <button
@@ -217,7 +252,14 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               border: '1px solid var(--color-border)',
             }}
           >
-            <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.76rem',
+                color: 'var(--color-text-muted)',
+                lineHeight: 1.4,
+              }}
+            >
               {t('setupGateNotInstalledYet')}
             </p>
             <button
@@ -254,7 +296,10 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               border: '1px solid var(--color-accent)',
             }}
           >
-            <Smartphone size={20} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
+            <Smartphone
+              size={20}
+              style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }}
+            />
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
               <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '2px' }}>
                 {t('backTapReminderTitle')}
@@ -340,9 +385,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
           </div>
 
           {error && (
-            <p style={{ color: 'var(--color-error)', fontSize: '0.78rem', margin: 0 }}>
-              {error}
-            </p>
+            <p style={{ color: 'var(--color-error)', fontSize: '0.78rem', margin: 0 }}>{error}</p>
           )}
 
           {/* Tombol Utama 1-Klik Tunggal */}
@@ -380,7 +423,14 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
           <HomeScreenGuideCard defaultExpanded={false} />
 
           {/* Opsi Lewati & Logout */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--space-1)' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginTop: 'var(--space-1)',
+            }}
+          >
             <button
               type="button"
               onClick={() => router.push('/dashboard?skip=true')}

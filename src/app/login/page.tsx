@@ -75,8 +75,7 @@ export default function LoginPage() {
               lineHeight: 1.6,
             }}
           >
-            Screenshot struk atau bukti transfer di iPhone,
-            langsung masuk ke Google Sheets milikmu.
+            Screenshot struk atau bukti transfer di iPhone, langsung masuk ke Google Sheets milikmu.
           </p>
         </div>
 
@@ -108,9 +107,8 @@ export default function LoginPage() {
               style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }}
             />
             <div style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
-              <strong>Izin yang diminta:</strong> akses email dan akun Google, serta
-              membuat file spreadsheet baru di Google Drive milikmu.
-              Kami tidak membaca file lain di Drive-mu.
+              <strong>Izin yang diminta:</strong> akses email dan akun Google, serta membuat file
+              spreadsheet baru di Google Drive milikmu. Kami tidak membaca file lain di Drive-mu.
             </div>
           </div>
 

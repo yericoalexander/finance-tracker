@@ -5,10 +5,7 @@ interface LogoLoaderProps {
   fullscreen?: boolean
 }
 
-export function LogoLoader({
-  label = 'Memuat...',
-  fullscreen = true,
-}: LogoLoaderProps) {
+export function LogoLoader({ label = 'Memuat...', fullscreen = true }: LogoLoaderProps) {
   const content = (
     <div
       role="status"

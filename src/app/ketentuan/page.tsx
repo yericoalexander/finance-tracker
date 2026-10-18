@@ -24,7 +24,8 @@ export default function TermsPage() {
         minHeight: '100svh',
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text)',
-        padding: 'var(--space-4) var(--space-4) calc(var(--space-10) + env(safe-area-inset-bottom))',
+        padding:
+          'var(--space-4) var(--space-4) calc(var(--space-10) + env(safe-area-inset-bottom))',
       }}
     >
       <div
@@ -240,16 +241,34 @@ export default function TermsPage() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-              <CheckCircle2 size={16} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span>Layanan ini disediakan sebagai alat bantu produktivitas keuangan pribadi Anda.</span>
+              <CheckCircle2
+                size={16}
+                color="var(--color-success)"
+                style={{ flexShrink: 0, marginTop: '2px' }}
+              />
+              <span>
+                Layanan ini disediakan sebagai alat bantu produktivitas keuangan pribadi Anda.
+              </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-              <CheckCircle2 size={16} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span>Ekstraksi data dibantu oleh AI vision, Anda disarankan meninjau catatan berkala.</span>
+              <CheckCircle2
+                size={16}
+                color="var(--color-success)"
+                style={{ flexShrink: 0, marginTop: '2px' }}
+              />
+              <span>
+                Ekstraksi data dibantu oleh AI vision, Anda disarankan meninjau catatan berkala.
+              </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-              <CheckCircle2 size={16} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span>Anda memegang kepemilikan penuh atas data spreadsheet di Google Drive Anda.</span>
+              <CheckCircle2
+                size={16}
+                color="var(--color-success)"
+                style={{ flexShrink: 0, marginTop: '2px' }}
+              />
+              <span>
+                Anda memegang kepemilikan penuh atas data spreadsheet di Google Drive Anda.
+              </span>
             </div>
           </div>
         </div>
@@ -300,9 +319,10 @@ export default function TermsPage() {
                 color: 'var(--color-text-muted)',
               }}
             >
-              Dengan mendaftar, mengakses, atau menggunakan layanan Finance Tracker (&ldquo;Layanan&rdquo;),
-              Anda menyatakan telah membaca, memahami, dan menyetujui untuk terikat secara hukum dengan seluruh
-              Ketentuan Layanan ini beserta Kebijakan Privasi kami.
+              Dengan mendaftar, mengakses, atau menggunakan layanan Finance Tracker
+              (&ldquo;Layanan&rdquo;), Anda menyatakan telah membaca, memahami, dan menyetujui untuk
+              terikat secara hukum dengan seluruh Ketentuan Layanan ini beserta Kebijakan Privasi
+              kami.
             </p>
           </section>
 
@@ -373,7 +393,15 @@ export default function TermsPage() {
                   <Cpu size={18} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '6px',
+                    }}
+                  >
                     <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
                       Otomatisasi Ekstraksi AI Vision
                     </strong>
@@ -392,8 +420,16 @@ export default function TermsPage() {
                       AI Powered
                     </span>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-                    Memproses gambar bukti pembayaran (struk belanja fisik, mutasi m-banking, QRIS, e-wallet) menjadi data pengeluaran terstruktur secara otomatis.
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '0.875rem',
+                      color: 'var(--color-text-muted)',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    Memproses gambar bukti pembayaran (struk belanja fisik, mutasi m-banking, QRIS,
+                    e-wallet) menjadi data pengeluaran terstruktur secara otomatis.
                   </p>
                 </div>
               </div>
@@ -427,7 +463,15 @@ export default function TermsPage() {
                   <ShieldCheck size={18} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '6px',
+                    }}
+                  >
                     <strong style={{ fontSize: '0.9375rem', color: 'var(--color-text)' }}>
                       Sinkronisasi Google Sheets
                     </strong>
@@ -446,8 +490,16 @@ export default function TermsPage() {
                       Live Sync
                     </span>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-                    Menulis catatan transaksi langsung ke spreadsheet milik akun Google Anda sendiri, lengkap dengan formula rekapitulasi dan filter interaktif.
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '0.875rem',
+                      color: 'var(--color-text-muted)',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    Menulis catatan transaksi langsung ke spreadsheet milik akun Google Anda
+                    sendiri, lengkap dengan formula rekapitulasi dan filter interaktif.
                   </p>
                 </div>
               </div>
@@ -498,10 +550,10 @@ export default function TermsPage() {
                 color: 'var(--color-text-muted)',
               }}
             >
-              Untuk menggunakan Layanan, Anda harus menghubungkan Akun Google yang sah. Anda bertanggung jawab
-              menjaga keamanan perangkat Anda serta kunci pasangan (API Pairing Key) yang dipasang pada shortcut iOS
-              Anda. Segala bentuk aktivitas pencatatan yang berasal dari perangkat terverifikasi Anda dianggap sebagai
-              tindakan sah Anda.
+              Untuk menggunakan Layanan, Anda harus menghubungkan Akun Google yang sah. Anda
+              bertanggung jawab menjaga keamanan perangkat Anda serta kunci pasangan (API Pairing
+              Key) yang dipasang pada shortcut iOS Anda. Segala bentuk aktivitas pencatatan yang
+              berasal dari perangkat terverifikasi Anda dianggap sebagai tindakan sah Anda.
             </p>
           </section>
 
@@ -553,11 +605,23 @@ export default function TermsPage() {
                 border: '1px solid var(--color-border-subtle)',
               }}
             >
-              <AlertTriangle size={18} color="var(--color-warning, #d97706)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                Teknologi AI ekstraksi visi dirancang dengan presisi tinggi, namun tetap memiliki kemungkinan
-                kesalahan pembacaan akibat foto struk yang buram, terpotong, atau resolusi rendah. Kami sangat menyarankan
-                Anda meninjau catatan transaksi di Google Spreadsheet secara berkala.
+              <AlertTriangle
+                size={18}
+                color="var(--color-warning, #d97706)"
+                style={{ flexShrink: 0, marginTop: '2px' }}
+              />
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '0.875rem',
+                  color: 'var(--color-text-muted)',
+                  lineHeight: 1.6,
+                }}
+              >
+                Teknologi AI ekstraksi visi dirancang dengan presisi tinggi, namun tetap memiliki
+                kemungkinan kesalahan pembacaan akibat foto struk yang buram, terpotong, atau
+                resolusi rendah. Kami sangat menyarankan Anda meninjau catatan transaksi di Google
+                Spreadsheet secara berkala.
               </p>
             </div>
 
@@ -569,8 +633,9 @@ export default function TermsPage() {
                 color: 'var(--color-text-muted)',
               }}
             >
-              Finance Tracker tidak bertanggung jawab atas kerugian finansial langsung maupun tidak langsung,
-              kesalahan pencatatan pembukuan, atau keputusan keuangan yang diambil berdasarkan data yang dicatat.
+              Finance Tracker tidak bertanggung jawab atas kerugian finansial langsung maupun tidak
+              langsung, kesalahan pencatatan pembukuan, atau keputusan keuangan yang diambil
+              berdasarkan data yang dicatat.
             </p>
           </section>
 
@@ -620,10 +685,19 @@ export default function TermsPage() {
                 color: 'var(--color-text-muted)',
               }}
             >
-              <li>Mengunggah berkas berbahaya (malware, skrip berbahaya) atau konten non-keuangan.</li>
-              <li>Mencoba membobol, mengeksploitasi, atau mengganggu stabilitas infrastruktur server.</li>
-              <li>Melakukan rekayasa balik (reverse engineering) terhadap sistem tanpa izin tertulis.</li>
-              <li>Menyalahgunakan layanan untuk tindakan pencucian uang atau penipuan keuangan lainnya.</li>
+              <li>
+                Mengunggah berkas berbahaya (malware, skrip berbahaya) atau konten non-keuangan.
+              </li>
+              <li>
+                Mencoba membobol, mengeksploitasi, atau mengganggu stabilitas infrastruktur server.
+              </li>
+              <li>
+                Melakukan rekayasa balik (reverse engineering) terhadap sistem tanpa izin tertulis.
+              </li>
+              <li>
+                Menyalahgunakan layanan untuk tindakan pencucian uang atau penipuan keuangan
+                lainnya.
+              </li>
             </ul>
           </section>
 
@@ -672,7 +746,8 @@ export default function TermsPage() {
                 color: 'var(--color-text-muted)',
               }}
             >
-              Jika Anda memiliki pertanyaan mengenai Ketentuan Layanan ini, silakan hubungi pengembang di:
+              Jika Anda memiliki pertanyaan mengenai Ketentuan Layanan ini, silakan hubungi
+              pengembang di:
             </p>
 
             <a

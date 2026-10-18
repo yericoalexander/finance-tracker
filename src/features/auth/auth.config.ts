@@ -9,8 +9,7 @@ export const authConfig: NextAuthConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isProtected =
-        nextUrl.pathname.startsWith('/dashboard') ||
-        nextUrl.pathname.startsWith('/pair')
+        nextUrl.pathname.startsWith('/dashboard') || nextUrl.pathname.startsWith('/pair')
       const isAuthPath = nextUrl.pathname.startsWith('/login')
 
       if (nextUrl.pathname === '/') {

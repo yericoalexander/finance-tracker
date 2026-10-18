@@ -70,9 +70,7 @@ describe('ensureSpreadsheet', () => {
   it('melempar GoogleApiError 401 saat token expired', async () => {
     const { GaxiosError } = await import('gaxios')
     const err401 = new GaxiosError('Unauthorized', {} as never, { status: 401 } as never, null)
-    mockCreate.mockRejectedValue(
-      Object.assign(err401, { response: { status: 401 } }),
-    )
+    mockCreate.mockRejectedValue(Object.assign(err401, { response: { status: 401 } }))
 
     await expect(ensureSpreadsheet('bad-token', null)).rejects.toMatchObject({
       code: 401,
@@ -84,9 +82,7 @@ describe('ensureSpreadsheet', () => {
   it('melempar GoogleApiError 403 saat izin dicabut', async () => {
     const { GaxiosError } = await import('gaxios')
     const err403 = new GaxiosError('Forbidden', {} as never, { status: 403 } as never, null)
-    mockCreate.mockRejectedValue(
-      Object.assign(err403, { response: { status: 403 } }),
-    )
+    mockCreate.mockRejectedValue(Object.assign(err403, { response: { status: 403 } }))
 
     await expect(ensureSpreadsheet('revoked-token', null)).rejects.toMatchObject({
       code: 403,
@@ -193,4 +189,3 @@ describe('formatSpreadsheet', () => {
     expect(callArgs.requestBody.requests.length).toBeGreaterThan(10)
   })
 })
-

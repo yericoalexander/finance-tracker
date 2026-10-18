@@ -6,6 +6,9 @@ import { FileSpreadsheet, ArrowDownLeft, Bell } from 'lucide-react'
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
 import type { ReminderSetting } from '@/lib/db/schema'
+import { registerAndSubscribePush } from '@/lib/push/client'
+import { usePrivacy } from '@/lib/privacy/context'
+import { PrivacyToggle } from '@/components/ui/privacy-toggle'
 import { BudgetModal } from './budget-modal'
 
 interface SummaryCardsProps {
@@ -30,8 +33,11 @@ export function SummaryCards({
   reminderSetting,
 }: SummaryCardsProps) {
   const { t, formatMonthName, locale } = useI18n()
+  const { isPrivate } = usePrivacy()
   const [viewMode, setViewMode] = useState<'total' | 'daily'>('total')
-  const [activeReminder, setActiveReminder] = useState<ReminderSetting | null | undefined>(reminderSetting)
+  const [activeReminder, setActiveReminder] = useState<ReminderSetting | null | undefined>(
+    reminderSetting,
+  )
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
 
   useEffect(() => {
@@ -44,7 +50,11 @@ export function SummaryCards({
   const isCurrentMonth = activeMonth === todayMonthPrefix
 
   const [activeYear, activeMonthNum] = activeMonth.split('-').map(Number)
-  const displayDate = new Date(activeYear || now.getFullYear(), (activeMonthNum || (now.getMonth() + 1)) - 1, 1)
+  const displayDate = new Date(
+    activeYear || now.getFullYear(),
+    (activeMonthNum || now.getMonth() + 1) - 1,
+    1,
+  )
 
   const activeMonthName = formatMonthName(displayDate)
   const isCurrentYear = (activeYear || now.getFullYear()) === now.getFullYear()
@@ -56,54 +66,58 @@ export function SummaryCards({
 
   // Jumlah hari untuk pembagi rata-rata harian:
   // Jika bulan berjalan, gunakan tanggal hari ini; jika bulan lampau, gunakan total hari di bulan tersebut
-  const daysInActiveMonth = new Date(activeYear || now.getFullYear(), activeMonthNum || (now.getMonth() + 1), 0).getDate()
+  const daysInActiveMonth = new Date(
+    activeYear || now.getFullYear(),
+    activeMonthNum || now.getMonth() + 1,
+    0,
+  ).getDate()
   const dayDivisor = isCurrentMonth ? Math.max(1, now.getDate()) : daysInActiveMonth
 
   const dailyAverage = dayDivisor > 0 ? Math.round(mtdTotal / dayDivisor) : mtdTotal
   const displayedAmount = viewMode === 'total' ? mtdTotal : dailyAverage
 
   const monthlyLimit = activeReminder?.monthlyLimitIdr ?? 0
-  const thresholdPct = activeReminder?.warningThresholdPercent ?? (activeReminder?.earlyWarningEnabled ? 90 : 100)
-  const thresholdAmount = thresholdPct > 0 && thresholdPct < 100 ? Math.round((monthlyLimit * thresholdPct) / 100) : monthlyLimit
+  const thresholdPct =
+    activeReminder?.warningThresholdPercent ?? (activeReminder?.earlyWarningEnabled ? 90 : 100)
+  const thresholdAmount =
+    thresholdPct > 0 && thresholdPct < 100
+      ? Math.round((monthlyLimit * thresholdPct) / 100)
+      : monthlyLimit
 
-  const isOverLimit = Boolean(activeReminder?.isEnabled && monthlyLimit > 0 && mtdTotal >= monthlyLimit)
+  const isOverLimit = Boolean(
+    activeReminder?.isEnabled && monthlyLimit > 0 && mtdTotal >= monthlyLimit,
+  )
   const isAtWarning = Boolean(
     activeReminder?.isEnabled &&
-      monthlyLimit > 0 &&
-      thresholdPct > 0 &&
-      thresholdPct < 100 &&
-      mtdTotal >= thresholdAmount &&
-      !isOverLimit,
+    monthlyLimit > 0 &&
+    thresholdPct > 0 &&
+    thresholdPct < 100 &&
+    mtdTotal >= thresholdAmount &&
+    !isOverLimit,
   )
 
+  // Sinkronkan langganan Web Push ke server di latar belakang jika izin notifikasi aktif
   useEffect(() => {
-    if (typeof window === 'undefined' || !('Notification' in window)) return
-    if (!isCurrentMonth || !activeReminder?.isEnabled || !monthlyLimit) return
-    if (!isOverLimit && !isAtWarning) return
-
-    const sessionKey = `budget_notif_${activeMonth}_${isOverLimit ? '100' : thresholdPct}`
-    if (sessionStorage.getItem(sessionKey)) return
-
-    if (Notification.permission === 'granted') {
-      const title = isOverLimit ? '🚨 Batas Anggaran Terlampaui!' : `⚠️ Peringatan: Pengeluaran Sudah ${thresholdPct}%!`
-      const customMsgSuffix = activeReminder.customMessage ? ` — ${activeReminder.customMessage}` : ''
-      const body = isOverLimit
-        ? `Pengeluaran bulan ini sudah ${formatRupiah(mtdTotal)} (Batas: ${formatRupiah(monthlyLimit)})${customMsgSuffix}`
-        : `Pengeluaran bulan ini sudah mencapai ${thresholdPct}% (${formatRupiah(mtdTotal)} dari ${formatRupiah(monthlyLimit)})${customMsgSuffix}`
-
-      try {
-        new Notification(title, { body, icon: '/favicon.ico' })
-        sessionStorage.setItem(sessionKey, 'true')
-      } catch {
-        // Fallback silent
-      }
+    if (
+      typeof window !== 'undefined' &&
+      'Notification' in window &&
+      Notification.permission === 'granted'
+    ) {
+      registerAndSubscribePush().catch(() => null)
     }
-  }, [isAtWarning, isOverLimit, mtdTotal, activeReminder, activeMonth, thresholdPct, isCurrentMonth, monthlyLimit])
+  }, [])
 
   const handleOpenBudgetModal = async () => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+    if (
+      typeof window !== 'undefined' &&
+      'Notification' in window &&
+      Notification.permission === 'default'
+    ) {
       try {
-        await Notification.requestPermission()
+        const perm = await Notification.requestPermission()
+        if (perm === 'granted') {
+          registerAndSubscribePush().catch(() => null)
+        }
       } catch {
         // Fallback silent
       }
@@ -219,15 +233,24 @@ export function SummaryCards({
         <div>
           <div
             style={{
-              fontSize: '2.1rem',
-              fontWeight: 800,
-              color: 'var(--color-text)',
-              fontVariantNumeric: 'tabular-nums',
-              letterSpacing: '-0.03em',
-              lineHeight: 1.15,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--space-2)',
             }}
           >
-            {formatRupiah(displayedAmount)}
+            <div
+              style={{
+                fontSize: '2.1rem',
+                fontWeight: 800,
+                color: 'var(--color-text)',
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: isPrivate ? '0.04em' : '-0.03em',
+                lineHeight: 1.15,
+              }}
+            >
+              {isPrivate ? 'Rp ••••••' : formatRupiah(displayedAmount)}
+            </div>
+            <PrivacyToggle size="sm" variant="ghost" />
           </div>
           <p
             suppressHydrationWarning
@@ -241,7 +264,7 @@ export function SummaryCards({
             {viewMode === 'total'
               ? t('dailyAverageText', {
                   month: activeMonthName,
-                  avg: formatRupiah(dailyAverage),
+                  avg: isPrivate ? 'Rp ••••••' : formatRupiah(dailyAverage),
                 })
               : t('basedOnDays', {
                   days: dayDivisor,
@@ -251,8 +274,8 @@ export function SummaryCards({
         </div>
 
         {/* Indikator Batas Pengeluaran Bulanan (Interaktif, Rapi & Tidak Bertumpuk) */}
-        {isCurrentMonth && (
-          activeReminder?.isEnabled && activeReminder?.monthlyLimitIdr ? (
+        {isCurrentMonth &&
+          (activeReminder?.isEnabled && activeReminder?.monthlyLimitIdr ? (
             <button
               type="button"
               onClick={handleOpenBudgetModal}
@@ -281,20 +304,67 @@ export function SummaryCards({
               }}
             >
               {/* Baris 1: Status Sisa / Lebih & Angkanya (1 baris lega) */}
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', width: '100%' }}>
-                <span style={{ fontSize: '0.8rem', color: isOverLimit ? 'var(--color-error)' : isAtWarning ? 'var(--color-warning-text)' : 'var(--color-text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Bell size={13} color={isOverLimit ? 'var(--color-error)' : isAtWarning ? 'var(--color-warning)' : 'var(--color-accent)'} />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.8rem',
+                    color: isOverLimit
+                      ? 'var(--color-error)'
+                      : isAtWarning
+                        ? 'var(--color-warning-text)'
+                        : 'var(--color-text-muted)',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Bell
+                    size={13}
+                    color={
+                      isOverLimit
+                        ? 'var(--color-error)'
+                        : isAtWarning
+                          ? 'var(--color-warning)'
+                          : 'var(--color-accent)'
+                    }
+                  />
                   <span>
                     {mtdTotal >= activeReminder.monthlyLimitIdr
                       ? t('budgetOverLimitLabel')
                       : t('budgetRemainingLabel')}
                   </span>
                   {isOverLimit ? (
-                    <span style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: 'var(--radius-full)', backgroundColor: 'var(--color-error)', color: '#fff', fontWeight: 700 }}>
+                    <span
+                      style={{
+                        fontSize: '0.65rem',
+                        padding: '1px 6px',
+                        borderRadius: 'var(--radius-full)',
+                        backgroundColor: 'var(--color-error)',
+                        color: '#fff',
+                        fontWeight: 700,
+                      }}
+                    >
                       Melebihi
                     </span>
                   ) : isAtWarning ? (
-                    <span style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: 'var(--radius-full)', backgroundColor: 'var(--color-warning)', color: '#ffffff', fontWeight: 700 }}>
+                    <span
+                      style={{
+                        fontSize: '0.65rem',
+                        padding: '1px 6px',
+                        borderRadius: 'var(--radius-full)',
+                        backgroundColor: 'var(--color-warning)',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                      }}
+                    >
                       {thresholdPct}%
                     </span>
                   ) : null}
@@ -304,12 +374,17 @@ export function SummaryCards({
                     fontSize: '0.92rem',
                     fontWeight: 700,
                     fontVariantNumeric: 'tabular-nums',
-                    color: mtdTotal >= activeReminder.monthlyLimitIdr ? 'var(--color-error)' : 'var(--color-text)',
+                    color:
+                      mtdTotal >= activeReminder.monthlyLimitIdr
+                        ? 'var(--color-error)'
+                        : 'var(--color-text)',
                   }}
                 >
-                  {mtdTotal >= activeReminder.monthlyLimitIdr
-                    ? `+${formatRupiah(mtdTotal - activeReminder.monthlyLimitIdr)}`
-                    : formatRupiah(activeReminder.monthlyLimitIdr - mtdTotal)}
+                  {isPrivate
+                    ? 'Rp ••••••'
+                    : mtdTotal >= activeReminder.monthlyLimitIdr
+                      ? `+${formatRupiah(mtdTotal - activeReminder.monthlyLimitIdr)}`
+                      : formatRupiah(activeReminder.monthlyLimitIdr - mtdTotal)}
                 </span>
               </div>
 
@@ -332,8 +407,14 @@ export function SummaryCards({
                       if (mtdTotal >= activeReminder.monthlyLimitIdr) {
                         return 'var(--color-error)'
                       }
-                      const threshold = activeReminder.warningThresholdPercent ?? (activeReminder.earlyWarningEnabled ? 90 : 100)
-                      if (threshold > 0 && threshold < 100 && mtdTotal >= activeReminder.monthlyLimitIdr * (threshold / 100)) {
+                      const threshold =
+                        activeReminder.warningThresholdPercent ??
+                        (activeReminder.earlyWarningEnabled ? 90 : 100)
+                      if (
+                        threshold > 0 &&
+                        threshold < 100 &&
+                        mtdTotal >= activeReminder.monthlyLimitIdr * (threshold / 100)
+                      ) {
                         return 'var(--color-warning)'
                       }
                       return 'var(--color-accent)'
@@ -344,11 +425,24 @@ export function SummaryCards({
               </div>
 
               {/* Baris 3: Konteks Persentase & Tombol Ubah (1 baris rapi) */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.74rem', width: '100%' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.74rem',
+                  width: '100%',
+                }}
+              >
                 <span style={{ color: 'var(--color-text-muted)', fontWeight: 500 }}>
                   {t('budgetPercentOfLimit', {
-                    percent: Math.min(999, Math.round((mtdTotal / activeReminder.monthlyLimitIdr) * 100)),
-                    limit: formatRupiah(activeReminder.monthlyLimitIdr),
+                    percent: Math.min(
+                      999,
+                      Math.round((mtdTotal / activeReminder.monthlyLimitIdr) * 100),
+                    ),
+                    limit: isPrivate
+                      ? 'Rp ••••••'
+                      : formatRupiah(activeReminder.monthlyLimitIdr),
                   })}
                 </span>
                 <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
@@ -382,8 +476,7 @@ export function SummaryCards({
               </span>
               <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>+ Atur Target</span>
             </button>
-          )
-        )}
+          ))}
 
         {/* Divider & Ringkasan Transaksi */}
         <div

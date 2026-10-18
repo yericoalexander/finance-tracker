@@ -274,6 +274,6 @@ export function ShortcutOnboardingModal({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   )
 }

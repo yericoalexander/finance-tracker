@@ -40,7 +40,11 @@ export function formatReminderMessage(
   }
 
   // Jika pengguna menulis tag template, ganti dengan nilai variabel
-  if (cleanedText.includes('{total}') || cleanedText.includes('{limit}') || cleanedText.includes('{sisa}')) {
+  if (
+    cleanedText.includes('{total}') ||
+    cleanedText.includes('{limit}') ||
+    cleanedText.includes('{sisa}')
+  ) {
     return cleanedText
       .replace(/\{total\}/gi, formattedTotal)
       .replace(/\{limit\}/gi, formattedLimit)
@@ -66,7 +70,12 @@ export async function evaluateBudgetReminder(
     where: eq(reminderSettings.userId, userId),
   })
 
-  if (!settings || !settings.isEnabled || !settings.monthlyLimitIdr || settings.monthlyLimitIdr <= 0) {
+  if (
+    !settings ||
+    !settings.isEnabled ||
+    !settings.monthlyLimitIdr ||
+    settings.monthlyLimitIdr <= 0
+  ) {
     return { shouldAlert: false }
   }
 
@@ -88,12 +97,9 @@ export async function evaluateBudgetReminder(
   const limit = settings.monthlyLimitIdr
   const lastMilestone = settings.lastAlertMilestone
 
-  const thresholdPct =
-    settings.warningThresholdPercent ?? (settings.earlyWarningEnabled ? 90 : 0)
+  const thresholdPct = settings.warningThresholdPercent ?? (settings.earlyWarningEnabled ? 90 : 0)
   const thresholdAmount =
-    thresholdPct > 0 && thresholdPct < 100
-      ? Math.round((limit * thresholdPct) / 100)
-      : limit
+    thresholdPct > 0 && thresholdPct < 100 ? Math.round((limit * thresholdPct) / 100) : limit
 
   // 1. Cek Batas Penuh (100%)
   if (currentMonthTotal >= limit) {
@@ -134,11 +140,7 @@ export async function evaluateBudgetReminder(
   }
 
   // 2. Cek Ambang Peringatan Dini jika diset > 0 dan < 100
-  if (
-    thresholdPct > 0 &&
-    thresholdPct < 100 &&
-    currentMonthTotal >= thresholdAmount
-  ) {
+  if (thresholdPct > 0 && thresholdPct < 100 && currentMonthTotal >= thresholdAmount) {
     const targetMilestone = `${txMonthPrefix}:${thresholdPct}`
 
     // Anti-spam throttle: jika sudah pernah diberi tahu untuk milestone ini atau sudah 100% di bulan ini, jangan spam

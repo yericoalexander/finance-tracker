@@ -21,6 +21,14 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }))
 
+vi.mock('@/lib/push/send-push', () => ({
+  sendPushNotificationToUser: vi.fn().mockResolvedValue({ sent: 1, failed: 0 }),
+}))
+
+vi.mock('./reminder-evaluator', () => ({
+  evaluateBudgetReminder: vi.fn().mockResolvedValue({ shouldAlert: false }),
+}))
+
 import { getReminderSettingsAction, updateReminderSettingsAction } from './reminder-actions'
 
 describe('reminder-actions', () => {

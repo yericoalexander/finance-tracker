@@ -5,8 +5,10 @@ import { createPortal } from 'react-dom'
 import { X, Check, AlertCircle, Loader2 } from 'lucide-react'
 
 import { updateReminderSettingsAction } from './reminder-actions'
+import { registerAndSubscribePush } from '@/lib/push/client'
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
+import { usePrivacy } from '@/lib/privacy/context'
 import type { ReminderSetting } from '@/lib/db/schema'
 
 interface BudgetModalProps {
@@ -27,6 +29,7 @@ export function BudgetModal({
   onSaved,
 }: BudgetModalProps) {
   const { t } = useI18n()
+  const { isPrivate } = usePrivacy()
   const [mounted, setMounted] = useState(false)
   const [isEnabled, setIsEnabled] = useState(currentSetting?.isEnabled ?? true)
   const [limitInput, setLimitInput] = useState(
@@ -52,7 +55,9 @@ export function BudgetModal({
   useEffect(() => {
     if (isOpen && !wasOpenRef.current) {
       setIsEnabled(currentSetting?.isEnabled ?? true)
-      setLimitInput(currentSetting?.monthlyLimitIdr ? String(currentSetting.monthlyLimitIdr) : '1500000')
+      setLimitInput(
+        currentSetting?.monthlyLimitIdr ? String(currentSetting.monthlyLimitIdr) : '1500000',
+      )
       setCustomMsg(currentSetting?.customMessage ?? '')
       const initialThreshold =
         currentSetting?.warningThresholdPercent !== undefined
@@ -100,9 +105,16 @@ export function BudgetModal({
 
     setIsSaving(true)
     try {
-      if (isEnabled && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      if (isEnabled && typeof window !== 'undefined' && 'Notification' in window) {
         try {
-          await Notification.requestPermission()
+          if (Notification.permission === 'default') {
+            const perm = await Notification.requestPermission()
+            if (perm === 'granted') {
+              registerAndSubscribePush().catch(() => null)
+            }
+          } else if (Notification.permission === 'granted') {
+            registerAndSubscribePush().catch(() => null)
+          }
         } catch {
           // Fallback silent
         }
@@ -170,13 +182,20 @@ export function BudgetModal({
         {/* Header Modal: Rapi, Ringkas, dan Informatif */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>
+            <h2
+              style={{
+                fontSize: '1.05rem',
+                fontWeight: 700,
+                margin: 0,
+                color: 'var(--color-text)',
+              }}
+            >
               {t('budgetModalTitle')}
             </h2>
             <p style={{ margin: '3px 0 0', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
               {t('budgetCurrentExpenses')}{' '}
               <strong style={{ color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>
-                {formatRupiah(currentTotal)}
+                {isPrivate ? 'Rp ••••••' : formatRupiah(currentTotal)}
               </strong>
             </p>
           </div>
@@ -239,7 +258,10 @@ export function BudgetModal({
           </div>
         )}
 
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        <form
+          onSubmit={handleSave}
+          style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
+        >
           {/* Toggle Utama: Sakelar Aktifkan */}
           <div
             style={{
@@ -310,7 +332,14 @@ export function BudgetModal({
                     minHeight: '44px',
                   }}
                 >
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text-muted)', marginRight: '6px' }}>
+                  <span
+                    style={{
+                      fontSize: '0.9rem',
+                      fontWeight: 700,
+                      color: 'var(--color-text-muted)',
+                      marginRight: '6px',
+                    }}
+                  >
                     Rp
                   </span>
                   <input
@@ -354,8 +383,12 @@ export function BudgetModal({
                           flex: 1,
                           padding: '7px 0',
                           borderRadius: 'var(--radius-md)',
-                          border: isSelected ? '1px solid var(--color-text)' : '1px solid var(--color-border)',
-                          backgroundColor: isSelected ? 'var(--color-text)' : 'var(--color-surface-raised)',
+                          border: isSelected
+                            ? '1px solid var(--color-text)'
+                            : '1px solid var(--color-border)',
+                          backgroundColor: isSelected
+                            ? 'var(--color-text)'
+                            : 'var(--color-surface-raised)',
                           color: isSelected ? 'var(--color-surface)' : 'var(--color-text-muted)',
                           fontSize: '0.78rem',
                           fontWeight: isSelected ? 700 : 500,
@@ -384,9 +417,23 @@ export function BudgetModal({
                 }}
               >
                 {/* Baris Atas: Label & Nilai Persentase */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                  }}
+                >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        color: 'var(--color-text)',
+                      }}
+                    >
                       {t('budgetWarningThresholdLabel')}
                     </p>
                     <p
@@ -407,7 +454,9 @@ export function BudgetModal({
                             })
                           : t('budgetWarningThresholdDesc', {
                               percent: warningThreshold,
-                              amount: formatRupiah(Math.round((numericLimit * warningThreshold) / 100)),
+                              amount: formatRupiah(
+                                Math.round((numericLimit * warningThreshold) / 100),
+                              ),
                             })}
                     </p>
                   </div>
@@ -422,8 +471,12 @@ export function BudgetModal({
                       fontSize: '0.78rem',
                       fontWeight: 700,
                       fontVariantNumeric: 'tabular-nums',
-                      backgroundColor: warningThreshold === 0 ? 'var(--color-border)' : 'var(--color-accent)',
-                      color: warningThreshold === 0 ? 'var(--color-text-muted)' : 'var(--color-accent-text)',
+                      backgroundColor:
+                        warningThreshold === 0 ? 'var(--color-border)' : 'var(--color-accent)',
+                      color:
+                        warningThreshold === 0
+                          ? 'var(--color-text-muted)'
+                          : 'var(--color-accent-text)',
                       transition: 'all 150ms ease',
                       flexShrink: 0,
                     }}
@@ -496,7 +549,9 @@ export function BudgetModal({
 
               {/* Input Pesan Kustom (Sederhana & Ringkas) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
                   <label
                     htmlFor="custom-msg-input"
                     style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}
@@ -526,7 +581,13 @@ export function BudgetModal({
                     fontFamily: 'inherit',
                   }}
                 />
-                <p style={{ margin: '2px 0 0', fontSize: '0.71rem', color: 'var(--color-text-muted)' }}>
+                <p
+                  style={{
+                    margin: '2px 0 0',
+                    fontSize: '0.71rem',
+                    color: 'var(--color-text-muted)',
+                  }}
+                >
                   {t('budgetCustomMsgHint')}
                 </p>
               </div>

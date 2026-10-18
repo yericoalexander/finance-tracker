@@ -29,11 +29,7 @@ export function AppSplashScreen() {
   }
 
   return (
-    <div
-      id="app-splash"
-      className={fading ? 'app-splash-fade-out' : ''}
-      aria-hidden="true"
-    >
+    <div id="app-splash" className={fading ? 'app-splash-fade-out' : ''} aria-hidden="true">
       <div
         style={{
           display: 'flex',

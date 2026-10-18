@@ -252,7 +252,7 @@ describe('POST /api/capture', () => {
     expect(mockAppendTransactionRow).toHaveBeenCalledOnce()
   })
 
-  it('menandai status needs_review dan tidak menulis ke Sheets jika confidence < 0.7', async () => {
+  it('langsung mencatat transaksi ke Google Sheets dengan status ok meskipun confidence < 0.7', async () => {
     mockDeviceFindFirst.mockResolvedValueOnce({
       id: 'dev-1',
       userId: 'user-1',
@@ -272,16 +272,26 @@ describe('POST /api/capture', () => {
       confidence: 0.55, // Low confidence
     })
 
+    mockUserFindFirst.mockResolvedValueOnce({ sheetId: 'sheet-123' })
+    mockTokenFindFirst.mockResolvedValueOnce({
+      refreshTokenEncrypted: 'enc',
+      iv: 'iv',
+      authTag: 'tag',
+    })
+    mockAppendTransactionRow.mockResolvedValueOnce(undefined)
+
     const req = createMultipartRequest(validToken, createValidPngBuffer())
     const res = await POST(req)
     expect(res.status).toBe(200)
 
     const json = await res.json()
-    expect(json.status).toBe('needs_review')
-    expect(json.message).toContain('Perlu Dicek')
+    expect(json.status).toBe('ok')
+    expect(json.message).toContain('Tercatat:')
+    expect(json.message).toContain('Warung Tegal')
+    expect(json.message).toContain('20.000')
 
-    // Sheets TIDAK boleh dipanggil saat confidence < 0.7
-    expect(mockAppendTransactionRow).not.toHaveBeenCalled()
+    // Sheets langsung dipanggil tanpa perlu konfirmasi manual
+    expect(mockAppendTransactionRow).toHaveBeenCalledOnce()
   })
 
   it('mengembalikan pesan ramah perbarui akses jika Google mengembalikan 401/403', async () => {

@@ -1,14 +1,8 @@
 import { env } from '@/lib/env'
 import { parseIndonesianCurrency } from './currency'
 import { resolveTransactionDateTime } from './date'
-import type {
-  ExtractionProvider,
-  TransactionExtraction,
-} from './types'
-import {
-  CATEGORIES,
-  TransactionExtractionSchema,
-} from './types'
+import type { ExtractionProvider, TransactionExtraction } from './types'
+import { CATEGORIES, TransactionExtractionSchema } from './types'
 
 const SYSTEM_PROMPT = `Anda adalah asisten keuangan pribadi cerdas di Indonesia.
 Tugas Anda adalah membaca screenshot struk belanja, invoice, bukti transfer bank (BCA, Mandiri, BRI, BNI), e-wallet (GoPay, OVO, DANA, ShopeePay), QRIS, atau marketplace.
@@ -146,10 +140,7 @@ function processRawOutput(raw: RawGeminiOutput): TransactionExtraction {
 }
 
 export class GeminiExtractionProvider implements ExtractionProvider {
-  async extractReceipt(
-    imageBuffer: Buffer,
-    mimeType: string,
-  ): Promise<TransactionExtraction> {
+  async extractReceipt(imageBuffer: Buffer, mimeType: string): Promise<TransactionExtraction> {
     let lastError: Error | null = null
 
     for (const model of CANDIDATE_MODELS) {

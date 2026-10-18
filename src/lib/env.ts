@@ -31,24 +31,25 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET wajib diisi'),
 
   // Encryption — 32-byte hex (64 karakter) untuk AES-256-GCM
-  ENCRYPTION_KEY: z
-    .string()
-    .length(64, 'ENCRYPTION_KEY harus 64 karakter hex (32 byte)'),
+  ENCRYPTION_KEY: z.string().length(64, 'ENCRYPTION_KEY harus 64 karakter hex (32 byte)'),
 
   // Google Gemini AI
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY wajib diisi'),
   GEMINI_MODEL: z.string().min(1, 'GEMINI_MODEL wajib diisi').default('gemini-2.5-flash'),
 
   // Node environment
-  NODE_ENV: z
-    .enum(['development', 'test', 'production'])
-    .default('development'),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
   // Auth.js v5 — percaya pada proxy header X-Forwarded-Host di deploy
   AUTH_TRUST_HOST: z.string().optional(),
 
   // Tautan resmi iCloud Apple Shortcuts untuk penambahan pintasan 1-klik
   NEXT_PUBLIC_SHORTCUT_ICLOUD_URL: z.string().url().optional(),
+
+  // Web Push (VAPID)
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().optional().default('mailto:support@financetracker.app'),
 })
 
 const parsed = envSchema.safeParse(process.env)

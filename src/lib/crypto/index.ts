@@ -13,8 +13,8 @@ function getKey(): Buffer {
 
 export interface EncryptedPayload {
   ciphertext: string // hex
-  iv: string         // hex
-  authTag: string    // hex
+  iv: string // hex
+  authTag: string // hex
 }
 
 /**
@@ -27,10 +27,7 @@ export function encrypt(plaintext: string): EncryptedPayload {
     authTagLength: AUTH_TAG_LENGTH,
   })
 
-  const encrypted = Buffer.concat([
-    cipher.update(plaintext, 'utf8'),
-    cipher.final(),
-  ])
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()])
 
   return {
     ciphertext: encrypted.toString('hex'),
@@ -44,12 +41,9 @@ export function encrypt(plaintext: string): EncryptedPayload {
  * Melempar error jika auth tag tidak valid (data dimanipulasi).
  */
 export function decrypt(payload: EncryptedPayload): string {
-  const decipher = createDecipheriv(
-    'aes-256-gcm',
-    getKey(),
-    Buffer.from(payload.iv, 'hex'),
-    { authTagLength: AUTH_TAG_LENGTH },
-  )
+  const decipher = createDecipheriv('aes-256-gcm', getKey(), Buffer.from(payload.iv, 'hex'), {
+    authTagLength: AUTH_TAG_LENGTH,
+  })
   decipher.setAuthTag(Buffer.from(payload.authTag, 'hex'))
 
   const decrypted = Buffer.concat([

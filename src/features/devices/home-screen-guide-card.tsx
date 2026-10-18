@@ -41,7 +41,15 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
           minHeight: '56px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: 1 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-3)',
+            minWidth: 0,
+            flex: 1,
+          }}
+        >
           <div
             style={{
               width: '38px',
@@ -132,7 +140,14 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                 1
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--space-2)',
+                    flexWrap: 'wrap',
+                  }}
+                >
                   <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
                     {t('pwaStep1Title')}
                   </strong>
@@ -154,7 +169,14 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                     <span>Share</span>
                   </span>
                 </div>
-                <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+                <p
+                  style={{
+                    margin: '3px 0 0 0',
+                    fontSize: '0.8rem',
+                    color: 'var(--color-text-muted)',
+                    lineHeight: 1.45,
+                  }}
+                >
                   {t('pwaStep1Desc')}
                 </p>
               </div>
@@ -181,7 +203,14 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                 2
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--space-2)',
+                    flexWrap: 'wrap',
+                  }}
+                >
                   <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
                     {t('pwaStep2Title')}
                   </strong>
@@ -203,7 +232,14 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                     <span>Add to Home Screen</span>
                   </span>
                 </div>
-                <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+                <p
+                  style={{
+                    margin: '3px 0 0 0',
+                    fontSize: '0.8rem',
+                    color: 'var(--color-text-muted)',
+                    lineHeight: 1.45,
+                  }}
+                >
                   {t('pwaStep2Desc')}
                 </p>
               </div>
@@ -249,7 +285,14 @@ export function HomeScreenGuideCard({ defaultExpanded = true }: HomeScreenGuideC
                     {t('pwaStep3Badge')}
                   </span>
                 </div>
-                <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+                <p
+                  style={{
+                    margin: '3px 0 0 0',
+                    fontSize: '0.8rem',
+                    color: 'var(--color-text-muted)',
+                    lineHeight: 1.45,
+                  }}
+                >
                   {t('pwaStep3Desc')}
                 </p>
               </div>

@@ -72,9 +72,7 @@ export function DeviceList({ devices }: DeviceListItemProps) {
       </div>
 
       {error && (
-        <p style={{ color: 'var(--color-error)', fontSize: '0.8rem', margin: 0 }}>
-          {error}
-        </p>
+        <p style={{ color: 'var(--color-error)', fontSize: '0.8rem', margin: 0 }}>{error}</p>
       )}
 
       {activeDevices.length === 0 ? (
@@ -150,11 +148,7 @@ export function DeviceList({ devices }: DeviceListItemProps) {
                   opacity: revokingId === device.id ? 0.6 : 1,
                 }}
               >
-                {revokingId === device.id ? (
-                  <AlertTriangle size={14} />
-                ) : (
-                  <Trash2 size={14} />
-                )}
+                {revokingId === device.id ? <AlertTriangle size={14} /> : <Trash2 size={14} />}
                 <span>{t('btnRevoke')}</span>
               </button>
             </div>

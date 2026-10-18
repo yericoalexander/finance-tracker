@@ -25,7 +25,15 @@ export default function PairLoading() {
           gap: 'var(--space-2)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: 1 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-3)',
+            minWidth: 0,
+            flex: 1,
+          }}
+        >
           <div
             style={{
               width: '44px',
@@ -58,7 +66,9 @@ export default function PairLoading() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexShrink: 0 }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexShrink: 0 }}
+        >
           <div
             style={{
               width: '40px',
