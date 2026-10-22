@@ -337,7 +337,11 @@ export async function POST(request: NextRequest) {
       txMonthPrefix,
     ).catch((): BudgetReminderEvaluation => ({ shouldAlert: false }))
 
-    const responseMessage = `Tercatat: ${formattedAmount} di ${extraction.merchant}`
+    let responseMessage = `Tercatat: ${formattedAmount} di ${extraction.merchant}`
+    if (reminderEval.alertMessage) {
+      responseMessage = `${reminderEval.alertMessage}\n(Tercatat: ${formattedAmount} di ${extraction.merchant})`
+    }
+
     if (reminderEval.shouldAlert && reminderEval.alertMessage) {
       const pushTitle =
         reminderEval.milestone === '100'
@@ -358,7 +362,7 @@ export async function POST(request: NextRequest) {
       merchant: extraction.merchant,
       amount: formattedAmount,
       message: responseMessage,
-      budgetAlert: reminderEval.shouldAlert
+      budgetAlert: reminderEval.alertMessage
         ? {
             exceeded: true,
             currentTotal: reminderEval.currentMonthTotal,

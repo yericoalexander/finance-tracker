@@ -146,7 +146,7 @@ export async function createManualTransactionAction(rawInput: unknown): Promise<
     return {
       ok: true,
       id: captureId,
-      budgetAlert: reminderEval.shouldAlert
+      budgetAlert: reminderEval.alertMessage
         ? {
             alertMessage: reminderEval.alertMessage,
             milestone: reminderEval.milestone,

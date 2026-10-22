@@ -104,13 +104,21 @@ export async function evaluateBudgetReminder(
   // 1. Cek Batas Penuh (100%)
   if (currentMonthTotal >= limit) {
     const targetMilestone = `${txMonthPrefix}:100`
+    const alertMessage = formatReminderMessage(
+      settings.customMessage,
+      currentMonthTotal,
+      limit,
+      false,
+    )
 
-    // Anti-spam throttle: jika sudah pernah diberi tahu 100% di bulan ini, jangan spam lagi
+    // Anti-spam throttle: jika sudah pernah diberi tahu 100% di bulan ini, jangan spam push lagi
     if (lastMilestone === targetMilestone) {
       return {
         shouldAlert: false,
         monthlyLimitIdr: limit,
         currentMonthTotal,
+        alertMessage,
+        milestone: '100',
       }
     }
 
@@ -122,13 +130,6 @@ export async function evaluateBudgetReminder(
         updatedAt: new Date(),
       })
       .where(eq(reminderSettings.userId, userId))
-
-    const alertMessage = formatReminderMessage(
-      settings.customMessage,
-      currentMonthTotal,
-      limit,
-      false,
-    )
 
     return {
       shouldAlert: true,
@@ -142,13 +143,22 @@ export async function evaluateBudgetReminder(
   // 2. Cek Ambang Peringatan Dini jika diset > 0 dan < 100
   if (thresholdPct > 0 && thresholdPct < 100 && currentMonthTotal >= thresholdAmount) {
     const targetMilestone = `${txMonthPrefix}:${thresholdPct}`
+    const alertMessage = formatReminderMessage(
+      settings.customMessage,
+      currentMonthTotal,
+      limit,
+      true,
+      thresholdPct,
+    )
 
-    // Anti-spam throttle: jika sudah pernah diberi tahu untuk milestone ini atau sudah 100% di bulan ini, jangan spam
+    // Anti-spam throttle: jika sudah pernah diberi tahu untuk milestone ini atau sudah 100% di bulan ini, jangan spam push
     if (lastMilestone === targetMilestone || lastMilestone === `${txMonthPrefix}:100`) {
       return {
         shouldAlert: false,
         monthlyLimitIdr: limit,
         currentMonthTotal,
+        alertMessage,
+        milestone: String(thresholdPct),
       }
     }
 
@@ -160,14 +170,6 @@ export async function evaluateBudgetReminder(
         updatedAt: new Date(),
       })
       .where(eq(reminderSettings.userId, userId))
-
-    const alertMessage = formatReminderMessage(
-      settings.customMessage,
-      currentMonthTotal,
-      limit,
-      true,
-      thresholdPct,
-    )
 
     return {
       shouldAlert: true,
