@@ -19,11 +19,6 @@ const unsubscribeSchema = z.object({
 })
 
 export async function GET() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   return NextResponse.json({
     publicKey: env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null,
   })

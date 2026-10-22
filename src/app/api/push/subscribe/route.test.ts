@@ -38,16 +38,7 @@ describe('/api/push/subscribe route', () => {
     vi.clearAllMocks()
   })
 
-  it('mengembalikan 401 Unauthorized jika belum login', async () => {
-    mockAuth.mockResolvedValue(null)
-
-    const res = await GET()
-    expect(res.status).toBe(401)
-  })
-
-  it('mengembalikan publicKey pada GET request yang terotentikasi', async () => {
-    mockAuth.mockResolvedValue({ user: { id: 'user-1' } })
-
+  it('mengembalikan publicKey pada GET request', async () => {
     const res = await GET()
     expect(res.status).toBe(200)
     const json = (await res.json()) as { publicKey: string }

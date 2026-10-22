@@ -30,7 +30,7 @@ export async function registerAndSubscribePush(
     return { ok: false, error: 'Izin notifikasi belum diberikan' }
   }
 
-  let key = vapidPublicKey
+  let key = vapidPublicKey || process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
   if (!key) {
     try {
       const res = await fetch('/api/push/subscribe')
@@ -48,8 +48,12 @@ export async function registerAndSubscribePush(
   }
 
   try {
-    const registration = await navigator.serviceWorker.ready
-    let subscription = await registration.pushManager.getSubscription()
+    let registration = await navigator.serviceWorker.getRegistration()
+    if (!registration) {
+      registration = await navigator.serviceWorker.register('/sw.js')
+    }
+    const readyReg = await navigator.serviceWorker.ready
+    let subscription = await readyReg.pushManager.getSubscription()
 
     if (!subscription) {
       const convertedVapidKey = urlBase64ToUint8Array(key)
