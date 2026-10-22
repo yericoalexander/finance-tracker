@@ -6,7 +6,7 @@ import { FileSpreadsheet, ArrowDownLeft, Bell } from 'lucide-react'
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
 import type { ReminderSetting } from '@/lib/db/schema'
-import { registerAndSubscribePush } from '@/lib/push/client'
+import { registerAndSubscribePush, requestAndSubscribePush } from '@/lib/push/client'
 import { usePrivacy } from '@/lib/privacy/context'
 import { PrivacyToggle } from '@/components/ui/privacy-toggle'
 import { BudgetModal } from './budget-modal'
@@ -107,22 +107,19 @@ export function SummaryCards({
     }
   }, [])
 
-  const handleOpenBudgetModal = async () => {
-    if (
-      typeof window !== 'undefined' &&
-      'Notification' in window &&
-      Notification.permission === 'default'
-    ) {
-      try {
-        const perm = await Notification.requestPermission()
-        if (perm === 'granted') {
-          registerAndSubscribePush().catch(() => null)
-        }
-      } catch {
-        // Fallback silent
+  const handleOpenBudgetModal = () => {
+    // 1. Langsung buka modal atur budget secara responsif
+    setIsBudgetModalOpen(true)
+
+    // 2. Otomatis minta akses allow notif jika belum diizinkan ('default')
+    // Setelah sudah di-allow ('granted'), tidak akan pernah diminta lagi
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        void requestAndSubscribePush().catch(() => null)
+      } else if (Notification.permission === 'granted') {
+        void registerAndSubscribePush().catch(() => null)
       }
     }
-    setIsBudgetModalOpen(true)
   }
 
   return (

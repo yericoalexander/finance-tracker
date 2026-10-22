@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { X, Check, AlertCircle, Loader2 } from 'lucide-react'
 
 import { updateReminderSettingsAction } from './reminder-actions'
-import { registerAndSubscribePush } from '@/lib/push/client'
+import { registerAndSubscribePush, requestAndSubscribePush } from '@/lib/push/client'
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
 import { usePrivacy } from '@/lib/privacy/context'
@@ -93,6 +93,18 @@ export function BudgetModal({
 
   const numericLimit = parseInt(limitInput.replace(/\D/g, ''), 10) || 0
 
+  const handleToggleEnabled = () => {
+    const next = !isEnabled
+    setIsEnabled(next)
+    if (next && typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        void requestAndSubscribePush().catch(() => null)
+      } else if (Notification.permission === 'granted') {
+        void registerAndSubscribePush().catch(() => null)
+      }
+    }
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg(null)
@@ -108,10 +120,7 @@ export function BudgetModal({
       if (isEnabled && typeof window !== 'undefined' && 'Notification' in window) {
         try {
           if (Notification.permission === 'default') {
-            const perm = await Notification.requestPermission()
-            if (perm === 'granted') {
-              registerAndSubscribePush().catch(() => null)
-            }
+            await requestAndSubscribePush().catch(() => null)
           } else if (Notification.permission === 'granted') {
             registerAndSubscribePush().catch(() => null)
           }
@@ -281,7 +290,7 @@ export function BudgetModal({
               type="button"
               role="switch"
               aria-checked={isEnabled}
-              onClick={() => setIsEnabled(!isEnabled)}
+              onClick={handleToggleEnabled}
               style={{
                 width: '44px',
                 height: '24px',
