@@ -1,10 +1,16 @@
 'use client'
 
-import { AlertCircle, Loader2, ShieldCheck } from 'lucide-react'
+import { AlertCircle, CheckSquare, Loader2, ShieldCheck } from 'lucide-react'
+import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 
+import { LanguageToggle } from '@/components/ui/language-toggle'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { useI18n } from '@/lib/i18n/context'
+
 export default function LoginPage() {
+  const { t } = useI18n()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -14,7 +20,7 @@ export default function LoginPage() {
     try {
       await signIn('google', { callbackUrl: '/dashboard' })
     } catch {
-      setError('Gagal terhubung ke Google. Coba lagi.')
+      setError(t('loginError'))
       setLoading(false)
     }
   }
@@ -27,21 +33,35 @@ export default function LoginPage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 'var(--space-6)',
-        paddingBottom: 'calc(var(--space-6) + env(safe-area-inset-bottom))',
+        padding: 'var(--space-5)',
+        paddingTop: 'calc(var(--space-4) + env(safe-area-inset-top, 0px))',
+        paddingBottom: 'calc(var(--space-6) + env(safe-area-inset-bottom, 0px))',
         backgroundColor: 'var(--color-bg)',
       }}
     >
       <div
         style={{
           width: '100%',
-          maxWidth: '375px',
+          maxWidth: '390px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--space-6)',
+          gap: 'var(--space-4)',
         }}
       >
-        {/* Logo / Nama app */}
+        {/* Top Controls: Theme & Language Switcher */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            gap: 'var(--space-2)',
+          }}
+        >
+          <ThemeToggle />
+          <LanguageToggle />
+        </div>
+
+        {/* Header App Info */}
         <div style={{ textAlign: 'center' }}>
           <p
             style={{
@@ -49,18 +69,20 @@ export default function LoginPage() {
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: 'var(--color-text-muted)',
-              marginBottom: 'var(--space-2)',
+              marginBottom: 'var(--space-1)',
+              fontWeight: 700,
             }}
           >
             Finance Tracker
           </p>
           <h1
             style={{
-              fontSize: '1.75rem',
-              fontWeight: 700,
+              fontSize: '1.65rem',
+              fontWeight: 800,
               color: 'var(--color-text)',
-              lineHeight: 1.2,
+              lineHeight: 1.25,
               margin: 0,
+              letterSpacing: '-0.02em',
             }}
           >
             Catat pengeluaran
@@ -69,50 +91,129 @@ export default function LoginPage() {
           </h1>
           <p
             style={{
-              marginTop: 'var(--space-3)',
+              marginTop: 'var(--space-2)',
               color: 'var(--color-text-muted)',
-              fontSize: '0.9rem',
-              lineHeight: 1.6,
+              fontSize: '0.85rem',
+              lineHeight: 1.5,
+              margin: 'var(--space-2) 0 0 0',
             }}
           >
             Screenshot struk atau bukti transfer di iPhone, langsung masuk ke Google Sheets milikmu.
           </p>
         </div>
 
-        {/* Card tombol + info izin */}
+        {/* Card Utama */}
         <div
           style={{
             backgroundColor: 'var(--color-surface)',
             borderRadius: 'var(--radius-xl)',
-            padding: 'var(--space-6)',
+            padding: 'var(--space-5)',
             boxShadow: 'var(--shadow-md)',
             border: '1px solid var(--color-border)',
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--space-5)',
+            gap: 'var(--space-4)',
           }}
         >
-          {/* Info izin */}
+          {/* Card Panduan Centang Izin Google Drive */}
           <div
             style={{
               display: 'flex',
-              gap: 'var(--space-3)',
-              padding: 'var(--space-3)',
-              backgroundColor: 'var(--color-accent-subtle)',
-              borderRadius: 'var(--radius-md)',
+              flexDirection: 'column',
+              gap: 'var(--space-2)',
+              padding: 'var(--space-4)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1.5px solid var(--color-accent)',
             }}
           >
-            <ShieldCheck
-              size={18}
-              style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }}
-            />
-            <div style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
-              <strong>Izin yang diminta:</strong> akses email dan akun Google, serta membuat file
-              spreadsheet baru di Google Drive milikmu. Kami tidak membaca file lain di Drive-mu.
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <span
+                style={{
+                  fontSize: '0.66rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                }}
+              >
+                {t('loginDriveNoticeBadge')}
+              </span>
             </div>
+
+            <h2
+              style={{
+                fontSize: '0.92rem',
+                fontWeight: 700,
+                color: 'var(--color-text)',
+                margin: 0,
+                lineHeight: 1.35,
+              }}
+            >
+              {t('loginDriveNoticeTitle')}
+            </h2>
+
+            <p
+              style={{
+                fontSize: '0.8rem',
+                color: 'var(--color-text-muted)',
+                lineHeight: 1.5,
+                margin: 0,
+              }}
+            >
+              {t('loginDriveNoticeDesc')}
+            </p>
+
+            {/* Visual Box Preview Kotak Centang yang akan dilihat di layar Google */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 'var(--space-2)',
+                padding: 'var(--space-3)',
+                backgroundColor: 'var(--color-surface)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)',
+                marginTop: 'var(--space-1)',
+              }}
+            >
+              <CheckSquare
+                size={18}
+                style={{
+                  color: 'var(--color-accent)',
+                  flexShrink: 0,
+                  marginTop: '1px',
+                }}
+              />
+              <span
+                style={{
+                  fontSize: '0.78rem',
+                  color: 'var(--color-text)',
+                  fontWeight: 600,
+                  lineHeight: 1.45,
+                }}
+              >
+                {t('loginCheckboxSample')}
+              </span>
+            </div>
+
+            <p
+              style={{
+                fontSize: '0.73rem',
+                color: 'var(--color-warning-text)',
+                margin: 0,
+                fontWeight: 600,
+                lineHeight: 1.4,
+              }}
+            >
+              ⚠️ {t('loginCheckboxWarning')}
+            </p>
           </div>
 
-          {/* Pesan error */}
+          {/* Pesan Error jika Ada */}
           {error && (
             <div
               role="alert"
@@ -123,17 +224,18 @@ export default function LoginPage() {
                 padding: 'var(--space-3)',
                 backgroundColor: 'var(--color-error-subtle)',
                 borderRadius: 'var(--radius-md)',
-                fontSize: '0.85rem',
+                fontSize: '0.82rem',
                 color: 'var(--color-error)',
               }}
             >
               <AlertCircle size={16} style={{ flexShrink: 0 }} />
-              {error}
+              <span>{error}</span>
             </div>
           )}
 
-          {/* Tombol utama */}
+          {/* Tombol Utama Masuk Google */}
           <button
+            type="button"
             onClick={handleSignIn}
             disabled={loading}
             style={{
@@ -141,51 +243,79 @@ export default function LoginPage() {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 'var(--space-3)',
-              minHeight: '44px',
+              minHeight: '48px',
               padding: `var(--space-3) var(--space-5)`,
               backgroundColor: loading ? 'var(--color-border)' : 'var(--color-text)',
               color: loading ? 'var(--color-text-muted)' : 'var(--color-bg)',
               borderRadius: 'var(--radius-md)',
               border: 'none',
               fontFamily: 'inherit',
-              fontSize: '0.95rem',
-              fontWeight: 600,
+              fontSize: '0.94rem',
+              fontWeight: 700,
               cursor: loading ? 'not-allowed' : 'pointer',
-              transition: `background-color var(--duration-base) var(--ease-default),
-                           opacity var(--duration-base) var(--ease-default)`,
+              transition: `opacity var(--duration-base) var(--ease-default)`,
               width: '100%',
+              boxShadow: 'var(--shadow-sm)',
             }}
             aria-busy={loading}
           >
             {loading ? (
               <>
                 <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-                Menghubungkan...
+                <span>{t('loginConnecting')}</span>
               </>
             ) : (
               <>
                 <GoogleIcon />
-                Lanjutkan dengan Google
+                <span>{t('loginBtnGoogle')}</span>
               </>
             )}
           </button>
 
+          {/* Info Ringkasan Izin Privasi */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 'var(--space-2)',
+              padding: 'var(--space-3)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <ShieldCheck
+              size={16}
+              style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }}
+            />
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+              {t('loginPermissionSummary')}
+            </div>
+          </div>
+
+          {/* Terms & Privacy Links */}
           <p
             style={{
               textAlign: 'center',
-              fontSize: '0.78rem',
+              fontSize: '0.75rem',
               color: 'var(--color-text-muted)',
               margin: 0,
+              lineHeight: 1.5,
             }}
           >
-            Dengan masuk, kamu menyetujui{' '}
-            <a href="/ketentuan" style={{ color: 'var(--color-accent)' }}>
-              Ketentuan Layanan
-            </a>{' '}
-            dan{' '}
-            <a href="/privasi" style={{ color: 'var(--color-accent)' }}>
-              Kebijakan Privasi
-            </a>
+            {t('loginTermsNotice')}{' '}
+            <Link
+              href="/ketentuan"
+              style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}
+            >
+              {t('termsOfService')}
+            </Link>{' '}
+            &{' '}
+            <Link
+              href="/privasi"
+              style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}
+            >
+              {t('privacyPolicy')}
+            </Link>
             .
           </p>
         </div>

@@ -381,6 +381,24 @@ export const translations = {
     // Toast
     switchedToEnglish: '🇬🇧 Bahasa diubah ke English (Nominal tetap Rupiah)',
     switchedToIndonesian: '🇮🇩 Bahasa diubah ke Indonesia',
+
+    // Login Page
+    loginDriveNoticeBadge: 'Penting Saat Masuk',
+    loginDriveNoticeTitle: 'Wajib Centang Izin Google Drive',
+    loginDriveNoticeDesc:
+      'Pada layar Google berikutnya, pastikan centang kotak izin Google Drive agar Finance Tracker dapat otomatis membuatkan Google Sheets untuk mencatat keuanganmu.',
+    loginCheckboxSample:
+      'Lihat, buat, dan edit file Google Drive tertentu yang Anda gunakan dengan aplikasi ini',
+    loginCheckboxWarning:
+      'Jika kotak ini tidak dicentang, spreadsheet transaksi tidak bisa dibuat.',
+    loginPermissionSummary:
+      'Izin yang diminta: akses email dan akun Google, serta membuat file spreadsheet baru di Google Drive milikmu. Kami tidak membaca file lain di Drive-mu.',
+    loginBtnGoogle: 'Lanjutkan dengan Google',
+    loginConnecting: 'Menghubungkan...',
+    loginTermsNotice: 'Dengan masuk, kamu menyetujui',
+    termsOfService: 'Ketentuan Layanan',
+    privacyPolicy: 'Kebijakan Privasi',
+    loginError: 'Gagal terhubung ke Google. Coba lagi.',
   },
   en: {
     // Header
@@ -759,6 +777,24 @@ export const translations = {
     // Toast
     switchedToEnglish: '🇬🇧 Switched to English (Amounts remain in Rupiah)',
     switchedToIndonesian: '🇮🇩 Switched to Indonesian',
+
+    // Login Page
+    loginDriveNoticeBadge: 'Important on Sign-In',
+    loginDriveNoticeTitle: 'Must Tick Google Drive Permission',
+    loginDriveNoticeDesc:
+      'On the next Google screen, make sure to tick the Google Drive permission checkbox so Finance Tracker can automatically create your Google Sheets for tracking finances.',
+    loginCheckboxSample:
+      'See, edit, create, and delete only the specific Google Drive files you use with this app',
+    loginCheckboxWarning:
+      'If this box is not checked, your transaction spreadsheet cannot be created.',
+    loginPermissionSummary:
+      'Requested access: email and Google account profile, and creating a new spreadsheet in your Google Drive. We do not read any other files in your Drive.',
+    loginBtnGoogle: 'Continue with Google',
+    loginConnecting: 'Connecting...',
+    loginTermsNotice: 'By continuing, you agree to our',
+    termsOfService: 'Terms of Service',
+    privacyPolicy: 'Privacy Policy',
+    loginError: 'Failed to connect to Google. Please try again.',
   },
 } as const
 

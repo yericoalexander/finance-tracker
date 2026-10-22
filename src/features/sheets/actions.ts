@@ -66,7 +66,7 @@ export async function retryEnsureSpreadsheetAction(): Promise<RetrySheetResult> 
         return {
           ok: false,
           error:
-            'Izin Google Drive/Sheets ditolak. Silakan keluar dan login ulang dengan menyetujui izin Google.',
+            'Izin Google Drive belum dicentang saat login. Silakan keluar dan login ulang, lalu pastikan centang kotak izin akses Google Drive agar spreadsheet dapat dibuat.',
         }
       }
       return {
