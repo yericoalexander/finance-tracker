@@ -129,3 +129,35 @@ export async function updateReminderSettingsAction(
     return { ok: false, error: 'Gagal menyimpan pengaturan pengingat' }
   }
 }
+
+export async function sendTestNotificationAction(): Promise<{
+  ok: boolean
+  sentCount?: number
+  error?: string
+}> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { ok: false, error: 'Sesi telah berakhir, silakan login kembali' }
+  }
+
+  const userId = session.user.id
+  const settings = await db.query.reminderSettings.findFirst({
+    where: eq(reminderSettings.userId, userId),
+  })
+
+  const customText = settings?.customMessage?.trim()
+  const testTitle = '🔔 Uji Coba Pengingat Anggaran'
+  const testBody = customText
+    ? `⚠️ Peringatan: ${customText}`
+    : '⚠️ Peringatan: Pengeluaran bulan ini telah menyentuh batas yang Anda tentukan!'
+
+  const pushResult = await sendPushNotificationToUser(userId, {
+    title: testTitle,
+    body: testBody,
+    url: '/dashboard',
+    tag: 'budget-test',
+  })
+
+  return { ok: true, sentCount: pushResult.sent }
+}
+

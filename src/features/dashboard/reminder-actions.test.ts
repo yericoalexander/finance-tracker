@@ -29,7 +29,11 @@ vi.mock('./reminder-evaluator', () => ({
   evaluateBudgetReminder: vi.fn().mockResolvedValue({ shouldAlert: false }),
 }))
 
-import { getReminderSettingsAction, updateReminderSettingsAction } from './reminder-actions'
+import {
+  getReminderSettingsAction,
+  updateReminderSettingsAction,
+  sendTestNotificationAction,
+} from './reminder-actions'
 
 describe('reminder-actions', () => {
   beforeEach(() => {
@@ -104,4 +108,26 @@ describe('reminder-actions', () => {
       expect(result.ok).toBe(false)
     })
   })
+
+  describe('sendTestNotificationAction', () => {
+    it('mengembalikan error jika user belum terautentikasi', async () => {
+      mockAuth.mockResolvedValueOnce(null)
+
+      const result = await sendTestNotificationAction()
+      expect(result.ok).toBe(false)
+      expect(result.error).toContain('Sesi telah berakhir')
+    })
+
+    it('berhasil mengirim notifikasi uji coba saat user terautentikasi', async () => {
+      mockAuth.mockResolvedValueOnce({
+        user: { id: 'test-user-id' },
+        expires: '2099-01-01',
+      })
+
+      const result = await sendTestNotificationAction()
+      expect(result.ok).toBe(true)
+      expect(result.sentCount).toBe(1)
+    })
+  })
 })
+
