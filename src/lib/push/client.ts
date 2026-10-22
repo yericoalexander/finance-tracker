@@ -57,7 +57,7 @@ export async function registerAndSubscribePush(
 
     if (!subscription) {
       const convertedVapidKey = urlBase64ToUint8Array(key)
-      subscription = await registration.pushManager.subscribe({
+      subscription = await readyReg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: convertedVapidKey as unknown as BufferSource,
       })
@@ -87,5 +87,43 @@ export async function registerAndSubscribePush(
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Kesalahan langganan push'
     return { ok: false, error: msg }
+  }
+}
+
+/**
+ * Meminta izin notifikasi langsung ke pengguna lalu mendaftarkan langganan Web Push
+ */
+export async function requestAndSubscribePush(): Promise<{
+  ok: boolean
+  permission: NotificationPermission | 'unsupported'
+  error?: string
+}> {
+  if (typeof window === 'undefined') {
+    return { ok: false, permission: 'unsupported', error: 'Window tidak tersedia' }
+  }
+
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return {
+      ok: false,
+      permission: 'unsupported',
+      error: 'Browser tidak mendukung Web Push langsung',
+    }
+  }
+
+  try {
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') {
+      return { ok: false, permission, error: 'Izin notifikasi tidak diberikan' }
+    }
+
+    const subRes = await registerAndSubscribePush()
+    if (!subRes.ok) {
+      return { ok: false, permission, error: subRes.error }
+    }
+
+    return { ok: true, permission: 'granted' }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Gagal meminta izin notifikasi'
+    return { ok: false, permission: 'denied', error: msg }
   }
 }

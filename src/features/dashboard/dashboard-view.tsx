@@ -12,6 +12,7 @@ import { MonthNavigator } from './month-navigator'
 import { getMonthSummaryAction, type DashboardData } from './actions'
 import { DeviceSetupBanner } from '@/features/devices/device-setup-banner'
 import { ShortcutOnboardingModal } from '@/features/devices/shortcut-onboarding-modal'
+import { PushNotificationBanner } from './push-notification-banner'
 import { registerAndSubscribePush } from '@/lib/push/client'
 import { useI18n } from '@/lib/i18n/context'
 
@@ -416,6 +417,9 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
             paddingTop: 'var(--space-1)',
           }}
         >
+          {/* Banner Izin Notifikasi Pengeluaran Langsung */}
+          <PushNotificationBanner />
+
           {/* Banner Pemasangan Shortcut iPhone jika Belum Terhubung */}
           <DeviceSetupBanner hasActiveDevice={Boolean(data.activeDevice)} />
 

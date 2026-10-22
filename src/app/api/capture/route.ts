@@ -337,15 +337,14 @@ export async function POST(request: NextRequest) {
       txMonthPrefix,
     ).catch((): BudgetReminderEvaluation => ({ shouldAlert: false }))
 
-    let responseMessage = `Tercatat: ${formattedAmount} di ${extraction.merchant}`
+    const responseMessage = `Tercatat: ${formattedAmount} di ${extraction.merchant}`
     if (reminderEval.shouldAlert && reminderEval.alertMessage) {
-      responseMessage = `${reminderEval.alertMessage}\n(Tercatat: ${formattedAmount} di ${extraction.merchant})`
       const pushTitle =
         reminderEval.milestone === '100'
           ? '🚨 Batas Anggaran Terlampaui!'
           : `⚠️ Peringatan: Pengeluaran Mencapai ${reminderEval.milestone}%!`
 
-      // Kirim Web Push ke perangkat HP pengguna (tampil di lockscreen tanpa perlu buka app)
+      // Kirim Web Push langsung dari Finance Tracker ke layar HP pengguna
       sendPushNotificationToUser(device.userId, {
         title: pushTitle,
         body: reminderEval.alertMessage,
