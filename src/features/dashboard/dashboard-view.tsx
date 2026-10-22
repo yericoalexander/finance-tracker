@@ -12,6 +12,7 @@ import { MonthNavigator } from './month-navigator'
 import { getMonthSummaryAction, type DashboardData } from './actions'
 import { DeviceSetupBanner } from '@/features/devices/device-setup-banner'
 import { ShortcutOnboardingModal } from '@/features/devices/shortcut-onboarding-modal'
+import { registerAndSubscribePush } from '@/lib/push/client'
 import { useI18n } from '@/lib/i18n/context'
 
 type TabType = 'overview' | 'transactions' | 'add'
@@ -72,6 +73,17 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
       },
     }))
   }, [data.mtdTotal, data.txCount, data.categoryBreakdown, currentMonthPrefix])
+
+  // Sinkronisasi otomatis langganan Web Push perangkat ke server jika izin notifikasi aktif
+  useEffect(() => {
+    if (
+      typeof window !== 'undefined' &&
+      'Notification' in window &&
+      Notification.permission === 'granted'
+    ) {
+      void registerAndSubscribePush().catch(() => null)
+    }
+  }, [])
 
   const refreshMonthSummary = async (month: string) => {
     if (month === currentMonthPrefix) return
