@@ -19,6 +19,7 @@ import {
   Check,
   Trash2,
   Loader2,
+  ArrowLeftRight,
 } from 'lucide-react'
 
 import { CATEGORIES } from '@/lib/ai/types'
@@ -93,6 +94,8 @@ function getCategoryIcon(cat: string | null) {
       return <Film size={18} color="var(--color-accent)" />
     case 'Kesehatan':
       return <HeartPulse size={18} color="var(--color-accent)" />
+    case 'Transfer Antar Bank':
+      return <ArrowLeftRight size={18} color="var(--color-accent)" />
     default:
       return <Tag size={18} color="var(--color-accent)" />
   }
@@ -1061,6 +1064,21 @@ export function RecentTransactions({
                         {t('badgeNew')}
                       </span>
                     )}
+                    {tx.txType === 'transfer' && (
+                      <span
+                        style={{
+                          fontSize: '0.62rem',
+                          fontWeight: 700,
+                          backgroundColor: 'var(--color-surface-raised)',
+                          color: 'var(--color-text)',
+                          padding: '1px 6px',
+                          borderRadius: 'var(--radius-full)',
+                          border: '1px solid var(--color-border)',
+                        }}
+                      >
+                        Pindah Saldo
+                      </span>
+                    )}
                   </div>
                   <p
                     style={{
@@ -1084,7 +1102,9 @@ export function RecentTransactions({
                         color:
                           tx.txType === 'income'
                             ? 'var(--color-income)'
-                            : 'var(--color-expense)',
+                            : tx.txType === 'transfer'
+                              ? 'var(--color-text)'
+                              : 'var(--color-expense)',
                         fontVariantNumeric: 'tabular-nums',
                         letterSpacing: '-0.02em',
                         margin: 0,
@@ -1093,10 +1113,14 @@ export function RecentTransactions({
                       {isPrivate
                         ? tx.txType === 'income'
                           ? '+Rp ••••••'
-                          : '-Rp ••••••'
+                          : tx.txType === 'transfer'
+                            ? 'Rp ••••••'
+                            : '-Rp ••••••'
                         : tx.txType === 'income'
                           ? `+${formatRupiah(tx.amountIdr ?? 0)}`
-                          : `-${formatRupiah(tx.amountIdr ?? 0)}`}
+                          : tx.txType === 'transfer'
+                            ? formatRupiah(tx.amountIdr ?? 0)
+                            : `-${formatRupiah(tx.amountIdr ?? 0)}`}
                     </p>
                   </div>
 
@@ -1755,17 +1779,23 @@ export function RecentTransactions({
                       color:
                         deleteTarget.txType === 'income'
                           ? 'var(--color-income)'
-                          : 'var(--color-expense)',
+                          : deleteTarget.txType === 'transfer'
+                            ? 'var(--color-text)'
+                            : 'var(--color-expense)',
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
                     {isPrivate
                       ? deleteTarget.txType === 'income'
                         ? '+Rp ••••••'
-                        : '-Rp ••••••'
+                        : deleteTarget.txType === 'transfer'
+                          ? 'Rp ••••••'
+                          : '-Rp ••••••'
                       : deleteTarget.txType === 'income'
                         ? `+${formatRupiah(deleteTarget.amountIdr ?? 0)}`
-                        : `-${formatRupiah(deleteTarget.amountIdr ?? 0)}`}
+                        : deleteTarget.txType === 'transfer'
+                          ? formatRupiah(deleteTarget.amountIdr ?? 0)
+                          : `-${formatRupiah(deleteTarget.amountIdr ?? 0)}`}
                   </span>
                 </div>
                 <div

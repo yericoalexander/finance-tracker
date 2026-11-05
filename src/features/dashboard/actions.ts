@@ -183,7 +183,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
   const monthIncomeCaptures = monthOkCaptures.filter((c) => c.txType === 'income')
   const mtdTotal = monthExpenseCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
   const mtdIncome = monthIncomeCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
-  const txCount = monthOkCaptures.length
+  const txCount = monthExpenseCaptures.length
 
   // Breakdown kategori (dihitung dari pengeluaran)
   const catTotals: Record<string, number> = {}
@@ -390,7 +390,7 @@ export async function getMonthSummaryAction(targetMonth: string): Promise<{
     const incomeCaptures = monthCaptures.filter((c) => c.txType === 'income')
     const total = expenseCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
     const income = incomeCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
-    const txCount = monthCaptures.length
+    const txCount = expenseCaptures.length
 
     const catTotals: Record<string, number> = {}
     for (const c of expenseCaptures) {

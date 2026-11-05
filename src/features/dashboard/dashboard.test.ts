@@ -209,6 +209,7 @@ describe('Dashboard Actions', () => {
       // Hanya pengeluaran murni (50.000) yang dihitung sebagai total pengeluaran
       expect(res.data?.total).toBe(50000)
       expect(res.data?.income).toBe(250000)
+      expect(res.data?.txCount).toBe(1)
       expect(res.data?.categoryBreakdown).toHaveLength(1)
       expect(res.data?.categoryBreakdown[0]?.category).toBe('Makanan & Minuman')
     })

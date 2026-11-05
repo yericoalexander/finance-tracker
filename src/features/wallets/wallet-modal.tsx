@@ -5,9 +5,13 @@ import { createPortal } from 'react-dom'
 import { X, Check, Loader2 } from 'lucide-react'
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
-import { WALLET_THEMES, getWalletTheme } from './types'
+import {
+  WALLET_THEMES,
+  getWalletTheme,
+  WalletFormSchema,
+  type WalletFormValues,
+} from './types'
 import { CardBrandLogo, BankBrandBadge } from './wallet-brand-logo'
-import { WalletFormSchema, type WalletFormValues } from './use-wallets'
 
 const BANK_CONVENTIONAL_THEME_IDS = [
   'bca',
@@ -130,8 +134,10 @@ export function WalletModal({ isOpen, onClose, onSave, initialValues, mode }: Wa
 
   const handleSelectTheme = (tid: string) => {
     setThemeId(tid)
-    if (mode === 'add' && (!name || Object.values(WALLET_THEMES).some((t) => t.label === name))) {
-      setName(WALLET_THEMES[tid]?.label ?? '')
+    const newName = WALLET_THEMES[tid]?.label
+    if (newName) {
+      setName(newName)
+      setError(null)
     }
   }
 
@@ -139,8 +145,9 @@ export function WalletModal({ isOpen, onClose, onSave, initialValues, mode }: Wa
     setCustomHex(hex)
     const customTid = `custom_${hex}`
     setThemeId(customTid)
-    if (mode === 'add' && (!name || Object.values(WALLET_THEMES).some((t) => t.label === name))) {
+    if (label) {
       setName(label)
+      setError(null)
     }
   }
 

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useId } from 'react'
+import { useState, useId, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ArrowLeftRight, CheckCircle2, AlertCircle, X, Loader2 } from 'lucide-react'
 import { formatRupiah } from '@/lib/ai/currency'
 import { transferBetweenWalletsAction } from './actions'
@@ -28,8 +29,13 @@ export function WalletTransferModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
 
-  if (!isOpen) return null
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!isOpen || !mounted) return null
 
   const numericAmount = parseInt(amountStr.replace(/\D/g, ''), 10) || 0
   const sourceWallet = wallets.find((w) => w.id === sourceId)
@@ -98,7 +104,7 @@ export function WalletTransferModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -106,9 +112,10 @@ export function WalletTransferModal({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 100,
+        zIndex: 99999, // Di atas seluruh antarmuka termasuk fixed bottom bar
         backgroundColor: 'rgba(0, 0, 0, 0.65)',
         backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'center',
@@ -125,7 +132,8 @@ export function WalletTransferModal({
           maxWidth: '430px',
           backgroundColor: 'var(--color-surface)',
           borderRadius: '28px 28px 0 0',
-          padding: 'var(--space-6) var(--space-5) calc(var(--space-8) + env(safe-area-inset-bottom))',
+          padding:
+            'var(--space-6) var(--space-5) calc(var(--space-8) + env(safe-area-inset-bottom, 16px))',
           boxShadow: 'var(--shadow-lg)',
           maxHeight: '90vh',
           overflowY: 'auto',
@@ -440,7 +448,8 @@ export function WalletTransferModal({
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

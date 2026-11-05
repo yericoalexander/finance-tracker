@@ -2,11 +2,10 @@
 
 import { and, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
-import crypto from 'crypto'
 import { z } from 'zod'
 import { auth } from '@/auth'
 import { db } from '@/lib/db/client'
-import { captures, wallets, type WalletRecord } from '@/lib/db/schema'
+import { wallets, type WalletRecord } from '@/lib/db/schema'
 import { ensureUserWallets } from './wallet-sync'
 import type { Wallet } from './types'
 
@@ -244,32 +243,6 @@ export async function transferBetweenWalletsAction(rawInput: unknown): Promise<{
         .set({ balanceIdr: newDestBalance, updatedAt: new Date() })
         .where(eq(wallets.id, dest.id)),
     ])
-
-    // Catat mutasi internal sebagai transfer di tabel captures (TIDAK dihitung ke pengeluaran/mtdTotal)
-    const captureId = crypto.randomUUID()
-    const imageHash = crypto
-      .createHash('sha256')
-      .update(`transfer-${userId}-${Date.now()}-${captureId}`)
-      .digest('hex')
-
-    const todayStr = new Date().toISOString().slice(0, 10)
-    try {
-      await db.insert(captures).values({
-        id: captureId,
-        userId,
-        imageHash,
-        status: 'ok',
-        confidence: 1.0,
-        merchant: `Transfer ${source.name} ke ${dest.name}`,
-        amountIdr,
-        category: 'Transfer Antar Bank',
-        txDate: todayStr,
-        txType: 'transfer',
-        sheetRowId: captureId,
-      })
-    } catch {
-      // Abaikan jika tabel capture belum siap atau di unit test
-    }
 
     revalidatePath('/dashboard')
     return {
