@@ -345,7 +345,7 @@ export function DashboardView({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 8px))',
+        paddingBottom: 'calc(94px + env(safe-area-inset-bottom, 0px))',
       }}
     >
       {/* Modal Onboarding Otomatis jika Belum Ada iPhone Terhubung */}
@@ -557,32 +557,32 @@ export function DashboardView({
         </div>
       )}
 
-      {/* Bottom Navigation Bar — Ergonomis di jangkauan jempol iPhone, bersih & rapi */}
+      {/* Modern Floating Navigation Dock — Ergonomis, elegan & modern di iPhone */}
       <nav
         aria-label={t('navDashboardTabsAria')}
         style={{
           position: 'fixed',
-          bottom: 0,
+          bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
           left: 0,
           right: 0,
           margin: '0 auto',
-          maxWidth: '430px',
+          width: 'calc(100% - 28px)',
+          maxWidth: '380px',
           zIndex: 50,
           backgroundColor: 'var(--color-surface)',
-          borderTop: '1px solid var(--color-border)',
-          boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)',
-          paddingBottom: 'env(safe-area-inset-bottom, 8px)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '24px',
+          boxShadow: '0 12px 32px -4px rgba(0, 0, 0, 0.10), 0 4px 12px -2px rgba(0, 0, 0, 0.04)',
+          padding: '4px',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         }}
       >
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            height: '56px',
-            padding: '0 4px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '3px',
           }}
         >
           {tabs.map((tab) => {
@@ -594,20 +594,20 @@ export function DashboardView({
                 onClick={() => handleTabChange(tab.id)}
                 aria-current={isActive ? 'page' : undefined}
                 style={{
-                  flex: 1,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '3px',
-                  minHeight: '48px',
-                  minWidth: '44px',
-                  padding: '4px 0',
-                  backgroundColor: 'transparent',
-                  border: 'none',
+                  gap: '2px',
+                  minHeight: '50px',
+                  padding: '4px 2px',
+                  backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
+                  border: isActive ? '1px solid var(--color-border)' : '1px solid transparent',
+                  borderRadius: '18px',
                   cursor: 'pointer',
                   color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
-                  transition: 'color var(--duration-fast) var(--ease-default)',
+                  boxShadow: isActive ? '0 1px 3px rgba(0, 0, 0, 0.04)' : 'none',
+                  transition: 'all var(--duration-fast) var(--ease-default)',
                   fontFamily: 'inherit',
                   userSelect: 'none',
                   WebkitTapHighlightColor: 'transparent',
@@ -618,21 +618,17 @@ export function DashboardView({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: '40px',
-                    height: '26px',
-                    borderRadius: 'var(--radius-full)',
-                    backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
-                    transition: 'background-color var(--duration-fast) var(--ease-default)',
+                    height: '22px',
                   }}
                 >
                   {tab.renderIcon(isActive)}
                 </div>
                 <span
                   style={{
-                    fontSize: '0.68rem',
+                    fontSize: '0.67rem',
                     fontWeight: isActive ? 750 : 500,
                     letterSpacing: '-0.01em',
-                    lineHeight: 1,
+                    lineHeight: 1.1,
                     color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
                     transition: 'color var(--duration-fast) var(--ease-default)',
                   }}
