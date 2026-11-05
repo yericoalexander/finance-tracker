@@ -97,6 +97,9 @@ export async function createManualTransactionAction(rawInput: unknown): Promise<
   try {
     const { sheetId, refreshToken } = await getUserGoogleCredentials(userId)
 
+    const isTransfer = data.category === 'Transfer Antar Bank'
+    const computedTxType = isTransfer ? 'transfer' : (data.txType ?? 'expense')
+
     const insertDbPromise = db.insert(captures).values({
       id: captureId,
       userId,
@@ -107,7 +110,7 @@ export async function createManualTransactionAction(rawInput: unknown): Promise<
       amountIdr: data.amountIdr,
       category: data.category,
       txDate: data.txDate,
-      txType: data.txType ?? 'expense',
+      txType: computedTxType,
       sheetRowId: captureId,
     })
 

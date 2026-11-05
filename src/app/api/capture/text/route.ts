@@ -110,7 +110,10 @@ export async function POST(request: NextRequest) {
       amountIdr: parsed.amountIdr,
       category: parsed.category,
       txDate: parsed.date,
-      txType: parsed.txType,
+      txType:
+        parsed.isTransfer || parsed.category === 'Transfer Antar Bank'
+          ? 'transfer'
+          : parsed.txType,
     })
     .returning()
 

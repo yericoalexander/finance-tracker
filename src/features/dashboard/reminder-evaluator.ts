@@ -79,7 +79,7 @@ export async function evaluateBudgetReminder(
     return { shouldAlert: false }
   }
 
-  // Hitung akumulasi pengeluaran sukses bulan ini secara langsung di database
+  // Hitung akumulasi pengeluaran murni bulan ini (eksklusikan pemasukan dan transfer antar bank)
   const [sumResult] = await db
     .select({
       total: sql<number | null>`COALESCE(SUM(${captures.amountIdr}), 0)::integer`,
@@ -90,6 +90,8 @@ export async function evaluateBudgetReminder(
         eq(captures.userId, userId),
         eq(captures.status, 'ok'),
         sql`${captures.txDate} LIKE ${`${txMonthPrefix}%`}`,
+        sql`COALESCE(${captures.txType}, 'expense') NOT IN ('income', 'transfer')`,
+        sql`COALESCE(${captures.category}, '') != 'Transfer Antar Bank'`,
       ),
     )
 

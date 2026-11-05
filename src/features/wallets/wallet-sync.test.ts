@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { applyTransactionToWallets, findMatchingWallet, STARTER_WALLETS } from './wallet-sync'
+import { applyTransactionToWallets, findMatchingWallet } from './wallet-sync'
 import type { WalletRecord } from '@/lib/db/schema'
 
 const mockUpdateSet = vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) })
@@ -22,16 +22,48 @@ vi.mock('@/lib/db/client', () => ({
 }))
 
 describe('findMatchingWallet', () => {
-  const mockWallets: WalletRecord[] = STARTER_WALLETS.map((w, idx) => ({
-    id: `mock-uuid-${idx + 1}`,
-    userId: 'mock-user-123',
-    name: w.name,
-    balanceIdr: w.balanceIdr,
-    themeId: w.themeId,
-    order: w.order,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }))
+  const mockWallets: WalletRecord[] = [
+    {
+      id: 'mock-1',
+      userId: 'mock-user-123',
+      name: 'BCA',
+      balanceIdr: 1000000,
+      themeId: 'bca',
+      order: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 'mock-2',
+      userId: 'mock-user-123',
+      name: 'SeaBank',
+      balanceIdr: 500000,
+      themeId: 'seabank',
+      order: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 'mock-3',
+      userId: 'mock-user-123',
+      name: 'Krom',
+      balanceIdr: 200000,
+      themeId: 'krom',
+      order: 2,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 'mock-4',
+      userId: 'mock-user-123',
+      name: 'BRI',
+      balanceIdr: 300000,
+      themeId: 'bri',
+      order: 3,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ]
 
   it('matches exact wallet name (SeaBank)', () => {
     const matched = findMatchingWallet(mockWallets, 'SeaBank')

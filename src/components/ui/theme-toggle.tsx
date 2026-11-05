@@ -35,8 +35,8 @@ export function ThemeToggle() {
     return (
       <div
         style={{
-          width: '44px',
-          height: '44px',
+          width: '40px',
+          height: '40px',
         }}
       />
     )
@@ -54,18 +54,21 @@ export function ThemeToggle() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '44px',
-        minWidth: '44px',
-        padding: '0 var(--space-2)',
+        width: '40px',
+        height: '40px',
+        minHeight: '40px',
+        minWidth: '40px',
+        padding: 0,
         backgroundColor: 'var(--color-surface)',
         border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-md)',
+        borderRadius: '50%',
         color: 'var(--color-text)',
         cursor: 'pointer',
         transition: 'all var(--duration-fast) var(--ease-default)',
+        boxShadow: 'var(--shadow-xs)',
       }}
     >
-      {isLight ? <Moon size={18} /> : <Sun size={18} />}
+      {isLight ? <Moon size={17} /> : <Sun size={17} />}
     </button>
   )
 }

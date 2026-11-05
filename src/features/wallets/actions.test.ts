@@ -25,9 +25,10 @@ vi.mock('@/lib/db/client', () => ({
       },
     },
     insert: () => ({
-      values: () => ({
-        returning: () => mockInsert(),
-      }),
+      values: () =>
+        Object.assign(Promise.resolve(mockInsert()), {
+          returning: () => Promise.resolve(mockInsert()),
+        }),
     }),
     update: () => ({
       set: () => ({
@@ -53,15 +54,14 @@ describe('Wallet Server Actions', () => {
     expect(res.error).toContain('Sesi berakhir')
   })
 
-  it('getWalletsAction seeds default wallets if user has none', async () => {
+  it('getWalletsAction returns custom wallets from DB', async () => {
     mockAuth.mockResolvedValue({ user: { id: 'user-123' } })
-    mockFindMany.mockResolvedValue([])
-    mockInsert.mockResolvedValue([
+    mockFindMany.mockResolvedValue([
       {
         id: 'w-1',
         userId: 'user-123',
         name: 'SeaBank',
-        balanceIdr: 5000000,
+        balanceIdr: 432000,
         themeId: 'seabank',
         order: 0,
         createdAt: new Date(),
@@ -124,6 +124,33 @@ describe('Wallet Server Actions', () => {
 
     expect(res.ok).toBe(true)
     expect(res.newBalance).toBe(40000)
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/dashboard')
+  })
+
+  it('transferBetweenWalletsAction transfers balance between two wallets', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'user-123' } })
+    mockFindFirst
+      .mockResolvedValueOnce({
+        id: 'w-source',
+        name: 'SeaBank',
+        balanceIdr: 500000,
+      })
+      .mockResolvedValueOnce({
+        id: 'w-dest',
+        name: 'Krom',
+        balanceIdr: 100000,
+      })
+
+    const { transferBetweenWalletsAction } = await import('./actions')
+    const res = await transferBetweenWalletsAction({
+      sourceWalletId: '11111111-1111-1111-1111-111111111111',
+      destWalletId: '22222222-2222-2222-2222-222222222222',
+      amountIdr: 50000,
+    })
+
+    expect(res.ok).toBe(true)
+    expect(res.sourceWallet?.newBalance).toBe(450000)
+    expect(res.destWallet?.newBalance).toBe(150000)
     expect(mockRevalidatePath).toHaveBeenCalledWith('/dashboard')
   })
 })

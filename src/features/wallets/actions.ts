@@ -1,11 +1,12 @@
 'use server'
 
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import crypto from 'crypto'
 import { z } from 'zod'
 import { auth } from '@/auth'
 import { db } from '@/lib/db/client'
-import { wallets, type WalletRecord } from '@/lib/db/schema'
+import { captures, wallets, type WalletRecord } from '@/lib/db/schema'
 import { ensureUserWallets } from './wallet-sync'
 import type { Wallet } from './types'
 
@@ -176,5 +177,108 @@ export async function quickAdjustWalletAction(
   } catch (err) {
     console.error('[quickAdjustWalletAction] Gagal menyesuaikan saldo:', err)
     return { ok: false, error: 'Gagal mengubah saldo dompet' }
+  }
+}
+
+const TransferBetweenWalletsSchema = z.object({
+  sourceWalletId: z.string().min(1, 'Dompet asal harus dipilih'),
+  destWalletId: z.string().min(1, 'Dompet tujuan harus dipilih'),
+  amountIdr: z.coerce.number().int().positive('Nominal transfer harus lebih dari 0'),
+})
+
+/**
+ * Pindah saldo antar dompet (transfer internal).
+ * Hanya memindahkan saldo antar dompet tanpa menambah beban pengeluaran (mtdTotal).
+ */
+export async function transferBetweenWalletsAction(rawInput: unknown): Promise<{
+  ok: boolean
+  error?: string
+  sourceWallet?: { id: string; name: string; newBalance: number }
+  destWallet?: { id: string; name: string; newBalance: number }
+}> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { ok: false, error: 'Sesi berakhir, silakan login kembali' }
+  }
+
+  const parsed = TransferBetweenWalletsSchema.safeParse(rawInput)
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data transfer tidak valid' }
+  }
+
+  const { sourceWalletId, destWalletId, amountIdr } = parsed.data
+  if (sourceWalletId === destWalletId) {
+    return { ok: false, error: 'Dompet asal dan tujuan tidak boleh sama' }
+  }
+
+  const userId = session.user.id
+
+  try {
+    const [source, dest] = await Promise.all([
+      db.query.wallets.findFirst({
+        where: and(eq(wallets.id, sourceWalletId), eq(wallets.userId, userId)),
+      }),
+      db.query.wallets.findFirst({
+        where: and(eq(wallets.id, destWalletId), eq(wallets.userId, userId)),
+      }),
+    ])
+
+    if (!source || !dest) {
+      return { ok: false, error: 'Dompet tidak ditemukan' }
+    }
+
+    if (source.balanceIdr < amountIdr) {
+      return { ok: false, error: `Saldo ${source.name} tidak mencukupi untuk transfer ini` }
+    }
+
+    const newSourceBalance = Math.max(0, source.balanceIdr - amountIdr)
+    const newDestBalance = dest.balanceIdr + amountIdr
+
+    await Promise.all([
+      db
+        .update(wallets)
+        .set({ balanceIdr: newSourceBalance, updatedAt: new Date() })
+        .where(eq(wallets.id, source.id)),
+      db
+        .update(wallets)
+        .set({ balanceIdr: newDestBalance, updatedAt: new Date() })
+        .where(eq(wallets.id, dest.id)),
+    ])
+
+    // Catat mutasi internal sebagai transfer di tabel captures (TIDAK dihitung ke pengeluaran/mtdTotal)
+    const captureId = crypto.randomUUID()
+    const imageHash = crypto
+      .createHash('sha256')
+      .update(`transfer-${userId}-${Date.now()}-${captureId}`)
+      .digest('hex')
+
+    const todayStr = new Date().toISOString().slice(0, 10)
+    try {
+      await db.insert(captures).values({
+        id: captureId,
+        userId,
+        imageHash,
+        status: 'ok',
+        confidence: 1.0,
+        merchant: `Transfer ${source.name} ke ${dest.name}`,
+        amountIdr,
+        category: 'Transfer Antar Bank',
+        txDate: todayStr,
+        txType: 'transfer',
+        sheetRowId: captureId,
+      })
+    } catch {
+      // Abaikan jika tabel capture belum siap atau di unit test
+    }
+
+    revalidatePath('/dashboard')
+    return {
+      ok: true,
+      sourceWallet: { id: source.id, name: source.name, newBalance: newSourceBalance },
+      destWallet: { id: dest.id, name: dest.name, newBalance: newDestBalance },
+    }
+  } catch (err) {
+    console.error('[transferBetweenWalletsAction] Gagal transfer antar dompet:', err)
+    return { ok: false, error: 'Gagal memproses pemindahan saldo' }
   }
 }

@@ -218,6 +218,10 @@ export async function POST(request: NextRequest) {
       amountIdr: extraction.amountIdr,
       category: extraction.category,
       txDate: extraction.date,
+      txType:
+        extraction.isTransfer || extraction.category === 'Transfer Antar Bank'
+          ? 'transfer'
+          : 'expense',
     })
     .returning()
 

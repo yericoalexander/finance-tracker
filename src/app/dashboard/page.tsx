@@ -66,7 +66,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         minHeight: '100svh',
         backgroundColor: 'var(--color-bg)',
         paddingTop: 0,
-        paddingBottom: 'calc(var(--space-10) + env(safe-area-inset-bottom))',
+        paddingBottom: 0,
         paddingLeft: 'var(--space-5)',
         paddingRight: 'var(--space-5)',
         maxWidth: '430px',

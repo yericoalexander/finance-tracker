@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, ArrowLeftRight, Eye, EyeOff, Pencil, Trash2, MoreHorizontal, RotateCcw, Sparkles } from 'lucide-react'
+import { Plus, ArrowLeftRight, Eye, EyeOff, Pencil, Trash2, MoreHorizontal, RotateCcw } from 'lucide-react'
 import { formatRupiah } from '@/lib/ai/currency'
 import { usePrivacy } from '@/lib/privacy/context'
 import { useI18n } from '@/lib/i18n/context'
 import { getWalletTheme, type Wallet } from './types'
 import { CardBrandLogo } from './wallet-brand-logo'
 import { WalletModal } from './wallet-modal'
+import { WalletTransferModal } from './wallet-transfer-modal'
 import { useWallets, type WalletFormValues } from './use-wallets'
 
 interface WalletCardProps {
@@ -388,8 +389,9 @@ export function WalletSection() {
     resetToDefault,
   } = useWallets()
   const { isPrivate, togglePrivacy } = usePrivacy()
-  const [isExpanded, setIsExpanded] = useState(false)
+  const isExpanded = false
   const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isTransferOpen, setIsTransferOpen] = useState(false)
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
@@ -514,8 +516,10 @@ export function WalletSection() {
               onClick={togglePrivacy}
               aria-label={isPrivate ? t('walletShowBalanceAria') : t('walletHideBalanceAria')}
               style={{
-                width: '36px',
-                height: '36px',
+                width: '40px',
+                height: '40px',
+                minWidth: '40px',
+                minHeight: '40px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -534,8 +538,10 @@ export function WalletSection() {
               onClick={() => setShowMenu((v) => !v)}
               aria-label={t('walletMenuAria')}
               style={{
-                width: '36px',
-                height: '36px',
+                width: '40px',
+                height: '40px',
+                minWidth: '40px',
+                minHeight: '40px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -668,22 +674,21 @@ export function WalletSection() {
         </span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {wallets.length > 1 && (
+          {wallets.length >= 2 && (
             <button
               type="button"
-              onClick={() => {
-                setIsExpanded((v) => !v)
-                setSelectedCardId(null)
-              }}
-              aria-label={isExpanded ? t('walletStackCards') : t('walletExpandCards')}
-              title={isExpanded ? t('walletStackCards') : t('walletExpandCards')}
+              onClick={() => setIsTransferOpen(true)}
+              aria-label="Pindah Saldo Antar Dompet"
+              title="Pindah Saldo Antar Dompet"
               style={{
-                width: '36px',
-                height: '36px',
+                width: '40px',
+                height: '40px',
+                minWidth: '40px',
+                minHeight: '40px',
                 borderRadius: 'var(--radius-full)',
                 border: '1px solid var(--color-border)',
-                backgroundColor: isExpanded ? 'var(--color-accent)' : 'var(--color-surface)',
-                color: isExpanded ? 'var(--color-accent-text)' : 'var(--color-text)',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -692,7 +697,7 @@ export function WalletSection() {
                 transition: 'all 200ms ease',
               }}
             >
-              <ArrowLeftRight size={15} />
+              <ArrowLeftRight size={16} />
             </button>
           )}
 
@@ -702,8 +707,10 @@ export function WalletSection() {
             aria-label={t('walletAddNew')}
             title={t('walletAddNew')}
             style={{
-              width: '36px',
-              height: '36px',
+              width: '40px',
+              height: '40px',
+              minWidth: '40px',
+              minHeight: '40px',
               borderRadius: 'var(--radius-full)',
               border: '1px solid var(--color-border)',
               backgroundColor: 'var(--color-surface)',
@@ -716,7 +723,7 @@ export function WalletSection() {
               transition: 'all 150ms ease',
             }}
           >
-            <Plus size={16} />
+            <Plus size={18} />
           </button>
         </div>
       </div>
@@ -796,53 +803,18 @@ export function WalletSection() {
         </>
       )}
 
-      {/* Tip / Quick Action Bar saat kartu sedikit atau hanya 1 */}
-      {wallets.length <= 2 && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            backgroundColor: 'var(--color-surface)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--color-border)',
-            gap: '10px',
-            boxShadow: 'var(--shadow-sm)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={16} color="var(--color-accent)" />
-            <span
-              style={{
-                fontSize: '0.78rem',
-                color: 'var(--color-text-muted)',
-                fontWeight: 500,
-              }}
-            >
-              Ingin mencoba tumpukan 6 kartu lengkap?
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={resetToDefault}
-            style={{
-              padding: '6px 14px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--color-accent)',
-              border: 'none',
-              color: 'var(--color-accent-text)',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              transition: 'opacity 150ms ease',
-            }}
-          >
-            Muat 6 Kartu Demo
-          </button>
-        </div>
-      )}
+      {/* Modal Pindah Saldo Antar Dompet */}
+      <WalletTransferModal
+        isOpen={isTransferOpen}
+        onClose={() => setIsTransferOpen(false)}
+        wallets={wallets}
+        onSuccess={(sourceId, destId, amountIdr) => {
+          const src = wallets.find((w) => w.id === sourceId)
+          const dst = wallets.find((w) => w.id === destId)
+          if (src) updateWallet(src.id, { balanceIdr: Math.max(0, src.balanceIdr - amountIdr) })
+          if (dst) updateWallet(dst.id, { balanceIdr: dst.balanceIdr + amountIdr })
+        }}
+      />
 
       {/* Modal Tambah Dompet */}
       <WalletModal

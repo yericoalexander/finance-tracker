@@ -30,20 +30,12 @@ export interface ApplyWalletTransactionResult {
   summaryMessage: string
 }
 
-export const STARTER_WALLETS = [
-  { name: 'BCA', balanceIdr: 12784486, themeId: 'bca', order: 0 },
-  { name: 'SeaBank', balanceIdr: 5000000, themeId: 'seabank', order: 1 },
-  { name: 'Krom', balanceIdr: 2000000, themeId: 'krom', order: 2 },
-  { name: 'OCBC', balanceIdr: 7521300, themeId: 'ocbc', order: 3 },
-  { name: 'BRI', balanceIdr: 4134012, themeId: 'bri', order: 4 },
-  { name: 'Apple Card', balanceIdr: 251250, themeId: 'apple', order: 5 },
-]
-
 /**
- * Pastikan pengguna memiliki daftar dompet di database.
- * Jika belum ada (misal akun baru), inisialisasi starter kartu default.
+ * Ambil daftar dompet milik pengguna dari database.
+ * Sesuai prinsip kontrol pengguna: TIDAK pernah membuat dompet otomatis/dummy.
+ * Pengguna bebas kustom kartu/dompet mereka sendiri lewat tombol Tambah Kartu.
  */
-export async function ensureUserWallets(userId: string): Promise<WalletRecord[]> {
+export async function getUserWallets(userId: string): Promise<WalletRecord[]> {
   if (!db?.query?.wallets?.findMany) {
     return []
   }
@@ -55,33 +47,10 @@ export async function ensureUserWallets(userId: string): Promise<WalletRecord[]>
     })
     .catch(() => [])
 
-  if (Array.isArray(existing) && existing.length > 0) {
-    return existing
-  }
-
-  try {
-    const seeded = await db
-      .insert(wallets)
-      .values(
-        STARTER_WALLETS.map((w) => ({
-          userId,
-          name: w.name,
-          balanceIdr: w.balanceIdr,
-          themeId: w.themeId,
-          order: w.order,
-        })),
-      )
-      .returning()
-
-    if (Array.isArray(seeded)) {
-      return seeded.filter(Boolean).sort((a, b) => a.order - b.order)
-    }
-  } catch {
-    // Abaikan jika insert gagal di mock unit test
-  }
-
-  return []
+  return Array.isArray(existing) ? existing.filter(Boolean) : []
 }
+
+export const ensureUserWallets = getUserWallets
 
 /**
  * Cari dompet yang cocok berdasarkan nama bank/e-wallet.
@@ -304,6 +273,14 @@ export async function applyTransactionToWallets(
 
   const userWallets = await ensureUserWallets(userId)
   const isTransfer = Boolean(input.isTransfer || input.category === 'Transfer Antar Bank')
+
+  if (userWallets.length === 0) {
+    return {
+      applied: false,
+      isTransfer,
+      summaryMessage: 'Belum ada dompet kustom yang terdaftar',
+    }
+  }
 
   if (isTransfer) {
     const sourceQuery = input.sourceBank || input.paymentMethod

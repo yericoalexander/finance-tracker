@@ -12,65 +12,13 @@ import { WalletsStoreSchema, WALLET_THEMES, type Wallet } from './types'
 
 const STORAGE_KEY = 'finance-tracker:wallets:v2'
 
-export const DEFAULT_WALLETS: Omit<Wallet, 'id' | 'createdAt'>[] = [
-  {
-    name: 'BCA',
-    balanceIdr: 12784486,
-    themeId: 'bca',
-    order: 0,
-  },
-  {
-    name: 'SeaBank',
-    balanceIdr: 5000000,
-    themeId: 'seabank',
-    order: 1,
-  },
-  {
-    name: 'Krom',
-    balanceIdr: 2000000,
-    themeId: 'krom',
-    order: 2,
-  },
-  {
-    name: 'OCBC',
-    balanceIdr: 7521300,
-    themeId: 'ocbc',
-    order: 3,
-  },
-  {
-    name: 'BRI',
-    balanceIdr: 4134012,
-    themeId: 'bri',
-    order: 4,
-  },
-  {
-    name: 'Apple Card',
-    balanceIdr: 251250,
-    themeId: 'apple',
-    order: 5,
-  },
-]
-
-function getInitialWallets(): Wallet[] {
-  return DEFAULT_WALLETS.map((w, idx) => ({
-    ...w,
-    id: `seed-wallet-${idx + 1}`,
-    createdAt: new Date().toISOString(),
-  }))
-}
-
 function loadFromStorage(): Wallet[] {
   if (typeof window === 'undefined') return []
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) {
-      // Jika baru pertama kali buka, sediakan starter preset sesuai referensi
-      const initial = getInitialWallets()
-      saveToStorage(initial)
-      return initial
-    }
+    if (!raw) return []
     const parsed = WalletsStoreSchema.safeParse(JSON.parse(raw))
-    if (parsed.success && parsed.data.length > 0) {
+    if (parsed.success && Array.isArray(parsed.data)) {
       return parsed.data.sort((a, b) => a.order - b.order)
     }
     return []
@@ -103,7 +51,7 @@ export function useWallets() {
     let isMounted = true
     getWalletsAction()
       .then((res) => {
-        if (isMounted && res.ok && res.data && res.data.length > 0) {
+        if (isMounted && res.ok && Array.isArray(res.data)) {
           setWallets(res.data)
           saveToStorage(res.data)
           setIsLoaded(true)
@@ -183,8 +131,7 @@ export function useWallets() {
   )
 
   const resetToDefault = useCallback(() => {
-    const initial = getInitialWallets()
-    persist(initial)
+    persist([])
   }, [persist])
 
   const totalBalance = wallets.reduce((sum, w) => sum + w.balanceIdr, 0)

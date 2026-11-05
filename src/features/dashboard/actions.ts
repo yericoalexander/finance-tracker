@@ -173,7 +173,13 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
       .catch(() => null),
   ])
 
-  const monthExpenseCaptures = monthOkCaptures.filter((c) => c.txType !== 'income')
+  // Eksklusikan transaksi pemasukan dan transfer antar bank dari pengeluaran
+  const monthExpenseCaptures = monthOkCaptures.filter(
+    (c) =>
+      c.txType !== 'income' &&
+      c.txType !== 'transfer' &&
+      c.category !== 'Transfer Antar Bank',
+  )
   const monthIncomeCaptures = monthOkCaptures.filter((c) => c.txType === 'income')
   const mtdTotal = monthExpenseCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
   const mtdIncome = monthIncomeCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
@@ -374,7 +380,13 @@ export async function getMonthSummaryAction(targetMonth: string): Promise<{
         ),
       )
 
-    const expenseCaptures = monthCaptures.filter((c) => c.txType !== 'income')
+    // Eksklusikan transfer antar bank dan pemasukan dari kalkulasi total pengeluaran
+    const expenseCaptures = monthCaptures.filter(
+      (c) =>
+        c.txType !== 'income' &&
+        c.txType !== 'transfer' &&
+        c.category !== 'Transfer Antar Bank',
+    )
     const incomeCaptures = monthCaptures.filter((c) => c.txType === 'income')
     const total = expenseCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
     const income = incomeCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)

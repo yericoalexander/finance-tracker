@@ -195,6 +195,23 @@ describe('Dashboard Actions', () => {
       expect(res.data?.categoryBreakdown[0]?.total).toBe(75000)
       expect(res.data?.categoryBreakdown[0]?.percentage).toBe(75)
     })
+
+    it('mengecualikan transfer antar bank dari total pengeluaran', async () => {
+      mockAuth.mockResolvedValue({ user: { id: 'user-123' } })
+      mockDbSelect.mockResolvedValueOnce([
+        { amountIdr: 50000, category: 'Makanan & Minuman', txType: 'expense' },
+        { amountIdr: 100000, category: 'Transfer Antar Bank', txType: 'transfer' },
+        { amountIdr: 250000, category: 'Lainnya', txType: 'income' },
+      ])
+
+      const res = await getMonthSummaryAction('2026-09')
+      expect(res.ok).toBe(true)
+      // Hanya pengeluaran murni (50.000) yang dihitung sebagai total pengeluaran
+      expect(res.data?.total).toBe(50000)
+      expect(res.data?.income).toBe(250000)
+      expect(res.data?.categoryBreakdown).toHaveLength(1)
+      expect(res.data?.categoryBreakdown[0]?.category).toBe('Makanan & Minuman')
+    })
   })
 
   describe('deleteTransactionAction', () => {

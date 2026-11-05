@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { RefreshCw, X, LayoutDashboard, Receipt, Plus, WalletCards } from 'lucide-react'
+import { RefreshCw, X, LayoutDashboard, ReceiptText, Plus, Wallet } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CategoryBreakdown } from './category-breakdown'
@@ -313,22 +313,30 @@ export function DashboardView({
     {
       id: 'overview' as TabType,
       label: t('navOverview'),
-      icon: <LayoutDashboard size={15} strokeWidth={2.2} />,
+      renderIcon: (isActive: boolean) => (
+        <LayoutDashboard size={20} strokeWidth={isActive ? 2.4 : 1.8} />
+      ),
     },
     {
       id: 'wallets' as TabType,
       label: t('navWallets'),
-      icon: <WalletCards size={15} strokeWidth={2.2} />,
+      renderIcon: (isActive: boolean) => (
+        <Wallet size={20} strokeWidth={isActive ? 2.4 : 1.8} />
+      ),
     },
     {
       id: 'transactions' as TabType,
       label: t('navTransactions'),
-      icon: <Receipt size={15} strokeWidth={2.2} />,
+      renderIcon: (isActive: boolean) => (
+        <ReceiptText size={20} strokeWidth={isActive ? 2.4 : 1.8} />
+      ),
     },
     {
       id: 'add' as TabType,
       label: t('navAdd'),
-      icon: <Plus size={16} strokeWidth={2.6} />,
+      renderIcon: (isActive: boolean) => (
+        <Plus size={20} strokeWidth={isActive ? 2.8 : 2.0} />
+      ),
     },
   ]
 
@@ -337,7 +345,7 @@ export function DashboardView({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: 'calc(98px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 8px))',
       }}
     >
       {/* Modal Onboarding Otomatis jika Belum Ada iPhone Terhubung */}
@@ -549,32 +557,32 @@ export function DashboardView({
         </div>
       )}
 
-      {/* Floating Bottom Navigation Bar — Ergonomis di jangkauan jempol iPhone */}
+      {/* Bottom Navigation Bar — Ergonomis di jangkauan jempol iPhone, bersih & rapi */}
       <nav
         aria-label={t('navDashboardTabsAria')}
         style={{
           position: 'fixed',
-          bottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',
+          bottom: 0,
           left: 0,
           right: 0,
           margin: '0 auto',
-          width: 'calc(100% - 32px)',
-          maxWidth: '390px',
-          zIndex: 40,
+          maxWidth: '430px',
+          zIndex: 50,
+          backgroundColor: 'var(--color-surface)',
+          borderTop: '1px solid var(--color-border)',
+          boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)',
+          paddingBottom: 'env(safe-area-inset-bottom, 8px)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
         }}
       >
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            backgroundColor: 'var(--color-surface)',
-            padding: '5px',
-            borderRadius: 'var(--radius-full)',
-            border: '1px solid var(--color-border)',
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
-            gap: '4px',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            height: '56px',
+            padding: '0 4px',
           }}
         >
           {tabs.map((tab) => {
@@ -584,27 +592,53 @@ export function DashboardView({
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
+                aria-current={isActive ? 'page' : undefined}
                 style={{
-                  minHeight: '44px',
-                  borderRadius: 'var(--radius-full)',
-                  border: 'none',
-                  backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
-                  color: isActive ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
-                  fontSize: '0.78rem',
-                  fontWeight: isActive ? 700 : 600,
-                  cursor: 'pointer',
-                  transition: 'all var(--duration-fast) var(--ease-default)',
-                  fontFamily: 'inherit',
-                  letterSpacing: isActive ? '-0.01em' : '0',
+                  flex: 1,
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '5px',
-                  padding: '0 6px',
+                  gap: '3px',
+                  minHeight: '48px',
+                  minWidth: '44px',
+                  padding: '4px 0',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
+                  transition: 'color var(--duration-fast) var(--ease-default)',
+                  fontFamily: 'inherit',
+                  userSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent',
                 }}
               >
-                {tab.icon}
-                <span>{tab.label}</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '40px',
+                    height: '26px',
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
+                    transition: 'background-color var(--duration-fast) var(--ease-default)',
+                  }}
+                >
+                  {tab.renderIcon(isActive)}
+                </div>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    fontWeight: isActive ? 750 : 500,
+                    letterSpacing: '-0.01em',
+                    lineHeight: 1,
+                    color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
+                    transition: 'color var(--duration-fast) var(--ease-default)',
+                  }}
+                >
+                  {tab.label}
+                </span>
               </button>
             )
           })}
