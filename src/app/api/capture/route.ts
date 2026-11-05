@@ -5,11 +5,9 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { formatRupiah } from '@/lib/ai/currency'
 import { defaultExtractionProvider } from '@/lib/ai/gemini'
-import type { TransactionExtraction } from '@/lib/ai/types'
-import { decrypt } from '@/lib/crypto'
 import { db } from '@/lib/db/client'
 import { captures, devices, googleTokens, users } from '@/lib/db/schema'
-import { appendTransactionRow, ensureSpreadsheet, GoogleApiError } from '@/lib/google/sheets'
+import { GoogleApiError } from '@/lib/google/sheets'
 import {
   evaluateBudgetReminder,
   type BudgetReminderEvaluation,
@@ -17,102 +15,8 @@ import {
 import { sendPushNotificationToUser } from '@/lib/push/send-push'
 import { validateImageBuffer } from '@/lib/security/magic-bytes'
 import { checkRateLimit } from '@/lib/security/rate-limit'
-
-// ── Helper Autentikasi Perangkat ──────────────────────────────────────────────
-async function authenticateDevice(authHeader: string | null) {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { ok: false, error: 'Token perangkat tidak ditemukan' } as const
-  }
-
-  let token = authHeader.slice(7).trim()
-  if (!token) {
-    return { ok: false, error: 'Token perangkat kosong' } as const
-  }
-
-  // Tangani kemungkinan token tersimpan sebagai JSON dari setup Shortcut
-  if (token.startsWith('{') && token.endsWith('}')) {
-    try {
-      const parsed = JSON.parse(token) as Record<string, unknown>
-      if (typeof parsed.token === 'string') {
-        token = parsed.token.trim()
-      } else if (typeof parsed.deviceToken === 'string') {
-        token = parsed.deviceToken.trim()
-      }
-    } catch {
-      // Abaikan error parse, gunakan string apa adanya
-    }
-  }
-
-  // Bersihkan tanda kutip yang mungkin tersimpan secara tidak sengaja
-  token = token.replace(/^["']|["']$/g, '').trim()
-
-  const tokenHash = createHash('sha256').update(token).digest('hex')
-  const device = await db.query.devices.findFirst({
-    where: eq(devices.tokenHash, tokenHash),
-  })
-
-  if (!device || device.revokedAt) {
-    return { ok: false, error: 'Perangkat tidak terdaftar atau akses telah dicabut' } as const
-  }
-
-  return { ok: true, device } as const
-}
-
-// ── Helper Ekstraksi & Transaksi Sheets ───────────────────────────────────────
-async function syncToGoogleSheets(
-  userId: string,
-  captureId: string,
-  extraction: TransactionExtraction,
-  preloaded?: {
-    user?: { sheetId: string | null } | null
-    tokenRecord?: typeof googleTokens.$inferSelect | null
-  },
-) {
-  let user = preloaded?.user
-  let tokenRecord = preloaded?.tokenRecord
-
-  if (!preloaded) {
-    const [dbUser, dbToken] = await Promise.all([
-      db.query.users.findFirst({
-        where: eq(users.id, userId),
-        columns: { sheetId: true },
-      }),
-      db.query.googleTokens.findFirst({
-        where: eq(googleTokens.userId, userId),
-      }),
-    ])
-    user = dbUser
-    tokenRecord = dbToken
-  }
-
-  if (!tokenRecord) {
-    throw new Error('GOOGLE_AUTH_MISSING')
-  }
-
-  const refreshToken = decrypt({
-    ciphertext: tokenRecord.refreshTokenEncrypted,
-    iv: tokenRecord.iv,
-    authTag: tokenRecord.authTag,
-  })
-
-  let sheetId = user?.sheetId
-  if (!sheetId) {
-    sheetId = await ensureSpreadsheet(refreshToken, null)
-    await db.update(users).set({ sheetId }).where(eq(users.id, userId))
-  }
-
-  await appendTransactionRow(refreshToken, sheetId, {
-    date: extraction.date,
-    time: extraction.time,
-    merchant: extraction.merchant,
-    category: extraction.category,
-    amountIdr: extraction.amountIdr,
-    paymentMethod: extraction.paymentMethod,
-    note: extraction.note,
-    source: 'iPhone',
-    id: captureId,
-  })
-}
+import { authenticateDevice } from '@/lib/security/device-auth'
+import { syncCaptureToGoogleSheets } from '@/lib/google/sync-helper'
 
 // ── Handler POST /api/capture ────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
@@ -322,7 +226,7 @@ export async function POST(request: NextRequest) {
 
   // Tulis ke Google Sheets
   try {
-    await syncToGoogleSheets(device.userId, newCapture.id, extraction, preloadedAuth)
+    await syncCaptureToGoogleSheets(device.userId, newCapture.id, extraction, 'iPhone', preloadedAuth)
     await db
       .update(captures)
       .set({ sheetRowId: newCapture.id })

@@ -68,6 +68,9 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
         shortcutsUrl,
         endpoint,
       })
+
+      // Langsung buka sheet resmi Apple "Tambahkan Pintasan" di iPhone
+      window.open(ICLOUD_SHORTCUT_URL, '_blank')
     } catch {
       setError(t('errNetworkConnect'))
     } finally {
@@ -99,18 +102,34 @@ export function DirectSetupCard({ userName }: DirectSetupCardProps) {
         boxShadow: 'var(--shadow-sm)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-        <Smartphone size={20} style={{ color: 'var(--color-accent)' }} />
-        <h2
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Smartphone size={20} style={{ color: 'var(--color-accent)' }} />
+          <h2
+            style={{
+              fontSize: '1rem',
+              fontWeight: 600,
+              margin: 0,
+              color: 'var(--color-text)',
+            }}
+          >
+            {t('directSetupTitle')}
+          </h2>
+        </div>
+        <span
           style={{
-            fontSize: '1rem',
-            fontWeight: 600,
-            margin: 0,
-            color: 'var(--color-text)',
+            fontSize: '0.68rem',
+            fontWeight: 700,
+            padding: '2px 8px',
+            borderRadius: 'var(--radius-sm)',
+            backgroundColor: 'var(--color-surface-raised)',
+            color: 'var(--color-text-muted)',
+            border: '1px solid var(--color-border)',
+            letterSpacing: '0.04em',
           }}
         >
-          {t('directSetupTitle')}
-        </h2>
+          {t('badgeOptional')}
+        </span>
       </div>
 
       {!result ? (

@@ -1,170 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, ArrowLeftRight, Eye, EyeOff, Pencil, Trash2, MoreHorizontal, RotateCcw, Sparkles } from 'lucide-react'
 import { formatRupiah } from '@/lib/ai/currency'
 import { usePrivacy } from '@/lib/privacy/context'
+import { useI18n } from '@/lib/i18n/context'
 import { getWalletTheme, type Wallet } from './types'
+import { CardBrandLogo } from './wallet-brand-logo'
 import { WalletModal } from './wallet-modal'
 import { useWallets, type WalletFormValues } from './use-wallets'
-
-// Logo mikro bank & kartu presisi tinggi
-function CardBrandLogo({ iconType, name, textColor }: { iconType: string; name: string; textColor: string }) {
-  if (iconType === 'bca') {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div
-          style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-            flexShrink: 0,
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M4 10h16v10H4z" fill="#003d79" />
-            <path d="M12 3l9 6H3l9-6z" fill="#003d79" />
-            <path d="M7 10v7M12 10v7M17 10v7" stroke="#ffffff" strokeWidth="1.5" />
-          </svg>
-        </div>
-        <span style={{ fontSize: '0.94rem', fontWeight: 800, letterSpacing: '0.04em', color: textColor }}>
-          {name || 'BCA'}
-        </span>
-      </div>
-    )
-  }
-
-  if (iconType === 'ocbc') {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div
-          style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#c4121a',
-            fontWeight: 900,
-            fontSize: '15px',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
-            flexShrink: 0,
-          }}
-        >
-          ✺
-        </div>
-        <span style={{ fontSize: '0.94rem', fontWeight: 800, letterSpacing: '0.02em', color: textColor }}>
-          {name || 'OCBC'}
-        </span>
-      </div>
-    )
-  }
-
-  if (iconType === 'bri') {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div
-          style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            backgroundColor: '#00529c',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            fontWeight: 900,
-            fontSize: '12px',
-            letterSpacing: '-0.5px',
-            flexShrink: 0,
-          }}
-        >
-          BB
-        </div>
-        <span style={{ fontSize: '0.94rem', fontWeight: 800, letterSpacing: '0.04em', color: textColor }}>
-          {name || 'BRI'}
-        </span>
-      </div>
-    )
-  }
-
-  if (iconType === 'krom') {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div
-          style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '7px',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#5b21b6',
-            fontWeight: 900,
-            fontSize: '16px',
-            fontFamily: 'system-ui',
-            flexShrink: 0,
-          }}
-        >
-          k
-        </div>
-        <span style={{ fontSize: '0.96rem', fontWeight: 800, letterSpacing: '-0.02em', color: textColor }}>
-          {name || 'krom'}
-        </span>
-      </div>
-    )
-  }
-
-  if (iconType === 'n26') {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        <span
-          style={{
-            fontSize: '1.1rem',
-            fontWeight: 800,
-            letterSpacing: '-0.02em',
-            color: textColor,
-            borderBottom: '2px solid currentColor',
-            lineHeight: 1,
-            paddingBottom: '2px',
-          }}
-        >
-          N̄
-        </span>
-        <span style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.02em', color: textColor }}>
-          26
-        </span>
-      </div>
-    )
-  }
-
-  if (iconType === 'apple') {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <svg width="22" height="22" viewBox="0 0 170 170" fill={textColor}>
-          <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.69-7.85-12.01-14.42-6.53-9.98-11.75-21.28-15.66-33.89-3.91-12.61-5.87-24.35-5.87-35.22 0-14.35 3.48-26.31 10.45-35.89 6.96-9.57 15.65-14.42 26.06-14.55 4.35 0 9.28 1.16 14.79 3.47 5.51 2.32 9.07 3.53 10.68 3.63 2.12-.21 5.92-1.48 11.41-3.8 5.48-2.32 10.25-3.32 14.3-3 10.55.63 19.33 4.58 26.34 11.83-8.28 5.01-12.35 11.96-12.21 20.85.14 7.6 3.04 14.12 8.71 19.55 5.67 5.43 12.39 8.5 20.16 9.22-2.12 6.53-4.57 12.82-7.35 18.88zm-33.82-120.73c0 5.86-2.13 11.51-6.39 16.94-5.05 6.2-11.28 9.94-18.68 11.22-.21-1.27-.32-2.33-.32-3.17 0-5.71 2.33-11.41 6.99-17.1 4.65-5.69 10.6-9.15 17.84-10.37.21 1.05.56 1.88.56 2.48z" />
-        </svg>
-        <span style={{ fontSize: '0.94rem', fontWeight: 700, letterSpacing: '-0.02em', color: textColor }}>
-          {name || 'Card'}
-        </span>
-      </div>
-    )
-  }
-
-  return (
-    <span style={{ fontSize: '0.94rem', fontWeight: 800, letterSpacing: '0.02em', color: textColor }}>
-      {name}
-    </span>
-  )
-}
 
 interface WalletCardProps {
   wallet: Wallet
@@ -193,43 +37,57 @@ function WalletCard({
   onQuickAdjust,
   isPrivate,
 }: WalletCardProps) {
+  const { t } = useI18n()
   const theme = getWalletTheme(wallet.themeId)
   const isBottomCard = index === total - 1
   const hasSelection = selectedIndex !== -1
 
   // Posisi tumpukan Apple Wallet presisi tinggi:
-  // Offset normal tumpukan: 54px per kartu
-  const topPosition = index * 54
+  // Base offset normal: 54px per kartu dalam tumpukan awal
+  const baseOffset = 54
+  const topPosition = index * baseOffset
   let translateY = 0
   let scale = 1
   let zIndex = index + 1
   let opacity = 1
 
   if (!isExpanded && hasSelection) {
-    if (index === selectedIndex) {
-      // Kartu terpilih: meluncur naik sedikit, membesar lembut, depth shadow tinggi
-      translateY = -12
-      scale = 1.025
+    if (isSelected) {
+      // KARTU TERPILIH OTOMATIS NAIK KE PALING ATAS (y = 0)
+      // Karena base topPosition = index * 54, translasi -(index * 54) membawanya tepat ke y = 0
+      translateY = -(index * baseOffset)
+      scale = 1.02
       zIndex = 50
       opacity = 1
-    } else if (index < selectedIndex) {
-      // Kartu di atas kartu terpilih: sedikit terangkat ke atas merenggangkan fokus
-      translateY = -Math.min(18, (selectedIndex - index) * 6)
-      scale = 0.985
-      opacity = 0.74
-      zIndex = index + 1
     } else {
-      // Kartu di bawah kartu terpilih: SLIDE DOWN 142px untuk membuka badan kartu terpilih 100%!
-      translateY = 142
+      // KARTU LAINNYA TURUN KE DECK BAWAH (di bawah kartu terpilih, mulai y = 200px)
+      // Hitung urutan kartu lain (0 s/d total - 2)
+      const otherIndex = index < selectedIndex ? index : index - 1
+      const targetY = 200 + otherIndex * 38
+      translateY = targetY - topPosition
       scale = 0.985
-      opacity = 0.86
-      zIndex = index + 1
+      zIndex = 25 + otherIndex
+      opacity = 0.88
     }
   }
 
   return (
     <div
       onClick={onClickCard}
+      role="button"
+      tabIndex={0}
+      aria-expanded={isSelected}
+      aria-label={
+        isSelected
+          ? `Tutup kartu ${wallet.name}`
+          : `Pilih kartu ${wallet.name}, saldo ${formatRupiah(wallet.balanceIdr)}`
+      }
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClickCard()
+        }
+      }}
       style={{
         position: isExpanded ? 'relative' : 'absolute',
         top: isExpanded ? 'auto' : `${topPosition}px`,
@@ -246,6 +104,7 @@ function WalletCard({
         willChange: 'transform',
         borderRadius: '24px',
         cursor: 'pointer',
+        outline: 'none',
       }}
     >
       <div
@@ -314,13 +173,17 @@ function WalletCard({
           />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {/* Pill Saldo Interaktif */}
+            {/* Pill Saldo Interaktif: Jika kartu belum aktif, ketuk untuk buka ke atas */}
             <div
               onClick={(e) => {
+                if (!isSelected) {
+                  // Biarkan event bubble ke pembungkus utama agar kartu naik ke atas
+                  return
+                }
                 e.stopPropagation()
                 onEdit(wallet)
               }}
-              title="Ketuk untuk ubah saldo"
+              title={isSelected ? t('walletTapToEdit') : t('walletTapToSelect')}
               style={{
                 backgroundColor: theme.pillBg,
                 color: theme.pillText,
@@ -352,8 +215,8 @@ function WalletCard({
                 <button
                   type="button"
                   onClick={() => onEdit(wallet)}
-                  aria-label={`Ubah ${wallet.name}`}
-                  title="Ubah kartu"
+                  aria-label={`${t('walletEdit')} ${wallet.name}`}
+                  title={t('walletEdit')}
                   style={{
                     width: '32px',
                     height: '32px',
@@ -373,8 +236,8 @@ function WalletCard({
                 <button
                   type="button"
                   onClick={() => onDelete(wallet.id)}
-                  aria-label={`Hapus ${wallet.name}`}
-                  title="Hapus kartu"
+                  aria-label={`${t('walletDelete')} ${wallet.name}`}
+                  title={t('walletDelete')}
                   style={{
                     width: '32px',
                     height: '32px',
@@ -420,12 +283,12 @@ function WalletCard({
                 onClick={(e) => e.stopPropagation()}
               >
                 {[
-                  { label: '+100rb', val: 100000 },
-                  { label: '+500rb', val: 500000 },
-                  { label: '+1jt', val: 1000000 },
+                  { label: t('walletAddCash100k'), val: 100000 },
+                  { label: t('walletAddCash500k'), val: 500000 },
+                  { label: t('walletAddCash1m'), val: 1000000 },
                 ].map((chip) => (
                   <button
-                    key={chip.label}
+                    key={chip.val}
                     type="button"
                     onClick={() => onQuickAdjust(wallet.id, chip.val)}
                     style={{
@@ -465,7 +328,7 @@ function WalletCard({
                     fontWeight: 600,
                   }}
                 >
-                  {isSelected ? 'Kartu Terpilih' : 'Kartu Aktif'}
+                  {isSelected ? t('walletTapToEdit') : t('walletActiveCard')}
                 </p>
                 <p
                   style={{
@@ -513,6 +376,7 @@ function WalletCard({
 }
 
 export function WalletSection() {
+  const { t } = useI18n()
   const {
     wallets,
     isLoaded,
@@ -545,14 +409,24 @@ export function WalletSection() {
     if (selectedCardId === id) setSelectedCardId(null)
   }
 
+  // Tutup kartu terpilih saat menekan tombol Escape di keyboard
+  useEffect(() => {
+    if (!selectedCardId) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedCardId(null)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedCardId])
+
   const handleCardClick = (wallet: Wallet) => {
     if (isExpanded) {
       setEditingWallet(wallet)
       return
     }
     // Jika dalam posisi tumpuk Apple Wallet:
-    // Klik kartu tertutup: buka tumpukan dan sorot kartu ini
-    // Klik kartu yang sedang terbuka: tutup kembali ke tumpukan rapi
+    // Klik kartu tertutup: kartu tersebut otomatis naik ke paling atas
+    // Klik kartu yang sedang aktif di atas: kembali ke posisi semula
     if (selectedCardId === wallet.id) {
       setSelectedCardId(null)
     } else {
@@ -563,12 +437,22 @@ export function WalletSection() {
   const selectedIndex = wallets.findIndex((w) => w.id === selectedCardId)
   const hasSelected = selectedIndex !== -1
 
-  // Hitung tinggi container kartu bertumpuk presisi:
-  // Base offset 54px + tinggi kartu depan 185px
-  // Saat ada kartu terpilih, tinggi bertambah 142px untuk ruang kartu bawah yang meluncur
+  // Hitung tinggi kontainer kartu bertumpuk presisi:
+  // Offset normal 54px + tinggi kartu depan 180px
+  const baseOffset = 54
+  const cardHeight = 180
+  const bottomDeckTop = 200
+  const otherOffset = 38
+
   const baseCollapsedHeight =
-    wallets.length > 0 ? (wallets.length - 1) * 54 + 185 : 120
-  const collapsedHeight = hasSelected ? baseCollapsedHeight + 142 : baseCollapsedHeight
+    wallets.length > 0 ? (wallets.length - 1) * baseOffset + cardHeight : 120
+
+  const selectedCollapsedHeight =
+    wallets.length > 1
+      ? bottomDeckTop + (wallets.length - 2) * otherOffset + cardHeight
+      : baseCollapsedHeight
+
+  const collapsedHeight = hasSelected ? selectedCollapsedHeight : baseCollapsedHeight
 
   if (!isLoaded) {
     return (
@@ -621,14 +505,14 @@ export function WalletSection() {
               letterSpacing: '-0.01em',
             }}
           >
-            Wallet balance
+            {t('walletBalance')}
           </span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <button
               type="button"
               onClick={togglePrivacy}
-              aria-label={isPrivate ? 'Tampilkan saldo' : 'Sembunyikan saldo'}
+              aria-label={isPrivate ? t('walletShowBalanceAria') : t('walletHideBalanceAria')}
               style={{
                 width: '36px',
                 height: '36px',
@@ -648,7 +532,7 @@ export function WalletSection() {
             <button
               type="button"
               onClick={() => setShowMenu((v) => !v)}
-              aria-label="Menu dompet"
+              aria-label={t('walletMenuAria')}
               style={{
                 width: '36px',
                 height: '36px',
@@ -709,7 +593,7 @@ export function WalletSection() {
               }}
             >
               <RotateCcw size={14} />
-              Muat Ulang Semua Bank
+              {t('walletReloadAll')}
             </button>
             <button
               type="button"
@@ -733,7 +617,7 @@ export function WalletSection() {
               }}
             >
               <Plus size={14} />
-              Tambah Kartu Baru
+              {t('walletAddNew')}
             </button>
           </div>
         )}
@@ -760,7 +644,7 @@ export function WalletSection() {
             margin: '6px 0 0 0',
           }}
         >
-          {wallets.length} kartu aktif tersimpan
+          {t('walletCardsCount', { count: wallets.length })}
         </p>
       </div>
 
@@ -780,7 +664,7 @@ export function WalletSection() {
             color: 'var(--color-text)',
           }}
         >
-          Wallet
+          {t('walletTitle')}
         </span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -791,8 +675,8 @@ export function WalletSection() {
                 setIsExpanded((v) => !v)
                 setSelectedCardId(null)
               }}
-              aria-label={isExpanded ? 'Tumpuk kartu' : 'Buka semua kartu'}
-              title={isExpanded ? 'Tumpuk kartu' : 'Buka semua kartu'}
+              aria-label={isExpanded ? t('walletStackCards') : t('walletExpandCards')}
+              title={isExpanded ? t('walletStackCards') : t('walletExpandCards')}
               style={{
                 width: '36px',
                 height: '36px',
@@ -815,8 +699,8 @@ export function WalletSection() {
           <button
             type="button"
             onClick={() => setIsAddOpen(true)}
-            aria-label="Tambah dompet baru"
-            title="Tambah dompet baru"
+            aria-label={t('walletAddNew')}
+            title={t('walletAddNew')}
             style={{
               width: '36px',
               height: '36px',
@@ -861,37 +745,55 @@ export function WalletSection() {
           }}
         >
           <Plus size={22} strokeWidth={2} />
-          Tambah kartu dompet pertamamu
+          {t('walletEmptyTitle')}
         </button>
       ) : (
-        <div
-          style={{
-            position: 'relative',
-            height: isExpanded ? 'auto' : `${collapsedHeight}px`,
-            display: isExpanded ? 'flex' : 'block',
-            flexDirection: 'column',
-            gap: isExpanded ? '14px' : undefined,
-            transition: 'height 420ms cubic-bezier(0.2, 0.9, 0.2, 1)',
-            marginBottom: 'var(--space-2)',
-          }}
-        >
-          {wallets.map((wallet, index) => (
-            <WalletCard
-              key={wallet.id}
-              wallet={wallet}
-              index={index}
-              total={wallets.length}
-              isExpanded={isExpanded}
-              isSelected={selectedCardId === wallet.id}
-              selectedIndex={selectedIndex}
-              onClickCard={() => handleCardClick(wallet)}
-              onEdit={(w) => setEditingWallet(w)}
-              onDelete={handleDelete}
-              onQuickAdjust={(id, delta) => quickAdjustBalance(id, delta)}
-              isPrivate={isPrivate}
+        <>
+          {/* Backdrop tak terlihat untuk menutup kartu saat klik di mana pun di luar kartu */}
+          {hasSelected && !isExpanded && (
+            <div
+              onClick={() => setSelectedCardId(null)}
+              aria-hidden="true"
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 20,
+                backgroundColor: 'transparent',
+                cursor: 'default',
+              }}
             />
-          ))}
-        </div>
+          )}
+
+          <div
+            style={{
+              position: 'relative',
+              height: isExpanded ? 'auto' : `${collapsedHeight}px`,
+              display: isExpanded ? 'flex' : 'block',
+              flexDirection: 'column',
+              gap: isExpanded ? '14px' : undefined,
+              transition: 'height 420ms cubic-bezier(0.2, 0.9, 0.2, 1)',
+              marginBottom: 'var(--space-2)',
+              zIndex: hasSelected && !isExpanded ? 25 : undefined,
+            }}
+          >
+            {wallets.map((wallet, index) => (
+              <WalletCard
+                key={wallet.id}
+                wallet={wallet}
+                index={index}
+                total={wallets.length}
+                isExpanded={isExpanded}
+                isSelected={selectedCardId === wallet.id}
+                selectedIndex={selectedIndex}
+                onClickCard={() => handleCardClick(wallet)}
+                onEdit={(w) => setEditingWallet(w)}
+                onDelete={handleDelete}
+                onQuickAdjust={(id, delta) => quickAdjustBalance(id, delta)}
+                isPrivate={isPrivate}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Tip / Quick Action Bar saat kartu sedikit atau hanya 1 */}

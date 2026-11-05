@@ -551,7 +551,7 @@ export function DashboardView({
 
       {/* Floating Bottom Navigation Bar — Ergonomis di jangkauan jempol iPhone */}
       <nav
-        aria-label="Pilihan tampilan dashboard"
+        aria-label={t('navDashboardTabsAria')}
         style={{
           position: 'fixed',
           bottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',

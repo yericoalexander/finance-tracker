@@ -101,7 +101,12 @@ export function useWallets() {
         id: crypto.randomUUID(),
         name: input.name,
         balanceIdr: input.balanceIdr,
-        themeId: input.themeId in WALLET_THEMES ? input.themeId : 'bca',
+        themeId:
+          input.themeId in WALLET_THEMES ||
+          input.themeId.startsWith('custom_') ||
+          input.themeId.startsWith('custom:')
+            ? input.themeId
+            : 'bca',
         order: wallets.length,
         createdAt: new Date().toISOString(),
       }

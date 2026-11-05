@@ -285,9 +285,9 @@ export const translations = {
     backToDashboard: 'Kembali ke Dashboard',
 
     // Direct Setup Card
-    directSetupTitle: 'Hubungkan iPhone Otomatis',
+    directSetupTitle: 'Khusus Opsi Back Tap (Foto Struk Fisik)',
     directSetupDesc:
-      'Hubungkan iPhone Anda ke Finance Tracker untuk mencatat pengeluaran otomatis via Back Tap.',
+      'Khusus bagi Anda yang ingin mencatat pengeluaran dengan mengetuk 2x punggung iPhone untuk memotret struk kasir atau screenshot transfer.',
     labelDeviceName: 'Label Perangkat',
     placeholderDeviceName: 'Contoh: iPhone Rico',
     defaultDevicePrefix: 'iPhone',
@@ -346,6 +346,41 @@ export const translations = {
     setupGateTitle: 'Pasang Pintasan iPhone',
     setupGateSubtitle:
       'Halo {name}! Pasang pintasan Finance Tracker ke iPhone Anda untuk mulai mencatat pengeluaran otomatis ke Google Sheets pribadi.',
+    setupGateSelectModePrompt: 'Pilih Cara Anda Mencatat Transaksi:',
+    setupGateModeNotifTitle: 'Otomatis Notifikasi Bank',
+    setupGateModeNotifBadge: 'Rekomendasi Utama',
+    setupGateModeNotifDesc:
+      'Setiap Anda bayar QRIS atau terima transfer di m-banking (BCA, Livin, BRImo, GoPay, dll.), transaksi langsung tercatat otomatis tanpa perlu buka aplikasi.',
+    setupGateModeBacktapTitle: 'Back Tap Foto Struk',
+    setupGateModeBacktapBadge: 'Foto Struk Fisik',
+    setupGateModeBacktapDesc:
+      'Ketuk 2x punggung iPhone untuk memotret struk kasir, invoice fisik, atau screenshot. AI Gemini akan membaca total belanja & rincian item.',
+    setupGateNotifQuickGuideTitle: 'Petunjuk Ringkas Notifikasi Bank:',
+    setupGateNotifGuideItem1: 'Ketuk tombol "Pasang Pintasan Notifikasi" di bawah.',
+    setupGateNotifGuideItem2: 'iPhone akan membuka pop-up: ketuk Tambahkan Pintasan.',
+    setupGateNotifGuideItem3: 'Token akun terhubung otomatis, Anda tinggal memilih aplikasi bank.',
+    setupGateNotifBtnInstall: 'Pasang Pintasan Notifikasi (1-Klik)',
+    setupGateBacktapQuickGuideTitle: 'Petunjuk Ringkas Back Tap Struk:',
+    setupGateBacktapGuideItem1: 'Ketuk tombol "Pasang Pintasan Back Tap" di bawah.',
+    setupGateBacktapGuideItem2: 'iPhone akan membuka pop-up: ketuk Tambahkan Pintasan.',
+    setupGateBacktapGuideItem3: 'Token akun terhubung otomatis, Anda tinggal mengaktifkan Back Tap di Pengaturan.',
+    setupGateBacktapBtnInstall: 'Pasang Pintasan Back Tap (1-Klik)',
+    badgeOptional: 'OPSIONAL',
+    setupGateActiveNotifTitle: 'Langkah Terakhir: Aktifkan Otomasi Notifikasi',
+    setupGateActiveNotifStep1:
+      'Buka tab Otomatisasi (Automation) di aplikasi Pintasan iPhone → Ketuk tanda (+).',
+    setupGateActiveNotifStep2:
+      'Pilih Pemberitahuan (Notification) dari aplikasi bank Anda (BCA, Livin, BRImo, GoPay, dll.).',
+    setupGateActiveNotifStep3:
+      'Pilih aksi Jalankan Pintasan → Pilih Finance Tracker → Aktifkan "Jalankan Segera". Selesai!',
+    setupGateActiveBacktapTitle: 'Langkah Terakhir: Aktifkan Back Tap di iPhone',
+    setupGateActiveBacktapStep1:
+      'Buka Pengaturan iPhone → Aksesibilitas → Sentuh → Ketuk Bagian Belakang (Back Tap).',
+    setupGateActiveBacktapStep2: 'Pilih "Ketuk Dua Kali" (Double Tap) atau "Ketuk Tiga Kali".',
+    setupGateActiveBacktapStep3:
+      'Gulir ke bawah ke bagian Pintasan → Centang "Finance Tracker". Selesai!',
+    setupGateDualSupportTip:
+      '💡 Tips: Pintasan yang sama mendukung kedua fitur sekaligus! Anda dapat mengaktifkan Notifikasi dan Back Tap kapan saja di iPhone.',
     setupGateReadyTitle: 'Siap Dihubungkan ke iPhone!',
     setupGateReadySub: 'Koneksi otomatis langsung ke Google Sheets ({email})',
     setupGateStepTitle: 'Langkah 1-Klik Otomatis:',
@@ -400,6 +435,77 @@ export const translations = {
     termsOfService: 'Ketentuan Layanan',
     privacyPolicy: 'Kebijakan Privasi',
     loginError: 'Gagal terhubung ke Google. Coba lagi.',
+
+    // Notification Guide Card
+    notifGuideBadge: 'DIREKOMENDASIKAN',
+    notifGuideTitle: 'Auto-Catat Notifikasi Bank & QRIS',
+    notifGuideSub: 'Paling praktis — tercatat otomatis tanpa perlu membuka aplikasi (< 0.5 dtk)',
+    notifGuideSummary:
+      'Setiap Anda bayar QRIS atau ada transfer masuk di BCA, Mandiri, BRI, GoPay, dll., iPhone akan otomatis mencatatnya secara senyap ke Google Sheets akun Anda.',
+    notifGuideBtnInstall: 'Pasang Pintasan Notifikasi (1-Klik)',
+    notifGuideBtnInstalling: 'Memasang Pintasan...',
+    notifGuideBtnInstalled: 'Pintasan Terhubung! Pasang Ulang?',
+    notifStep1Title: 'Pasang Pintasan Otomatis',
+    notifStep1Desc:
+      'Ketuk tombol "Pasang Pintasan Notifikasi (1-Klik)" di atas. Pintasan resmi Finance Tracker akan langsung terpasang dan token akun terkonfigurasi otomatis di iPhone Anda.',
+    notifStep2Title: 'Buat Otomatisasi Notifikasi di iPhone',
+    notifStep2Desc:
+      'Buka tab Otomatisasi (Automation) di aplikasi Pintasan iPhone → Ketuk tanda (+) → Pilih Pemberitahuan (Notification) dari aplikasi m-banking atau e-wallet Anda (BCA, Livin, GoPay, dll.).',
+    notifStep3Title: 'Pilih Aksi "Jalankan Pintasan"',
+    notifStep3Desc:
+      'Pilih aksi Jalankan Pintasan (Run Shortcut) → Pilih Finance Tracker → Aktifkan "Jalankan Segera" (Run Immediately). Selesai!',
+    notifTipsDesc:
+      '100% Otomatis: Tidak perlu mengetik URL, token, atau webhook secara manual. Semua sudah diatur otomatis di dalam pintasan.',
+    notifCloseGuideAria: 'Tutup panduan notifikasi',
+    notifOpenGuideAria: 'Buka panduan notifikasi',
+
+    // Wallet Section & Cards
+    walletBalance: 'Saldo Dompet',
+    walletCardsCount: '{count} kartu aktif tersimpan',
+    walletTitle: 'Dompet',
+    walletStackCards: 'Tumpuk kartu',
+    walletExpandCards: 'Buka semua kartu',
+    walletShowBalanceAria: 'Tampilkan saldo',
+    walletHideBalanceAria: 'Sembunyikan saldo',
+    walletMenuAria: 'Menu opsi dompet',
+    walletReloadAll: 'Muat Ulang Semua Bank',
+    walletAddNew: 'Tambah Kartu Baru',
+    walletEmptyTitle: 'Tambah kartu dompet pertamamu',
+    walletActiveCard: 'KARTU AKTIF',
+    walletTapToSelect: 'Ketuk untuk pilih kartu',
+    walletTapToEdit: 'Ketuk untuk ubah kartu',
+    walletEdit: 'Ubah',
+    walletDelete: 'Hapus',
+    walletAddCash100k: '+100 rb',
+    walletAddCash500k: '+500 rb',
+    walletAddCash1m: '+1 jt',
+
+    // Wallet Modal
+    walletModalAddTitle: 'Tambah Kartu Baru',
+    walletModalEditTitle: 'Ubah Kartu',
+    walletModalSub: 'Atur nominal kartu bank & e-wallet kamu',
+    walletModalCardNameLabel: 'NAMA KARTU / BANK',
+    walletModalCardNamePlaceholder: 'Contoh: BCA Prioritas, Livin Mandiri',
+    walletModalBalanceLabel: 'NOMINAL SALDO SAAT INI',
+    walletModalBalancePlaceholder: 'Rp 0',
+    walletModalLastDigitsLabel: '4 DIGIT TERAKHIR (OPSIONAL)',
+    walletModalLastDigitsPlaceholder: 'Contoh: 8821',
+    walletModalAppearanceLabel: 'PENERBIT & TAMPILAN',
+    walletModalStandardBank: 'Standar Bank Elegan',
+    walletModalTabConventional: 'Bank Konvensional',
+    walletModalTabDigital: 'Digital & E-Wallet',
+    walletModalTabCustom: 'Kustom / Logam',
+    walletModalCustomColorLabel: 'Pilih Warna Elegan',
+    walletModalColorPickerTitle: 'Pilih Bebas (Color Picker)',
+    walletModalColorPickerSub: 'Ketuk lingkaran untuk membuka palet warna',
+    walletModalCancel: 'Batal',
+    walletModalSave: 'Simpan Perubahan',
+    walletModalAdd: 'Tambahkan Kartu',
+    walletModalSaveAdd: 'Simpan Dompet Baru',
+    walletModalSaveEdit: 'Perbarui Saldo',
+    walletModalSectionMetal: 'EDISI LOGAM & KHUSUS',
+    walletModalSectionSwatches: 'PALET SWATCH ELEGAN',
+    navDashboardTabsAria: 'Pilihan navigasi dashboard',
   },
   en: {
     // Header
@@ -681,9 +787,9 @@ export const translations = {
     backToDashboard: 'Back to Dashboard',
 
     // Direct Setup Card
-    directSetupTitle: 'Automatic iPhone Setup',
+    directSetupTitle: 'Optional: Back Tap Only (Receipt Photos)',
     directSetupDesc:
-      'Connect your iPhone to Finance Tracker to automatically record expenses via Back Tap.',
+      'Specifically for users who want to record expenses by double-tapping the iPhone back to capture physical receipts or transfer screenshots.',
     labelDeviceName: 'Device Label',
     placeholderDeviceName: "e.g. Rico's iPhone",
     defaultDevicePrefix: 'iPhone',
@@ -742,6 +848,41 @@ export const translations = {
     setupGateTitle: 'Install iPhone Shortcut',
     setupGateSubtitle:
       'Hello {name}! Install the Finance Tracker shortcut on your iPhone to start recording expenses automatically to your personal Google Sheets.',
+    setupGateSelectModePrompt: 'Choose How You Track Transactions:',
+    setupGateModeNotifTitle: 'Auto Bank Notifications',
+    setupGateModeNotifBadge: 'Recommended',
+    setupGateModeNotifDesc:
+      'Whenever you pay via QRIS or receive bank transfers (BCA, Livin, BRImo, GoPay, etc.), transactions are logged automatically without opening the app.',
+    setupGateModeBacktapTitle: 'Back Tap Receipt Photo',
+    setupGateModeBacktapBadge: 'Physical Receipt Photo',
+    setupGateModeBacktapDesc:
+      'Double-tap iPhone back to snap physical receipts, paper bills, or transfer screenshots. Gemini AI extracts items & totals.',
+    setupGateNotifQuickGuideTitle: 'Quick Guide for Bank Notifications:',
+    setupGateNotifGuideItem1: 'Tap the "Install Notification Shortcut" button below.',
+    setupGateNotifGuideItem2: 'iPhone will prompt: tap Add Shortcut.',
+    setupGateNotifGuideItem3: 'Account token connects automatically, ready for your automation trigger.',
+    setupGateNotifBtnInstall: 'Install Notification Shortcut (1-Click)',
+    setupGateBacktapQuickGuideTitle: 'Quick Guide for Back Tap Receipts:',
+    setupGateBacktapGuideItem1: 'Tap the "Install Back Tap Shortcut" button below.',
+    setupGateBacktapGuideItem2: 'iPhone will prompt: tap Add Shortcut.',
+    setupGateBacktapGuideItem3: 'Account token connects automatically, ready for Back Tap setup.',
+    setupGateBacktapBtnInstall: 'Install Back Tap Shortcut (1-Click)',
+    badgeOptional: 'OPTIONAL',
+    setupGateActiveNotifTitle: 'Final Step on iPhone: Enable Notification Automation',
+    setupGateActiveNotifStep1:
+      'Open Automation tab in iPhone Shortcuts app → Tap (+).',
+    setupGateActiveNotifStep2:
+      'Choose Notification trigger from your bank apps (BCA, Livin, BRImo, GoPay, etc.).',
+    setupGateActiveNotifStep3:
+      'Choose action Run Shortcut → Select Finance Tracker → Turn on "Run Immediately". Done!',
+    setupGateActiveBacktapTitle: 'Final Step on iPhone: Enable Back Tap',
+    setupGateActiveBacktapStep1:
+      'Open iPhone Settings → Accessibility → Touch → Back Tap.',
+    setupGateActiveBacktapStep2: 'Select Double Tap or Triple Tap.',
+    setupGateActiveBacktapStep3:
+      'Scroll down to Shortcuts section → Check "Finance Tracker". Done!',
+    setupGateDualSupportTip:
+      '💡 Tip: One shortcut supports both! You can enable both Notifications and Back Tap on your iPhone anytime.',
     setupGateReadyTitle: 'Ready to Connect to iPhone!',
     setupGateReadySub: 'Automatic connection directly to Google Sheets ({email})',
     setupGateStepTitle: '1-Click Automatic Step:',
@@ -797,6 +938,77 @@ export const translations = {
     termsOfService: 'Terms of Service',
     privacyPolicy: 'Privacy Policy',
     loginError: 'Failed to connect to Google. Please try again.',
+
+    // Notification Guide Card
+    notifGuideBadge: 'RECOMMENDED',
+    notifGuideTitle: 'Auto-Log Bank & QRIS Notifications',
+    notifGuideSub: 'Most effortless — logged automatically without opening the app (< 0.5s)',
+    notifGuideSummary:
+      'Whenever you pay via QRIS or receive bank transfers in BCA, Mandiri, BRI, GoPay, etc., iPhone silently records it to your personal Google Sheets.',
+    notifGuideBtnInstall: 'Install Notification Shortcut (1-Click)',
+    notifGuideBtnInstalling: 'Installing Shortcut...',
+    notifGuideBtnInstalled: 'Shortcut Connected! Re-install?',
+    notifStep1Title: 'Install Shortcut Automatically',
+    notifStep1Desc:
+      'Tap "Install Notification Shortcut (1-Click)" above. The official Finance Tracker shortcut installs and configures your account token automatically on your iPhone.',
+    notifStep2Title: 'Create Notification Automation on iPhone',
+    notifStep2Desc:
+      'Open Automation tab in iPhone Shortcuts app → Tap (+) → Choose Notification trigger from your banking or e-wallet apps (BCA, Livin, GoPay, etc.).',
+    notifStep3Title: 'Choose Action "Run Shortcut"',
+    notifStep3Desc:
+      'Choose action Run Shortcut → Select Finance Tracker → Turn on "Run Immediately". Done!',
+    notifTipsDesc:
+      '100% Automatic: No need to manually type URLs, tokens, or webhooks. Everything is pre-configured in the shortcut.',
+    notifCloseGuideAria: 'Close notification guide',
+    notifOpenGuideAria: 'Open notification guide',
+
+    // Wallet Section & Cards
+    walletBalance: 'Wallet Balance',
+    walletCardsCount: '{count} active cards saved',
+    walletTitle: 'Wallets',
+    walletStackCards: 'Stack cards',
+    walletExpandCards: 'Expand all cards',
+    walletShowBalanceAria: 'Show balance',
+    walletHideBalanceAria: 'Hide balance',
+    walletMenuAria: 'Wallet menu options',
+    walletReloadAll: 'Reset All Banks',
+    walletAddNew: 'Add New Card',
+    walletEmptyTitle: 'Add your first wallet card',
+    walletActiveCard: 'ACTIVE CARD',
+    walletTapToSelect: 'Tap to select card',
+    walletTapToEdit: 'Tap to edit card',
+    walletEdit: 'Edit',
+    walletDelete: 'Delete',
+    walletAddCash100k: '+100k',
+    walletAddCash500k: '+500k',
+    walletAddCash1m: '+1M',
+
+    // Wallet Modal
+    walletModalAddTitle: 'Add New Card',
+    walletModalEditTitle: 'Edit Card',
+    walletModalSub: 'Manage your bank cards & e-wallets',
+    walletModalCardNameLabel: 'CARD / BANK NAME',
+    walletModalCardNamePlaceholder: 'e.g. BCA Platinum, Chase Sapphire',
+    walletModalBalanceLabel: 'CURRENT BALANCE',
+    walletModalBalancePlaceholder: 'Rp 0',
+    walletModalLastDigitsLabel: 'LAST 4 DIGITS (OPTIONAL)',
+    walletModalLastDigitsPlaceholder: 'e.g. 8821',
+    walletModalAppearanceLabel: 'ISSUER & APPEARANCE',
+    walletModalStandardBank: 'Elegant Banking Standards',
+    walletModalTabConventional: 'Conventional Bank',
+    walletModalTabDigital: 'Digital & E-Wallet',
+    walletModalTabCustom: 'Custom / Metal',
+    walletModalCustomColorLabel: 'Select Elegant Shade',
+    walletModalColorPickerTitle: 'Custom Color Picker',
+    walletModalColorPickerSub: 'Tap circle to open color wheel',
+    walletModalCancel: 'Cancel',
+    walletModalSave: 'Save Changes',
+    walletModalAdd: 'Add Card',
+    walletModalSaveAdd: 'Save New Card',
+    walletModalSaveEdit: 'Update Balance',
+    walletModalSectionMetal: 'METAL & SPECIAL EDITIONS',
+    walletModalSectionSwatches: 'ELEGANT COLOR SWATCHES',
+    navDashboardTabsAria: 'Dashboard navigation options',
   },
 } as const
 

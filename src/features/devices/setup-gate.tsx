@@ -2,6 +2,8 @@
 
 import {
   ArrowRight,
+  BellRing,
+  Camera,
   CheckCircle2,
   ExternalLink,
   Loader2,
@@ -15,8 +17,9 @@ import { useState } from 'react'
 
 import { createDirectDeviceTokenAction } from './actions'
 import { HomeScreenGuideCard } from './home-screen-guide-card'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { SetupGateModeCard, type SetupMode } from './setup-gate-mode-card'
 import { LanguageToggle } from '@/components/ui/language-toggle'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useI18n } from '@/lib/i18n/context'
 
 interface SetupGateProps {
@@ -30,13 +33,14 @@ interface SetupGateProps {
 }
 
 const ICLOUD_SHORTCUT_URL = 'https://www.icloud.com/shortcuts/4d6a9040bd104b02b91f2a198b0d8bef'
+const SHORTCUT_NAME = 'Finance Tracker'
 
 export function SetupGate({ user, onSignOut }: SetupGateProps) {
   const router = useRouter()
   const { t, locale } = useI18n()
   const firstName = user.name?.split(' ')[0] ?? (locale === 'en' ? 'User' : 'Kamu')
-  const deviceLabel = locale === 'en' ? `${firstName}'s iPhone` : `iPhone ${firstName}`
 
+  const [selectedMode, setSelectedMode] = useState<SetupMode>('notification')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deviceToken, setDeviceToken] = useState<string | null>(null)
@@ -45,29 +49,47 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
     setLoading(true)
     setError(null)
     try {
-      const res = await createDirectDeviceTokenAction(deviceLabel)
+      const modeLabel =
+        selectedMode === 'notification'
+          ? `iPhone Notifikasi (${firstName})`
+          : `iPhone Back Tap (${firstName})`
+
+      const res = await createDirectDeviceTokenAction(modeLabel)
       if (!res.ok || !res.deviceToken) {
         setError(res.error ?? t('errCreateAccess'))
         setLoading(false)
         return
       }
 
-      setDeviceToken(res.deviceToken)
+      const activeToken = res.deviceToken
+      setDeviceToken(activeToken)
 
-      // Otomatis salin token pribadi ke clipboard pengguna
+      // Otomatis salin token akun ke clipboard pengguna
       try {
-        await navigator.clipboard.writeText(res.deviceToken)
+        await navigator.clipboard.writeText(activeToken)
       } catch {
-        // Fallback jika browser membatasi izin clipboard
+        // Clipboard fallback jika browser membatasi izin
       }
 
-      // Langsung buka sheet native iOS "Tambahkan Pintasan"
+      // 1. Langsung buka sheet resmi Apple "Tambahkan Pintasan"
       window.open(ICLOUD_SHORTCUT_URL, '_blank')
+
+      // 2. Hubungkan token langsung ke pintasan via URL Scheme
+      setTimeout(() => {
+        const autoUrl = `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}&input=text&text=${encodeURIComponent(activeToken)}`
+        window.location.href = autoUrl
+      }, 1200)
     } catch {
       setError(t('errNetworkConnect'))
     } finally {
       setLoading(false)
     }
+  }
+
+  function handleReconnectShortcut() {
+    if (!deviceToken) return
+    const autoUrl = `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}&input=text&text=${encodeURIComponent(deviceToken)}`
+    window.location.href = autoUrl
   }
 
   return (
@@ -136,7 +158,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
           style={{
             fontSize: '0.84rem',
             color: 'var(--color-text-muted)',
-            maxWidth: '320px',
+            maxWidth: '340px',
             margin: 0,
             lineHeight: 1.45,
           }}
@@ -145,7 +167,9 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
         </p>
       </div>
 
+      {/* Konten Utama */}
       {deviceToken ? (
+        /* ================= TAMPILAN SESUDAH INSTALASI (COMPLETED) ================= */
         <div
           style={{
             padding: 'var(--space-5)',
@@ -183,27 +207,27 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             </div>
           </div>
 
-          {/* Tombol Utama: Hubungkan Otomatis 1-Klik */}
+          {/* Tombol Hubungkan Ulang (Jika URL Scheme Terlewat) */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
               gap: 'var(--space-2)',
-              padding: 'var(--space-4)',
+              padding: 'var(--space-3) var(--space-4)',
               backgroundColor: 'var(--color-surface-raised)',
               borderRadius: 'var(--radius-lg)',
               border: '1px solid var(--color-border)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <Sparkles size={18} style={{ color: 'var(--color-accent)' }} />
-              <strong style={{ fontSize: '0.86rem', color: 'var(--color-text)' }}>
+              <Sparkles size={16} style={{ color: 'var(--color-accent)' }} />
+              <strong style={{ fontSize: '0.82rem', color: 'var(--color-text)' }}>
                 {t('setupGateStepTitle')}
               </strong>
             </div>
             <p
               style={{
-                fontSize: '0.78rem',
+                fontSize: '0.76rem',
                 color: 'var(--color-text-muted)',
                 margin: 0,
                 lineHeight: 1.45,
@@ -213,16 +237,13 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             </p>
             <button
               type="button"
-              onClick={() => {
-                const url = `shortcuts://run-shortcut?name=${encodeURIComponent('Finance Tracker')}&input=text&text=${encodeURIComponent(deviceToken)}`
-                window.location.href = url
-              }}
+              onClick={handleReconnectShortcut}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 'var(--space-2)',
-                minHeight: '48px',
+                minHeight: '44px',
                 width: '100%',
                 marginTop: 'var(--space-1)',
                 backgroundColor: 'var(--color-accent)',
@@ -230,17 +251,16 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
                 border: 'none',
                 borderRadius: 'var(--radius-md)',
                 fontWeight: 700,
-                fontSize: '0.92rem',
+                fontSize: '0.88rem',
                 cursor: 'pointer',
-                boxShadow: 'var(--shadow-sm)',
               }}
             >
-              <Sparkles size={18} />
+              <Sparkles size={16} />
               <span>{t('setupGateBtnConnectAuto')}</span>
             </button>
           </div>
 
-          {/* Opsi Bagi yang Belum Pasang Pintasan */}
+          {/* Panduan Spesifik Berdasarkan Mode yang Dipilih */}
           <div
             style={{
               display: 'flex',
@@ -252,64 +272,97 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               border: '1px solid var(--color-border)',
             }}
           >
-            <p
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              {selectedMode === 'notification' ? (
+                <BellRing size={16} style={{ color: 'var(--color-accent)' }} />
+              ) : (
+                <Smartphone size={16} style={{ color: 'var(--color-accent)' }} />
+              )}
+              <strong style={{ fontSize: '0.84rem', color: 'var(--color-text)' }}>
+                {selectedMode === 'notification'
+                  ? t('setupGateActiveNotifTitle')
+                  : t('setupGateActiveBacktapTitle')}
+              </strong>
+            </div>
+
+            <ol
               style={{
-                margin: 0,
-                fontSize: '0.76rem',
+                fontSize: '0.78rem',
                 color: 'var(--color-text-muted)',
-                lineHeight: 1.4,
+                lineHeight: 1.5,
+                margin: 0,
+                paddingLeft: 'var(--space-4)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
               }}
             >
-              {t('setupGateNotInstalledYet')}
-            </p>
+              {selectedMode === 'notification' ? (
+                <>
+                  <li>{t('setupGateActiveNotifStep1')}</li>
+                  <li>{t('setupGateActiveNotifStep2')}</li>
+                  <li>{t('setupGateActiveNotifStep3')}</li>
+                </>
+              ) : (
+                <>
+                  <li>{t('setupGateActiveBacktapStep1')}</li>
+                  <li>{t('setupGateActiveBacktapStep2')}</li>
+                  <li>{t('setupGateActiveBacktapStep3')}</li>
+                </>
+              )}
+            </ol>
+          </div>
+
+          {/* Banner Tips: Dukungan Ganda */}
+          <div
+            style={{
+              padding: 'var(--space-3)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border)',
+              fontSize: '0.76rem',
+              color: 'var(--color-text-muted)',
+              lineHeight: 1.45,
+            }}
+          >
+            {t('setupGateDualSupportTip')}
+          </div>
+
+          {/* Opsi Unduh Ulang iCloud jika diperlukan */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 'var(--space-2) var(--space-3)',
+              backgroundColor: 'transparent',
+              fontSize: '0.76rem',
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            <span>{t('setupGateNotInstalledYet')}</span>
             <button
               type="button"
               onClick={() => window.open(ICLOUD_SHORTCUT_URL, '_blank')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                minHeight: '40px',
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--color-text)',
-                fontSize: '0.8rem',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-accent)',
                 fontWeight: 600,
                 cursor: 'pointer',
+                padding: 0,
               }}
             >
-              <ExternalLink size={14} />
               <span>{t('setupGateBtnInstallIcloud')}</span>
+              <ExternalLink size={13} />
             </button>
           </div>
 
-          {/* Pengingat Penting: Atur Back Tap */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 'var(--space-3)',
-              padding: 'var(--space-3) var(--space-4)',
-              backgroundColor: 'var(--color-surface-raised)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--color-accent)',
-            }}
-          >
-            <Smartphone
-              size={20}
-              style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }}
-            />
-            <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-              <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '2px' }}>
-                {t('backTapReminderTitle')}
-              </strong>
-              {t('backTapReminderDesc')}
-            </div>
-          </div>
-
-          {/* Panduan Tambah ke Layar Utama iPhone */}
-          <HomeScreenGuideCard defaultExpanded={true} />
+          {/* Panduan Layar Utama */}
+          <HomeScreenGuideCard defaultExpanded={false} />
 
           {/* Tombol Lanjut ke Dashboard */}
           <button
@@ -322,13 +375,14 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               gap: 'var(--space-2)',
               minHeight: '48px',
               width: '100%',
-              backgroundColor: 'transparent',
-              color: 'var(--color-text)',
-              border: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-accent)',
+              color: 'var(--color-accent-text)',
+              border: 'none',
               borderRadius: 'var(--radius-md)',
-              fontWeight: 600,
-              fontSize: '0.88rem',
+              fontWeight: 700,
+              fontSize: '0.92rem',
               cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <span>{t('setupGateBtnFinishDashboard')}</span>
@@ -336,6 +390,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
           </button>
         </div>
       ) : (
+        /* ================= TAMPILAN PILIH METODE (SEBELUM INSTALASI) ================= */
         <div
           style={{
             display: 'flex',
@@ -348,7 +403,44 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             boxShadow: 'var(--shadow-sm)',
           }}
         >
-          {/* Instruksi 1-Langkah Jelas */}
+          {/* Label Prompt Pemilihan */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <Sparkles size={16} style={{ color: 'var(--color-accent)' }} />
+            <strong style={{ fontSize: '0.86rem', color: 'var(--color-text)' }}>
+              {t('setupGateSelectModePrompt')}
+            </strong>
+          </div>
+
+          {/* 2 Opsi Pemilihan Metode */}
+          <div
+            role="radiogroup"
+            aria-label={t('setupGateSelectModePrompt')}
+            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
+          >
+            {/* Opsi 1: Otomatis Notifikasi Bank */}
+            <SetupGateModeCard
+              mode="notification"
+              selected={selectedMode === 'notification'}
+              onSelect={setSelectedMode}
+              icon={<BellRing size={18} />}
+              title={t('setupGateModeNotifTitle')}
+              badge={t('setupGateModeNotifBadge')}
+              description={t('setupGateModeNotifDesc')}
+            />
+
+            {/* Opsi 2: Back Tap Foto Struk */}
+            <SetupGateModeCard
+              mode="backtap"
+              selected={selectedMode === 'backtap'}
+              onSelect={setSelectedMode}
+              icon={<Camera size={18} />}
+              title={t('setupGateModeBacktapTitle')}
+              badge={t('setupGateModeBacktapBadge')}
+              description={t('setupGateModeBacktapDesc')}
+            />
+          </div>
+
+          {/* Petunjuk Singkat Sesuai Pilihan */}
           <div
             style={{
               display: 'flex',
@@ -361,9 +453,11 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <ShieldCheck size={18} style={{ color: 'var(--color-accent)' }} />
-              <strong style={{ fontSize: '0.86rem', color: 'var(--color-text)' }}>
-                {t('setupGateQuickGuideTitle')}
+              <ShieldCheck size={16} style={{ color: 'var(--color-accent)' }} />
+              <strong style={{ fontSize: '0.82rem', color: 'var(--color-text)' }}>
+                {selectedMode === 'notification'
+                  ? t('setupGateNotifQuickGuideTitle')
+                  : t('setupGateBacktapQuickGuideTitle')}
               </strong>
             </div>
             <ol
@@ -378,9 +472,19 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
                 gap: '3px',
               }}
             >
-              <li>{t('setupGateGuideItem1')}</li>
-              <li>{t('setupGateGuideItem2')}</li>
-              <li>{t('setupGateGuideItem3')}</li>
+              {selectedMode === 'notification' ? (
+                <>
+                  <li>{t('setupGateNotifGuideItem1')}</li>
+                  <li>{t('setupGateNotifGuideItem2')}</li>
+                  <li>{t('setupGateNotifGuideItem3')}</li>
+                </>
+              ) : (
+                <>
+                  <li>{t('setupGateBacktapGuideItem1')}</li>
+                  <li>{t('setupGateBacktapGuideItem2')}</li>
+                  <li>{t('setupGateBacktapGuideItem3')}</li>
+                </>
+              )}
             </ol>
           </div>
 
@@ -388,7 +492,7 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
             <p style={{ color: 'var(--color-error)', fontSize: '0.78rem', margin: 0 }}>{error}</p>
           )}
 
-          {/* Tombol Utama 1-Klik Tunggal */}
+          {/* Tombol Utama 1-Klik Spesifik Mode */}
           <button
             type="button"
             onClick={handleOneClickSetup}
@@ -409,14 +513,23 @@ export function SetupGate({ user, onSignOut }: SetupGateProps) {
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.7 : 1,
               boxShadow: 'var(--shadow-sm)',
+              transition: 'all 180ms ease',
             }}
           >
             {loading ? (
               <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : selectedMode === 'notification' ? (
+              <BellRing size={18} />
             ) : (
-              <Sparkles size={18} />
+              <Camera size={18} />
             )}
-            <span>{loading ? t('setupGateBtnInstalling') : t('setupGateBtnInstall1Click')}</span>
+            <span>
+              {loading
+                ? t('setupGateBtnInstalling')
+                : selectedMode === 'notification'
+                  ? t('setupGateNotifBtnInstall')
+                  : t('setupGateBacktapBtnInstall')}
+            </span>
           </button>
 
           {/* Panduan Pasang di Layar Utama iPhone */}
