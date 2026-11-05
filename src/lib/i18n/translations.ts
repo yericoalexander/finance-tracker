@@ -23,6 +23,7 @@ export const translations = {
 
     // Bottom Navigation
     navOverview: 'Ringkasan',
+    navWallets: 'Dompet',
     navTransactions: 'Transaksi',
     navAdd: 'Catat',
 
@@ -422,6 +423,7 @@ export const translations = {
 
     // Bottom Navigation
     navOverview: 'Overview',
+    navWallets: 'Wallets',
     navTransactions: 'Transactions',
     navAdd: 'Add',
 

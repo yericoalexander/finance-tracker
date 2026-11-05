@@ -1,13 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, AlertCircle, Loader2, ArrowRight, Bell } from 'lucide-react'
+import { CheckCircle2, AlertCircle, Loader2, ArrowRight, Bell, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CATEGORIES, type Category } from '@/lib/ai/types'
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
 import { createManualTransactionAction } from './manual-entry-action'
+
+type TxType = 'expense' | 'income'
 
 const PAYMENT_METHODS = [
   'QRIS',
@@ -27,6 +29,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
   const { t, translateCategory, translatePaymentMethod } = useI18n()
   const todayStr = new Date().toISOString().slice(0, 10)
 
+  const [txType, setTxType] = useState<TxType>('expense')
   const [merchant, setMerchant] = useState('')
   const [amountStr, setAmountStr] = useState('')
   const [category, setCategory] = useState<Category>('Makanan & Minuman')
@@ -78,6 +81,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
         txDate,
         paymentMethod,
         note: note.trim() || '-',
+        txType,
       })
 
       if (!res.ok) {
@@ -151,6 +155,61 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
           >
             {t('manualSub')}
           </p>
+        </div>
+
+        {/* Toggle Pengeluaran / Pemasukan */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '6px',
+            padding: '4px',
+            backgroundColor: 'var(--color-surface-raised)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--color-border)',
+          }}
+        >
+          {(['expense', 'income'] as const).map((type) => {
+            const isActive = txType === type
+            const isExpense = type === 'expense'
+            return (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setTxType(type)}
+                style={{
+                  minHeight: '40px',
+                  borderRadius: 'calc(var(--radius-lg) - 2px)',
+                  border: 'none',
+                  backgroundColor: isActive
+                    ? isExpense
+                      ? 'var(--color-expense-bg)'
+                      : 'var(--color-income-bg)'
+                    : 'transparent',
+                  color: isActive
+                    ? isExpense
+                      ? 'var(--color-expense)'
+                      : 'var(--color-income)'
+                    : 'var(--color-text-muted)',
+                  fontSize: '0.85rem',
+                  fontWeight: isActive ? 700 : 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 150ms ease',
+                  boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
+                }}
+              >
+                {isExpense
+                  ? <ArrowDownLeft size={15} strokeWidth={2.5} />
+                  : <ArrowUpRight size={15} strokeWidth={2.5} />
+                }
+                {isExpense ? 'Pengeluaran' : 'Pemasukan'}
+              </button>
+            )
+          })}
         </div>
 
         {/* Feedback Pesan Sukses */}

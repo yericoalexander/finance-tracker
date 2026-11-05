@@ -14,7 +14,7 @@ import { db } from '@/lib/db/client'
 import { users } from '@/lib/db/schema'
 
 interface DashboardPageProps {
-  searchParams: Promise<{ skip?: string }>
+  searchParams: Promise<{ skip?: string; tab?: string }>
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
@@ -79,6 +79,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         data={dashboardData}
         sheetId={currentSheetId}
         userName={user.name ?? undefined}
+        initialTab={
+          params.tab === 'wallets' || params.tab === 'transactions' || params.tab === 'add'
+            ? params.tab
+            : 'overview'
+        }
         header={
           <DashboardHeader
             key="dashboard-header"

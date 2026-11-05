@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FileSpreadsheet, ArrowDownLeft, Bell } from 'lucide-react'
+import { FileSpreadsheet, ArrowDownLeft, ArrowUpRight, Bell } from 'lucide-react'
 
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
@@ -13,6 +13,7 @@ import { BudgetModal } from './budget-modal'
 
 interface SummaryCardsProps {
   mtdTotal: number
+  mtdIncome?: number
   txCount: number
   sheetId?: string | null
   activeDevice?: {
@@ -26,6 +27,7 @@ interface SummaryCardsProps {
 
 export function SummaryCards({
   mtdTotal,
+  mtdIncome = 0,
   txCount,
   sheetId,
   selectedMonth,
@@ -493,6 +495,61 @@ export function SummaryCards({
           </span>
         </div>
       </div>
+
+      {/* Card Pemasukan — tampil jika ada pemasukan */}
+      {mtdIncome > 0 && (
+        <div
+          style={{
+            backgroundColor: 'var(--color-income-bg)',
+            borderRadius: 'var(--radius-xl)',
+            padding: 'var(--space-4) var(--space-5)',
+            border: '1px solid var(--color-income)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 'var(--space-3)',
+            marginBottom: 'var(--space-3)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'rgba(255,255,255,0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <ArrowUpRight size={16} color="var(--color-income)" />
+            </div>
+            <div>
+              <p style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--color-income)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: 0, lineHeight: 1.25 }}>
+                Pemasukan {isCurrentMonth ? 'Bulan Ini' : activeMonthName}
+              </p>
+              <p style={{ fontSize: '0.78rem', color: 'var(--color-income)', margin: '2px 0 0 0' }}>
+                Dicatat manual
+              </p>
+            </div>
+          </div>
+          <p
+            style={{
+              fontSize: '1.1rem',
+              fontWeight: 800,
+              color: 'var(--color-income)',
+              fontVariantNumeric: 'tabular-nums',
+              letterSpacing: isPrivate ? '0.04em' : '-0.02em',
+              margin: 0,
+              flexShrink: 0,
+            }}
+          >
+            {isPrivate ? 'Rp ••••••' : `+${formatRupiah(mtdIncome)}`}
+          </p>
+        </div>
+      )}
 
       {/* Akses Spreadsheet — card style seperti referensi */}
       {sheetId ? (

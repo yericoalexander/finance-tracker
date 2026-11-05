@@ -21,8 +21,8 @@ const CreateManualTransactionSchema = z.object({
   txDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD'),
   paymentMethod: z.string().trim().max(50).optional().default('Lainnya'),
   note: z.string().trim().max(200).optional().default('-'),
+  txType: z.enum(['expense', 'income']).optional().default('expense'),
 })
-
 export type CreateManualTransactionInput = z.infer<typeof CreateManualTransactionSchema>
 
 /**
@@ -106,6 +106,7 @@ export async function createManualTransactionAction(rawInput: unknown): Promise<
       amountIdr: data.amountIdr,
       category: data.category,
       txDate: data.txDate,
+      txType: data.txType ?? 'expense',
       sheetRowId: captureId,
     })
 
@@ -117,7 +118,7 @@ export async function createManualTransactionAction(rawInput: unknown): Promise<
       amountIdr: data.amountIdr,
       paymentMethod: data.paymentMethod ?? 'Lainnya',
       note: data.note ?? '-',
-      source: 'Manual (Web)',
+      source: data.txType === 'income' ? 'Manual (Pemasukan)' : 'Manual (Web)',
       id: captureId,
     })
 

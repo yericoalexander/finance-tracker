@@ -74,6 +74,8 @@ export const captures = pgTable(
     amountIdr: integer('amount_idr'),
     category: text('category'),
     txDate: text('tx_date'),
+    // 'expense' (default) | 'income'
+    txType: text('tx_type').notNull().default('expense'),
     sheetRowId: text('sheet_row_id'),
     errorCode: text('error_code'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

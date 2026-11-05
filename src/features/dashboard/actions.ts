@@ -37,6 +37,7 @@ export interface CategorySummary {
 
 export interface DashboardData {
   mtdTotal: number
+  mtdIncome: number
   txCount: number
   recentTransactions: Array<{
     id: string
@@ -44,6 +45,7 @@ export interface DashboardData {
     amountIdr: number | null
     category: string | null
     txDate: string | null
+    txType: string | null
     createdAt: Date
   }>
   reviewQueue: Array<{
@@ -102,6 +104,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
         amountIdr: captures.amountIdr,
         category: captures.category,
         txDate: captures.txDate,
+        txType: captures.txType,
         createdAt: captures.createdAt,
       })
       .from(captures)
@@ -122,6 +125,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
         amountIdr: captures.amountIdr,
         category: captures.category,
         txDate: captures.txDate,
+        txType: captures.txType,
         createdAt: captures.createdAt,
       })
       .from(captures)
@@ -168,12 +172,15 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
       .catch(() => null),
   ])
 
-  const mtdTotal = monthOkCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
+  const monthExpenseCaptures = monthOkCaptures.filter((c) => c.txType !== 'income')
+  const monthIncomeCaptures = monthOkCaptures.filter((c) => c.txType === 'income')
+  const mtdTotal = monthExpenseCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
+  const mtdIncome = monthIncomeCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
   const txCount = monthOkCaptures.length
 
-  // Breakdown kategori
+  // Breakdown kategori (dihitung dari pengeluaran)
   const catTotals: Record<string, number> = {}
-  for (const c of monthOkCaptures) {
+  for (const c of monthExpenseCaptures) {
     const cat = c.category ?? 'Lainnya'
     catTotals[cat] = (catTotals[cat] ?? 0) + (c.amountIdr ?? 0)
   }
@@ -203,6 +210,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
 
   return {
     mtdTotal,
+    mtdIncome,
     txCount,
     recentTransactions,
     reviewQueue,
@@ -322,6 +330,7 @@ export async function getMonthSummaryAction(targetMonth: string): Promise<{
   data?: {
     month: string
     total: number
+    income: number
     txCount: number
     categoryBreakdown: CategorySummary[]
   }
@@ -343,6 +352,7 @@ export async function getMonthSummaryAction(targetMonth: string): Promise<{
       .select({
         amountIdr: captures.amountIdr,
         category: captures.category,
+        txType: captures.txType,
       })
       .from(captures)
       .where(
@@ -353,11 +363,14 @@ export async function getMonthSummaryAction(targetMonth: string): Promise<{
         ),
       )
 
-    const total = monthCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
+    const expenseCaptures = monthCaptures.filter((c) => c.txType !== 'income')
+    const incomeCaptures = monthCaptures.filter((c) => c.txType === 'income')
+    const total = expenseCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
+    const income = incomeCaptures.reduce((sum, c) => sum + (c.amountIdr ?? 0), 0)
     const txCount = monthCaptures.length
 
     const catTotals: Record<string, number> = {}
-    for (const c of monthCaptures) {
+    for (const c of expenseCaptures) {
       const cat = c.category ?? 'Lainnya'
       catTotals[cat] = (catTotals[cat] ?? 0) + (c.amountIdr ?? 0)
     }
@@ -375,6 +388,7 @@ export async function getMonthSummaryAction(targetMonth: string): Promise<{
       data: {
         month: targetMonth,
         total,
+        income,
         txCount,
         categoryBreakdown,
       },

@@ -33,6 +33,7 @@ interface TransactionItem {
   amountIdr: number | null
   category: string | null
   txDate: string | null
+  txType?: string | null
   createdAt: Date
 }
 
@@ -1080,13 +1081,22 @@ export function RecentTransactions({
                       style={{
                         fontSize: '0.92rem',
                         fontWeight: 800,
-                        color: 'var(--color-expense)',
+                        color:
+                          tx.txType === 'income'
+                            ? 'var(--color-income)'
+                            : 'var(--color-expense)',
                         fontVariantNumeric: 'tabular-nums',
                         letterSpacing: '-0.02em',
                         margin: 0,
                       }}
                     >
-                      {isPrivate ? '-Rp ••••••' : `-${formatRupiah(tx.amountIdr ?? 0)}`}
+                      {isPrivate
+                        ? tx.txType === 'income'
+                          ? '+Rp ••••••'
+                          : '-Rp ••••••'
+                        : tx.txType === 'income'
+                          ? `+${formatRupiah(tx.amountIdr ?? 0)}`
+                          : `-${formatRupiah(tx.amountIdr ?? 0)}`}
                     </p>
                   </div>
 
@@ -1742,11 +1752,20 @@ export function RecentTransactions({
                     style={{
                       fontSize: '0.9rem',
                       fontWeight: 800,
-                      color: 'var(--color-expense)',
+                      color:
+                        deleteTarget.txType === 'income'
+                          ? 'var(--color-income)'
+                          : 'var(--color-expense)',
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
-                    {isPrivate ? '-Rp ••••••' : `-${formatRupiah(deleteTarget.amountIdr ?? 0)}`}
+                    {isPrivate
+                      ? deleteTarget.txType === 'income'
+                        ? '+Rp ••••••'
+                        : '-Rp ••••••'
+                      : deleteTarget.txType === 'income'
+                        ? `+${formatRupiah(deleteTarget.amountIdr ?? 0)}`
+                        : `-${formatRupiah(deleteTarget.amountIdr ?? 0)}`}
                   </span>
                 </div>
                 <div

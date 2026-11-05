@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { RefreshCw, X, LayoutDashboard, Receipt, Plus } from 'lucide-react'
+import { RefreshCw, X, LayoutDashboard, Receipt, Plus, WalletCards } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CategoryBreakdown } from './category-breakdown'
@@ -12,10 +12,11 @@ import { MonthNavigator } from './month-navigator'
 import { getMonthSummaryAction, type DashboardData } from './actions'
 import { DeviceSetupBanner } from '@/features/devices/device-setup-banner'
 import { ShortcutOnboardingModal } from '@/features/devices/shortcut-onboarding-modal'
+import { WalletSection } from '@/features/wallets/wallet-section'
 import { registerAndSubscribePush } from '@/lib/push/client'
 import { useI18n } from '@/lib/i18n/context'
 
-type TabType = 'overview' | 'transactions' | 'add'
+type TabType = 'overview' | 'wallets' | 'transactions' | 'add'
 
 interface DashboardViewProps {
   data: DashboardData
@@ -23,12 +24,33 @@ interface DashboardViewProps {
   header?: React.ReactNode
   banner?: React.ReactNode
   userName?: string
+  initialTab?: TabType
 }
 
-export function DashboardView({ data, sheetId, header, banner, userName }: DashboardViewProps) {
+export function DashboardView({
+  data,
+  sheetId,
+  header,
+  banner,
+  userName,
+  initialTab = 'overview',
+}: DashboardViewProps) {
   const router = useRouter()
   const { t, formatMonthName } = useI18n()
-  const [activeTab, setActiveTab] = useState<TabType>('overview')
+  const [activeTab, setActiveTabState] = useState<TabType>(initialTab)
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTabState(tab)
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      if (tab === 'overview') {
+        url.searchParams.delete('tab')
+      } else {
+        url.searchParams.set('tab', tab)
+      }
+      window.history.replaceState(null, '', url.toString())
+    }
+  }
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [newTxAlert, setNewTxAlert] = useState<{ id: string; merchant: string } | null>(null)
@@ -50,6 +72,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
       string,
       {
         total: number
+        income: number
         txCount: number
         categoryBreakdown: typeof data.categoryBreakdown
       }
@@ -57,6 +80,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
   >({
     [currentMonthPrefix]: {
       total: data.mtdTotal,
+      income: data.mtdIncome ?? 0,
       txCount: data.txCount,
       categoryBreakdown: data.categoryBreakdown,
     },
@@ -68,11 +92,12 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
       ...prev,
       [currentMonthPrefix]: {
         total: data.mtdTotal,
+        income: data.mtdIncome ?? 0,
         txCount: data.txCount,
         categoryBreakdown: data.categoryBreakdown,
       },
     }))
-  }, [data.mtdTotal, data.txCount, data.categoryBreakdown, currentMonthPrefix])
+  }, [data.mtdTotal, data.mtdIncome, data.txCount, data.categoryBreakdown, currentMonthPrefix])
 
   // Sinkronisasi otomatis langganan Web Push perangkat ke server jika izin notifikasi aktif
   useEffect(() => {
@@ -94,6 +119,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
           ...prev,
           [month]: {
             total: res.data!.total,
+            income: res.data!.income ?? 0,
             txCount: res.data!.txCount,
             categoryBreakdown: res.data!.categoryBreakdown,
           },
@@ -126,6 +152,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
           ...prev,
           [newMonth]: {
             total: res.data!.total,
+            income: res.data!.income ?? 0,
             txCount: res.data!.txCount,
             categoryBreakdown: res.data!.categoryBreakdown,
           },
@@ -140,6 +167,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
 
   const currentSummary = monthCache[selectedMonth] ?? {
     total: 0,
+    income: 0,
     txCount: 0,
     categoryBreakdown: [],
   }
@@ -273,12 +301,12 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
 
   const handleViewAlertTransaction = () => {
     handleDismissAlert()
-    setActiveTab('transactions')
+    handleTabChange('transactions')
   }
 
   const handleCategoryJump = (category: string) => {
     setSelectedCategory(category)
-    setActiveTab('transactions')
+    handleTabChange('transactions')
   }
 
   const tabs = [
@@ -286,6 +314,11 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
       id: 'overview' as TabType,
       label: t('navOverview'),
       icon: <LayoutDashboard size={15} strokeWidth={2.2} />,
+    },
+    {
+      id: 'wallets' as TabType,
+      label: t('navWallets'),
+      icon: <WalletCards size={15} strokeWidth={2.2} />,
     },
     {
       id: 'transactions' as TabType,
@@ -470,6 +503,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
 
           <SummaryCards
             mtdTotal={currentSummary.total}
+            mtdIncome={currentSummary.income}
             txCount={currentSummary.txCount}
             sheetId={sheetId}
             activeDevice={data.activeDevice}
@@ -488,6 +522,13 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
         </div>
       )}
 
+      {/* Tab: Dompet (Wallet Balance & Card Stack) */}
+      {activeTab === 'wallets' && (
+        <div key="wallets" className="animate-fade-in" style={{ paddingTop: 'var(--space-1)' }}>
+          <WalletSection />
+        </div>
+      )}
+
       {/* Tab: Transaksi */}
       {activeTab === 'transactions' && (
         <div key="transactions" className="animate-fade-in">
@@ -495,7 +536,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
             transactions={data.recentTransactions}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
-            onNavigateToAdd={() => setActiveTab('add')}
+            onNavigateToAdd={() => handleTabChange('add')}
             stickyOffset={stickyOffset}
           />
         </div>
@@ -504,7 +545,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
       {/* Tab: Catat */}
       {activeTab === 'add' && (
         <div key="add" className="animate-fade-in" style={{ paddingTop: 'var(--space-2)' }}>
-          <ManualEntryCard onSuccess={() => setActiveTab('transactions')} />
+          <ManualEntryCard onSuccess={() => handleTabChange('transactions')} />
         </div>
       )}
 
@@ -525,7 +566,7 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(4, 1fr)',
             backgroundColor: 'var(--color-surface)',
             padding: '5px',
             borderRadius: 'var(--radius-full)',
@@ -542,14 +583,14 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 style={{
                   minHeight: '44px',
                   borderRadius: 'var(--radius-full)',
                   border: 'none',
                   backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
                   color: isActive ? 'var(--color-accent-text)' : 'var(--color-text-muted)',
-                  fontSize: '0.82rem',
+                  fontSize: '0.78rem',
                   fontWeight: isActive ? 700 : 600,
                   cursor: 'pointer',
                   transition: 'all var(--duration-fast) var(--ease-default)',
@@ -558,8 +599,8 @@ export function DashboardView({ data, sheetId, header, banner, userName }: Dashb
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px',
-                  padding: '0 8px',
+                  gap: '5px',
+                  padding: '0 6px',
                 }}
               >
                 {tab.icon}
