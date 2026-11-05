@@ -7,6 +7,7 @@ export const CATEGORIES = [
   'Tagihan & Utilitas',
   'Hiburan',
   'Kesehatan',
+  'Transfer Antar Bank',
   'Lainnya',
 ] as const
 
@@ -39,6 +40,18 @@ export const TransactionExtractionSchema = z.object({
     .min(0)
     .max(1)
     .describe('Skor keyakinan model terhadap keakuratan pembacaan (0.0 sampai 1.0).'),
+  sourceBank: z
+    .string()
+    .optional()
+    .describe('Bank atau e-wallet asal/sumber dana (mis. SeaBank, BCA, Mandiri, Krom, GoPay, dll).'),
+  destinationBank: z
+    .string()
+    .optional()
+    .describe('Bank atau e-wallet tujuan jika transaksi berupa transfer antar rekening/bank.'),
+  isTransfer: z
+    .boolean()
+    .optional()
+    .describe('Bernilai true jika transaksi merupakan transfer dana antar bank atau antar rekening.'),
 })
 
 export type TransactionExtraction = z.infer<typeof TransactionExtractionSchema>

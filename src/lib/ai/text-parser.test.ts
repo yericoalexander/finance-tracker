@@ -88,6 +88,42 @@ describe('parseNotificationFast (Regex Tier 1)', () => {
     expect(result?.category).toBe('Belanja')
   })
 
+  it('parses SeaBank realtime transfer notification accurately', () => {
+    const text =
+      'Realtime Transfer: Kamu baru melakukan transfer real-time senilai Rp10.000 pada 05 Nov 2026 10:54. Jika kamu tidak melakukan ini, segera hubungi 1500130.'
+    const result = parseNotificationFast(text)
+
+    expect(result).not.toBeNull()
+    expect(result?.amountIdr).toBe(10000)
+    expect(result?.sourceBank).toBe('SeaBank')
+    expect(result?.isTransfer).toBe(true)
+    expect(result?.category).toBe('Transfer Antar Bank')
+    expect(result?.txType).toBe('expense')
+  })
+
+  it('parses explicit inter-bank transfer between SeaBank and Krom', () => {
+    const text = 'Transfer Rp 10.000 dari SeaBank ke Krom berhasil'
+    const result = parseNotificationFast(text)
+
+    expect(result).not.toBeNull()
+    expect(result?.amountIdr).toBe(10000)
+    expect(result?.sourceBank).toBe('SeaBank')
+    expect(result?.destinationBank).toBe('Krom')
+    expect(result?.isTransfer).toBe(true)
+    expect(result?.category).toBe('Transfer Antar Bank')
+  })
+
+  it('parses Krom incoming dana diterima notification', () => {
+    const text = 'Tabungan Utama baru saja menerima dana sebesar Rp10.000 dari YERICO ALEXANDER.'
+    const result = parseNotificationFast(text)
+
+    expect(result).not.toBeNull()
+    expect(result?.amountIdr).toBe(10000)
+    expect(result?.destinationBank).toBe('Krom')
+    expect(result?.isTransfer).toBe(true)
+    expect(result?.txType).toBe('income')
+  })
+
   it('returns null for empty or non-financial string', () => {
     expect(parseNotificationFast('')).toBeNull()
     expect(parseNotificationFast('Halo selamat pagi apa kabar?')).toBeNull()

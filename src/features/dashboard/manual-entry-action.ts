@@ -12,6 +12,7 @@ import { db } from '@/lib/db/client'
 import { captures, googleTokens, users } from '@/lib/db/schema'
 import { appendTransactionRow } from '@/lib/google/sheets'
 import { sendPushNotificationToUser } from '@/lib/push/send-push'
+import { applyTransactionToWallets } from '@/features/wallets/wallet-sync'
 import { evaluateBudgetReminder, type BudgetReminderEvaluation } from './reminder-evaluator'
 
 const CreateManualTransactionSchema = z.object({
@@ -123,6 +124,16 @@ export async function createManualTransactionAction(rawInput: unknown): Promise<
     })
 
     await Promise.all([insertDbPromise, appendSheetPromise])
+
+    // Sinkronisasi ke saldo dompet pengguna
+    await applyTransactionToWallets(userId, {
+      amountIdr: data.amountIdr,
+      category: data.category,
+      paymentMethod: data.paymentMethod,
+      merchant: data.merchant,
+      isTransfer: data.category === 'Transfer Antar Bank',
+      txType: data.txType ?? 'expense',
+    }).catch(() => null)
 
     const txMonthPrefix = data.txDate.slice(0, 7)
     const reminderEval: BudgetReminderEvaluation = await evaluateBudgetReminder(

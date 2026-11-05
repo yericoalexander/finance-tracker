@@ -16,6 +16,7 @@ import {
 import { sendPushNotificationToUser } from '@/lib/push/send-push'
 import { authenticateDevice } from '@/lib/security/device-auth'
 import { checkRateLimit } from '@/lib/security/rate-limit'
+import { applyTransactionToWallets } from '@/features/wallets/wallet-sync'
 
 const CaptureTextRequestSchema = z.object({
   text: z.string().min(5, 'Teks notifikasi minimal 5 karakter').max(2000),
@@ -120,6 +121,21 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Sinkronisasi mutasi ke sistem dompet / saldo kartu pengguna
+  const walletMutation = await applyTransactionToWallets(device.userId, {
+    amountIdr: parsed.amountIdr,
+    category: parsed.category,
+    paymentMethod: parsed.paymentMethod,
+    merchant: parsed.merchant,
+    sourceBank: parsed.sourceBank,
+    destinationBank: parsed.destinationBank,
+    isTransfer: parsed.isTransfer,
+    txType: parsed.txType,
+  }).catch((err) => {
+    console.error('[Capture Text API] Gagal sinkronisasi dompet:', err)
+    return null
+  })
+
   // Perbarui waktu aktif terakhir perangkat
   await db
     .update(devices)
@@ -179,6 +195,13 @@ export async function POST(request: NextRequest) {
   const formattedAmount = formatRupiah(parsed.amountIdr)
   const typeLabel = parsed.txType === 'income' ? 'Uang Masuk' : 'Uang Keluar'
 
+  let responseMessage = `Tercatat ${typeLabel}: ${formattedAmount} di ${parsed.merchant}`
+  if (parsed.isTransfer && walletMutation?.summaryMessage) {
+    responseMessage = `Tercatat Transfer: ${formattedAmount} (${walletMutation.summaryMessage})`
+  } else if (walletMutation?.applied && walletMutation.summaryMessage) {
+    responseMessage = `Tercatat ${typeLabel}: ${formattedAmount} (${walletMutation.summaryMessage})`
+  }
+
   return NextResponse.json({
     status: 'ok',
     merchant: parsed.merchant,
@@ -187,6 +210,7 @@ export async function POST(request: NextRequest) {
     category: parsed.category,
     txType: parsed.txType,
     paymentMethod: parsed.paymentMethod,
-    message: `Tercatat ${typeLabel}: ${formattedAmount} di ${parsed.merchant}`,
+    walletMutation: walletMutation?.summaryMessage,
+    message: responseMessage,
   })
 }

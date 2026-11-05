@@ -17,6 +17,7 @@ import { validateImageBuffer } from '@/lib/security/magic-bytes'
 import { checkRateLimit } from '@/lib/security/rate-limit'
 import { authenticateDevice } from '@/lib/security/device-auth'
 import { syncCaptureToGoogleSheets } from '@/lib/google/sync-helper'
+import { applyTransactionToWallets } from '@/features/wallets/wallet-sync'
 
 // ── Handler POST /api/capture ────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
@@ -234,6 +235,21 @@ export async function POST(request: NextRequest) {
 
     revalidatePath('/dashboard')
 
+    // Sinkronisasi mutasi ke sistem dompet / saldo kartu pengguna
+    const walletMutation = await applyTransactionToWallets(device.userId, {
+      amountIdr: extraction.amountIdr,
+      category: extraction.category,
+      paymentMethod: extraction.paymentMethod,
+      merchant: extraction.merchant,
+      sourceBank: extraction.sourceBank,
+      destinationBank: extraction.destinationBank,
+      isTransfer: extraction.isTransfer,
+      txType: 'expense',
+    }).catch((err) => {
+      console.error('[Capture API] Gagal sinkronisasi dompet:', err)
+      return null
+    })
+
     // Evaluasi pengingat batas pengeluaran bulanan pengguna
     const txMonthPrefix = extraction.date?.slice(0, 7) || new Date().toISOString().slice(0, 7)
     const reminderEval: BudgetReminderEvaluation = await evaluateBudgetReminder(
@@ -242,8 +258,11 @@ export async function POST(request: NextRequest) {
     ).catch((): BudgetReminderEvaluation => ({ shouldAlert: false }))
 
     let responseMessage = `Tercatat: ${formattedAmount} di ${extraction.merchant}`
+    if (walletMutation?.applied && walletMutation.summaryMessage) {
+      responseMessage = `Tercatat: ${formattedAmount} (${walletMutation.summaryMessage})`
+    }
     if (reminderEval.alertMessage) {
-      responseMessage = `${reminderEval.alertMessage}\n(Tercatat: ${formattedAmount} di ${extraction.merchant})`
+      responseMessage = `${reminderEval.alertMessage}\n(${responseMessage})`
     }
 
     if (reminderEval.shouldAlert && reminderEval.alertMessage) {

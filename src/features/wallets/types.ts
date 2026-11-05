@@ -420,3 +420,14 @@ export const WalletSchema = z.object({
 export type Wallet = z.infer<typeof WalletSchema>
 
 export const WalletsStoreSchema = z.array(WalletSchema)
+
+export const WalletFormSchema = z.object({
+  name: z.string().trim().min(1, 'Nama dompet wajib diisi').max(40, 'Maksimal 40 karakter'),
+  balanceIdr: z.coerce
+    .number()
+    .int('Harus bilangan bulat')
+    .nonnegative('Saldo tidak boleh negatif'),
+  themeId: z.string().min(1),
+})
+
+export type WalletFormValues = z.infer<typeof WalletFormSchema>

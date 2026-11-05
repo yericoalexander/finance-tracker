@@ -1021,6 +1021,7 @@ export const categoryTranslations: Record<string, { id: string; en: string }> = 
   'Tagihan & Utilitas': { id: 'Tagihan & Utilitas', en: 'Bills & Utilities' },
   Hiburan: { id: 'Hiburan', en: 'Entertainment' },
   Kesehatan: { id: 'Kesehatan', en: 'Healthcare' },
+  'Transfer Antar Bank': { id: 'Transfer Antar Bank', en: 'Bank Transfer' },
   Lainnya: { id: 'Lainnya', en: 'Others' },
 }
 

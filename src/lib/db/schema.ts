@@ -123,6 +123,25 @@ export const pushSubscriptions = pgTable(
   (table) => [index('push_subscriptions_user_id_idx').on(table.userId)],
 )
 
+// ── wallets ────────────────────────────────────────────────────────────────
+// Kartu dan dompet keuangan pengguna untuk sinkronisasi mutasi dan saldo
+export const wallets = pgTable(
+  'wallets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    balanceIdr: integer('balance_idr').notNull().default(0),
+    themeId: text('theme_id').notNull().default('bca'),
+    order: integer('display_order').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('wallets_user_id_order_idx').on(table.userId, table.order)],
+)
+
 // ── Relations ──────────────────────────────────────────────────────────────
 export const usersRelations = relations(users, ({ one, many }) => ({
   googleToken: one(googleTokens, {
@@ -137,6 +156,14 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   devices: many(devices),
   captures: many(captures),
   pushSubscriptions: many(pushSubscriptions),
+  wallets: many(wallets),
+}))
+
+export const walletsRelations = relations(wallets, ({ one }) => ({
+  user: one(users, {
+    fields: [wallets.userId],
+    references: [users.id],
+  }),
 }))
 
 export const reminderSettingsRelations = relations(reminderSettings, ({ one }) => ({
@@ -200,3 +227,5 @@ export type ReminderSetting = typeof reminderSettings.$inferSelect
 export type NewReminderSetting = typeof reminderSettings.$inferInsert
 export type PushSubscription = typeof pushSubscriptions.$inferSelect
 export type NewPushSubscription = typeof pushSubscriptions.$inferInsert
+export type WalletRecord = typeof wallets.$inferSelect
+export type NewWalletRecord = typeof wallets.$inferInsert

@@ -1,12 +1,18 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { z } from 'zod'
+import {
+  createWalletAction,
+  deleteWalletAction,
+  getWalletsAction,
+  quickAdjustWalletAction,
+  updateWalletAction,
+} from './actions'
 import { WalletsStoreSchema, WALLET_THEMES, type Wallet } from './types'
 
 const STORAGE_KEY = 'finance-tracker:wallets:v2'
 
-const DEFAULT_WALLETS: Omit<Wallet, 'id' | 'createdAt'>[] = [
+export const DEFAULT_WALLETS: Omit<Wallet, 'id' | 'createdAt'>[] = [
   {
     name: 'BCA',
     balanceIdr: 12784486,
@@ -14,27 +20,27 @@ const DEFAULT_WALLETS: Omit<Wallet, 'id' | 'createdAt'>[] = [
     order: 0,
   },
   {
+    name: 'SeaBank',
+    balanceIdr: 5000000,
+    themeId: 'seabank',
+    order: 1,
+  },
+  {
+    name: 'Krom',
+    balanceIdr: 2000000,
+    themeId: 'krom',
+    order: 2,
+  },
+  {
     name: 'OCBC',
     balanceIdr: 7521300,
     themeId: 'ocbc',
-    order: 1,
+    order: 3,
   },
   {
     name: 'BRI',
     balanceIdr: 4134012,
     themeId: 'bri',
-    order: 2,
-  },
-  {
-    name: 'krom',
-    balanceIdr: 2000000,
-    themeId: 'krom',
-    order: 3,
-  },
-  {
-    name: 'N̄26',
-    balanceIdr: 763000,
-    themeId: 'n26',
     order: 4,
   },
   {
@@ -86,8 +92,32 @@ export function useWallets() {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    setWallets(loadFromStorage())
-    setIsLoaded(true)
+    // 1. Muat dari local storage untuk respon instan 0ms
+    const cached = loadFromStorage()
+    if (cached.length > 0) {
+      setWallets(cached)
+      setIsLoaded(true)
+    }
+
+    // 2. Sinkronisasi dengan database di server
+    let isMounted = true
+    getWalletsAction()
+      .then((res) => {
+        if (isMounted && res.ok && res.data && res.data.length > 0) {
+          setWallets(res.data)
+          saveToStorage(res.data)
+          setIsLoaded(true)
+        } else if (isMounted) {
+          setIsLoaded(true)
+        }
+      })
+      .catch(() => {
+        if (isMounted) setIsLoaded(true)
+      })
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const persist = useCallback((next: Wallet[]) => {
@@ -97,20 +127,29 @@ export function useWallets() {
 
   const addWallet = useCallback(
     (input: { name: string; balanceIdr: number; themeId: string }) => {
+      const themeId =
+        input.themeId in WALLET_THEMES ||
+        input.themeId.startsWith('custom_') ||
+        input.themeId.startsWith('custom:')
+          ? input.themeId
+          : 'bca'
+      const tempId = crypto.randomUUID()
       const newWallet: Wallet = {
-        id: crypto.randomUUID(),
+        id: tempId,
         name: input.name,
         balanceIdr: input.balanceIdr,
-        themeId:
-          input.themeId in WALLET_THEMES ||
-          input.themeId.startsWith('custom_') ||
-          input.themeId.startsWith('custom:')
-            ? input.themeId
-            : 'bca',
+        themeId,
         order: wallets.length,
         createdAt: new Date().toISOString(),
       }
       persist([...wallets, newWallet])
+      void createWalletAction({ name: input.name, balanceIdr: input.balanceIdr, themeId }).then(
+        (res) => {
+          if (res.ok && res.data) {
+            setWallets((prev) => prev.map((w) => (w.id === tempId ? res.data! : w)))
+          }
+        },
+      )
     },
     [wallets, persist],
   )
@@ -118,6 +157,7 @@ export function useWallets() {
   const updateWallet = useCallback(
     (id: string, patch: Partial<Omit<Wallet, 'id' | 'createdAt'>>) => {
       persist(wallets.map((w) => (w.id === id ? { ...w, ...patch } : w)))
+      void updateWalletAction(id, patch)
     },
     [wallets, persist],
   )
@@ -125,6 +165,7 @@ export function useWallets() {
   const deleteWallet = useCallback(
     (id: string) => {
       persist(wallets.filter((w) => w.id !== id))
+      void deleteWalletAction(id)
     },
     [wallets, persist],
   )
@@ -136,6 +177,7 @@ export function useWallets() {
           w.id === id ? { ...w, balanceIdr: Math.max(0, w.balanceIdr + deltaIdr) } : w,
         ),
       )
+      void quickAdjustWalletAction(id, deltaIdr)
     },
     [wallets, persist],
   )
@@ -159,14 +201,4 @@ export function useWallets() {
   }
 }
 
-// Validasi input form
-export const WalletFormSchema = z.object({
-  name: z.string().trim().min(1, 'Nama dompet wajib diisi').max(40, 'Maksimal 40 karakter'),
-  balanceIdr: z.coerce
-    .number()
-    .int('Harus bilangan bulat')
-    .nonnegative('Saldo tidak boleh negatif'),
-  themeId: z.string().min(1),
-})
-
-export type WalletFormValues = z.infer<typeof WalletFormSchema>
+export { WalletFormSchema, type WalletFormValues } from './types'

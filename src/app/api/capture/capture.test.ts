@@ -27,6 +27,7 @@ vi.mock('@/lib/db/client', () => ({
       captures: { findFirst: mockCaptureFindFirst },
       users: { findFirst: mockUserFindFirst },
       googleTokens: { findFirst: mockTokenFindFirst },
+      wallets: { findMany: vi.fn().mockResolvedValue([]) },
     },
     insert: mockInsert,
     update: mockUpdate,

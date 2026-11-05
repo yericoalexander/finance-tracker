@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   WalletFormSchema,
-} from './use-wallets'
-import {
   WalletSchema,
   getWalletTheme,
   createCustomBankTheme,

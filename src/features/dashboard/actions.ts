@@ -17,6 +17,7 @@ import {
   type ReminderSetting,
 } from '@/lib/db/schema'
 import { appendTransactionRow, deleteTransactionRow } from '@/lib/google/sheets'
+import { applyTransactionToWallets } from '@/features/wallets/wallet-sync'
 import { evaluateBudgetReminder } from './reminder-evaluator'
 
 const ApproveReviewSchema = z.object({
@@ -297,6 +298,16 @@ export async function approveReviewAction(
       sheetRowId: data.captureId,
     })
     .where(and(eq(captures.id, data.captureId), eq(captures.userId, userId)))
+
+  // Sinkronisasi ke sistem dompet / saldo kartu pengguna
+  await applyTransactionToWallets(userId, {
+    amountIdr: data.amountIdr,
+    category: data.category,
+    paymentMethod: data.paymentMethod,
+    merchant: data.merchant,
+    isTransfer: data.category === 'Transfer Antar Bank',
+    txType: 'expense',
+  }).catch(() => null)
 
   revalidatePath('/dashboard')
   return { ok: true }

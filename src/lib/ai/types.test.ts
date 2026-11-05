@@ -68,6 +68,7 @@ describe('TransactionExtractionSchema', () => {
     expect(CATEGORIES).toContain('Tagihan & Utilitas')
     expect(CATEGORIES).toContain('Hiburan')
     expect(CATEGORIES).toContain('Kesehatan')
+    expect(CATEGORIES).toContain('Transfer Antar Bank')
     expect(CATEGORIES).toContain('Lainnya')
   })
 })

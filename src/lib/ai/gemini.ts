@@ -5,7 +5,7 @@ import type { ExtractionProvider, TransactionExtraction } from './types'
 import { CATEGORIES, TransactionExtractionSchema } from './types'
 
 const SYSTEM_PROMPT = `Anda adalah asisten keuangan pribadi cerdas di Indonesia.
-Tugas Anda adalah membaca screenshot struk belanja, invoice, bukti transfer bank (BCA, Mandiri, BRI, BNI), e-wallet (GoPay, OVO, DANA, ShopeePay), QRIS, atau marketplace.
+Tugas Anda adalah membaca screenshot struk belanja, invoice, bukti transfer bank (BCA, Mandiri, BRI, BNI, SeaBank, Krom, Jago, dll), e-wallet (GoPay, OVO, DANA, ShopeePay), QRIS, atau marketplace.
 
 Instruksi penting:
 1. Baca TOTAL AKHIR yang sebenarnya dibayarkan oleh pengguna.
@@ -17,9 +17,14 @@ Instruksi penting:
    - "Tagihan & Utilitas"
    - "Hiburan"
    - "Kesehatan"
+   - "Transfer Antar Bank"
    - "Lainnya"
-4. Tanggal dalam format YYYY-MM-DD dan waktu dalam format HH:mm (24 jam). Jika tidak ada atau buram, kosongkan string.
-5. Nilai confidence (0.0 - 1.0): berikan >= 0.8 jika teks dan nominal terbaca sangat jelas, atau < 0.7 jika struk terpotong, buram, atau meragukan.`
+4. Jika transaksi berupa transfer antar rekening atau antar bank (misal dari SeaBank ke Krom, atau transfer ke rekening lain):
+   - Set category: "Transfer Antar Bank"
+   - Set isTransfer: true
+   - Identifikasi sourceBank (bank asal/pengirim, misal SeaBank) dan destinationBank (bank tujuan/penerima, misal Krom).
+5. Tanggal dalam format YYYY-MM-DD dan waktu dalam format HH:mm (24 jam). Jika tidak ada atau buram, kosongkan string.
+6. Nilai confidence (0.0 - 1.0): berikan >= 0.8 jika teks dan nominal terbaca sangat jelas, atau < 0.7 jika struk terpotong, buram, atau meragukan.`
 
 const GEMINI_JSON_SCHEMA = {
   type: 'OBJECT',
@@ -35,6 +40,9 @@ const GEMINI_JSON_SCHEMA = {
     paymentMethod: { type: 'STRING' },
     note: { type: 'STRING' },
     confidence: { type: 'NUMBER' },
+    sourceBank: { type: 'STRING', description: 'Bank asal pengirim (mis. SeaBank, BCA, Mandiri)' },
+    destinationBank: { type: 'STRING', description: 'Bank tujuan penerima jika transfer (mis. Krom, BCA)' },
+    isTransfer: { type: 'BOOLEAN', description: 'True jika transfer dana antar bank' },
   },
   required: ['merchant', 'amount', 'category', 'paymentMethod', 'note', 'confidence'],
 }
@@ -48,6 +56,9 @@ interface RawGeminiOutput {
   paymentMethod?: string
   note?: string
   confidence?: number
+  sourceBank?: string
+  destinationBank?: string
+  isTransfer?: boolean
 }
 
 const CANDIDATE_MODELS = Array.from(
@@ -125,10 +136,13 @@ function processRawOutput(raw: RawGeminiOutput): TransactionExtraction {
     time: dt.time,
     merchant: (raw.merchant || 'Transaksi').trim(),
     amountIdr,
-    category: raw.category ?? 'Lainnya',
-    paymentMethod: (raw.paymentMethod || 'Lainnya').trim(),
+    category: raw.category ?? (raw.isTransfer ? 'Transfer Antar Bank' : 'Lainnya'),
+    paymentMethod: (raw.paymentMethod || raw.sourceBank || 'Lainnya').trim(),
     note: (raw.note || '-').trim(),
     confidence: Number(confidence.toFixed(2)),
+    sourceBank: raw.sourceBank?.trim(),
+    destinationBank: raw.destinationBank?.trim(),
+    isTransfer: raw.isTransfer ?? (raw.category === 'Transfer Antar Bank'),
   }
 
   const parsed = TransactionExtractionSchema.safeParse(candidate)

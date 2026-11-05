@@ -13,6 +13,8 @@ export interface ParsedNotification {
   confidence: number
   note: string
   sourceBank?: string
+  destinationBank?: string
+  isTransfer?: boolean
 }
 
 function cleanMerchantName(raw: string): string {
@@ -113,16 +115,33 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
   } else if (/bni|wondr/i.test(trimmed)) {
     sourceBank = 'BNI'
     paymentMethod = /qris/i.test(trimmed) ? 'QRIS BNI' : 'BNI'
+  } else if (/seabank|1500130/i.test(trimmed)) {
+    sourceBank = 'SeaBank'
+    paymentMethod = 'SeaBank'
+  } else if (/krom|tabungan utama/i.test(trimmed)) {
+    sourceBank = 'Krom'
+    paymentMethod = 'Krom'
+  } else if (/superbank/i.test(trimmed)) {
+    sourceBank = 'Superbank'
+    paymentMethod = 'Superbank'
+  } else if (/ocbc/i.test(trimmed)) {
+    sourceBank = 'OCBC'
+    paymentMethod = 'OCBC'
   } else if (/gopay/i.test(trimmed)) {
     sourceBank = 'GoPay'
     paymentMethod = 'GoPay'
   } else if (/ovo/i.test(trimmed)) {
     sourceBank = 'OVO'
     paymentMethod = 'OVO'
-  } else if (/dana\b/i.test(trimmed)) {
+  } else if (
+    /\bdana\b/i.test(trimmed) &&
+    !/\b(?:dana\s+(?:masuk|keluar|diterima|sebesar|utama|rekening)|menerima\s+dana|sumber\s+dana)\b/i.test(
+      trimmed,
+    )
+  ) {
     sourceBank = 'DANA'
     paymentMethod = 'DANA'
-  } else if (/shopeepay|seabank/i.test(trimmed)) {
+  } else if (/shopeepay/i.test(trimmed)) {
     sourceBank = 'ShopeePay'
     paymentMethod = 'ShopeePay'
   } else if (/jenius/i.test(trimmed)) {
@@ -133,6 +152,39 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
     paymentMethod = 'Bank Jago'
   }
 
+  // 1b. Deteksi Bank / Dompet Tujuan (jika ada frasa "ke [Bank]")
+  let destinationBank: string | undefined = undefined
+  if (/\b(?:ke|tujuan|rekening)\s+(?:bank\s+)?krom\b/i.test(trimmed)) {
+    destinationBank = 'Krom'
+  } else if (/\b(?:ke|tujuan|rekening)\s+(?:bank\s+)?seabank\b/i.test(trimmed)) {
+    destinationBank = 'SeaBank'
+  } else if (/\b(?:ke|tujuan|rekening)\s+(?:bank\s+)?bca\b/i.test(trimmed)) {
+    destinationBank = 'BCA'
+  } else if (/\b(?:ke|tujuan|rekening)\s+(?:bank\s+)?mandiri\b/i.test(trimmed)) {
+    destinationBank = 'Mandiri'
+  } else if (/\b(?:ke|tujuan|rekening)\s+(?:bank\s+)?bri\b/i.test(trimmed)) {
+    destinationBank = 'BRI'
+  } else if (/\b(?:ke|tujuan|rekening)\s+(?:bank\s+)?bni\b/i.test(trimmed)) {
+    destinationBank = 'BNI'
+  } else if (/\b(?:ke|tujuan|rekening)\s+(?:bank\s+)?ocbc\b/i.test(trimmed)) {
+    destinationBank = 'OCBC'
+  }
+
+  // 1c. Deteksi Bank Asal dari frasa "dari [Bank]"
+  if (/\bdari\s+(?:bank\s+)?seabank\b/i.test(trimmed)) {
+    sourceBank = 'SeaBank'
+  } else if (/\bdari\s+(?:bank\s+)?krom\b/i.test(trimmed)) {
+    sourceBank = 'Krom'
+  } else if (/\bdari\s+(?:bank\s+)?bca\b/i.test(trimmed)) {
+    sourceBank = 'BCA'
+  } else if (/\bdari\s+(?:bank\s+)?mandiri\b/i.test(trimmed)) {
+    sourceBank = 'Mandiri'
+  } else if (/\bdari\s+(?:bank\s+)?bri\b/i.test(trimmed)) {
+    sourceBank = 'BRI'
+  } else if (/\bdari\s+(?:bank\s+)?bni\b/i.test(trimmed)) {
+    sourceBank = 'BNI'
+  }
+
   // 2. Deteksi Arah Transaksi: Pemasukan vs Pengeluaran
   const isIncome =
     /\b(masuk|diterima|menerima|cr\b|credit|money in|dana masuk|transfer masuk|top up berhasil|menerima uang)\b/i.test(
@@ -140,6 +192,68 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
     ) && !/\b(keluar|debit|db\b|money out|ke\b|bayar|pembayaran)\b/i.test(trimmed)
 
   const txType: 'expense' | 'income' = isIncome ? 'income' : 'expense'
+
+  // 2b. Deteksi Transfer Khusus Antar Bank / Dompet (SeaBank, Krom, BCA, dll)
+  // e.g. "Realtime Transfer: Kamu baru melakukan transfer real-time senilai Rp10.000 pada 05 Nov 2026 10:54."
+  // e.g. "Transfer Rp 10.000 dari SeaBank ke Krom" atau "tf dari seabank ke krom 10.000"
+  const isExplicitTransfer =
+    /\b(transfer real-time|realtime transfer|transfer online|transfer antar bank|tf dari|transfer dari|transfer ke|tf ke)\b/i.test(
+      trimmed,
+    ) ||
+    (/\b(transfer|tf)\b/i.test(trimmed) && (Boolean(destinationBank) || /senilai|sebesar/i.test(trimmed)))
+
+  if (isExplicitTransfer) {
+    const transferAmountMatch = trimmed.match(
+      /(?:senilai|sebesar|rp\.?|nominal)?\s*(?:rp\.?\s*)?([\d.,]+)(?:\s*(?:ke|pada|dari|tanggal|jam|\.|$))/i,
+    )
+    if (transferAmountMatch && transferAmountMatch[1]) {
+      const amount = parseIndonesianCurrency(transferAmountMatch[1])
+      if (amount > 0) {
+        const destName = destinationBank || (trimmed.match(/ke\s+([A-Za-z0-9\s]+?)(?:\s+(?:pada|sebesar|senilai|berhasil|\.|$)|$)/i)?.[1]?.trim() ?? 'Rekening Tujuan')
+        const merchant = destinationBank ? `Transfer ke ${destinationBank}` : cleanMerchantName(destName)
+        return {
+          amountIdr: amount,
+          merchant,
+          category: 'Transfer Antar Bank',
+          paymentMethod: sourceBank !== 'Bank' ? sourceBank : 'm-Banking',
+          date: defaultDate,
+          time: defaultTime,
+          txType: 'expense',
+          confidence: 0.96,
+          note: `Transfer ${sourceBank} ke ${destinationBank || merchant}`,
+          sourceBank: sourceBank !== 'Bank' ? sourceBank : undefined,
+          destinationBank,
+          isTransfer: true,
+        }
+      }
+    }
+  }
+
+  // 2c. Deteksi Krom / Bank Terima Dana Masuk
+  // e.g. "Tabungan Utama baru saja menerima dana sebesar Rp10.000 dari YERICO ALEXANDER."
+  const kromReceiveMatch = trimmed.match(
+    /(?:tabungan\s+utama\s+)?(?:baru\s+saja\s+)?(?:menerima\s+dana|dana\s+diterima)(?: sebesar)?\s*(?:rp\.?\s*)?([\d.,]+)\s*(?:dari)\s+([a-zA-Z0-9\s.,'-]+?)(?:\s+(?:berhasil|sukses|\.|$)|$)/i,
+  )
+  if (kromReceiveMatch && kromReceiveMatch[1] && kromReceiveMatch[2]) {
+    const amount = parseIndonesianCurrency(kromReceiveMatch[1])
+    const sender = cleanMerchantName(kromReceiveMatch[2])
+    if (amount > 0) {
+      return {
+        amountIdr: amount,
+        merchant: sender,
+        category: 'Transfer Antar Bank',
+        paymentMethod: sourceBank === 'Krom' ? 'Krom' : paymentMethod,
+        date: defaultDate,
+        time: defaultTime,
+        txType: 'income',
+        confidence: 0.96,
+        note: `Dana diterima di ${sourceBank !== 'Bank' ? sourceBank : 'Krom'} dari ${sender}`,
+        sourceBank: sourceBank !== 'Bank' ? sourceBank : 'Krom',
+        destinationBank: sourceBank !== 'Bank' ? sourceBank : 'Krom',
+        isTransfer: true,
+      }
+    }
+  }
 
   // 3. Pola 1: BCA SMS / Mutasi Klasik (DB = Debit, CR = Credit)
   // e.g. "05/11 09:30 TRSF E-BANKING DB 50.000,00 ke 1234567890 INDOMARET"
@@ -274,11 +388,14 @@ const SYSTEM_PROMPT = `Anda adalah parser notifikasi transaksi keuangan Indonesi
 Tugas Anda membaca teks notifikasi transaksi bank, SMS banking, e-wallet, atau QRIS di Indonesia.
 Ekstrak data secara akurat:
 1. amount: Total nominal uang (hanya angka bulat).
-2. merchant: Nama toko, merchant, atau pengirim/penerima transfer.
-3. txType: HANYA "expense" (jika uang keluar / belanja / transfer ke orang) atau "income" (jika uang masuk / transfer diterima / gaji).
-4. category: HANYA pilih dari: "Makanan & Minuman", "Transportasi", "Belanja", "Tagihan & Utilitas", "Hiburan", "Kesehatan", "Lainnya".
-5. paymentMethod: Nama bank atau e-wallet (misal: "QRIS BCA", "Mandiri", "GoPay", "ShopeePay", "DANA", dll).
-6. note: Ringkasan singkat transaksi.`
+2. merchant: Nama toko, merchant, atau pihak kedua (penerima / pengirim transfer).
+3. txType: HANYA "expense" (jika uang keluar / belanja / transfer ke orang/bank lain) atau "income" (jika uang masuk / transfer diterima / gaji).
+4. category: HANYA pilih dari: "Makanan & Minuman", "Transportasi", "Belanja", "Tagihan & Utilitas", "Hiburan", "Kesehatan", "Transfer Antar Bank", "Lainnya". Jika berupa mutasi/transfer antar bank atau antar dompet, wajib pilih "Transfer Antar Bank".
+5. paymentMethod: Nama bank atau e-wallet (misal: "SeaBank", "Krom", "QRIS BCA", "Mandiri", "GoPay", "ShopeePay", "DANA", dll).
+6. note: Ringkasan singkat transaksi.
+7. sourceBank: Nama bank/dompet asal (misal: "SeaBank", "BCA", dll).
+8. destinationBank: Nama bank/dompet tujuan jika transfer (misal: "Krom", "SeaBank", dll).
+9. isTransfer: True jika berupa transfer antar bank atau rekening.`
 
 const NOTIF_JSON_SCHEMA = {
   type: 'OBJECT',
@@ -290,6 +407,9 @@ const NOTIF_JSON_SCHEMA = {
     paymentMethod: { type: 'STRING' },
     note: { type: 'STRING' },
     confidence: { type: 'NUMBER' },
+    sourceBank: { type: 'STRING' },
+    destinationBank: { type: 'STRING' },
+    isTransfer: { type: 'BOOLEAN' },
   },
   required: ['amount', 'merchant', 'txType', 'category', 'paymentMethod', 'note', 'confidence'],
 }
@@ -302,6 +422,9 @@ interface RawAiNotifOutput {
   paymentMethod?: string
   note?: string
   confidence?: number
+  sourceBank?: string
+  destinationBank?: string
+  isTransfer?: boolean
 }
 
 export async function extractNotificationWithAI(text: string): Promise<ParsedNotification> {
@@ -358,18 +481,23 @@ export async function extractNotificationWithAI(text: string): Promise<ParsedNot
 
   const validCategory: Category = CATEGORIES.includes(parsed.category as Category)
     ? (parsed.category as Category)
-    : 'Lainnya'
+    : parsed.isTransfer
+      ? 'Transfer Antar Bank'
+      : 'Lainnya'
 
   return {
     amountIdr: Math.round(Number(parsed.amount) || 0),
-    merchant: cleanMerchantName(parsed.merchant || 'Transaksi'),
+    merchant: cleanMerchantName(parsed.merchant || (parsed.isTransfer ? 'Transfer Antar Bank' : 'Transaksi')),
     category: validCategory,
-    paymentMethod: parsed.paymentMethod || 'm-Banking',
+    paymentMethod: parsed.paymentMethod || parsed.sourceBank || 'm-Banking',
     date,
     time,
     txType: parsed.txType === 'income' ? 'income' : 'expense',
     confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0.9,
     note: parsed.note || 'Transaksi notifikasi',
+    sourceBank: parsed.sourceBank,
+    destinationBank: parsed.destinationBank,
+    isTransfer: Boolean(parsed.isTransfer || validCategory === 'Transfer Antar Bank'),
   }
 }
 
