@@ -314,28 +314,44 @@ export function DashboardView({
       id: 'overview' as TabType,
       label: t('navOverview'),
       renderIcon: (isActive: boolean) => (
-        <LayoutDashboard size={20} strokeWidth={isActive ? 2.4 : 1.8} />
+        <LayoutDashboard
+          size={19}
+          strokeWidth={isActive ? 2.4 : 1.8}
+          color={isActive ? 'var(--color-text)' : 'var(--color-text-muted)'}
+        />
       ),
     },
     {
       id: 'wallets' as TabType,
       label: t('navWallets'),
       renderIcon: (isActive: boolean) => (
-        <Wallet size={20} strokeWidth={isActive ? 2.4 : 1.8} />
+        <Wallet
+          size={19}
+          strokeWidth={isActive ? 2.4 : 1.8}
+          color={isActive ? 'var(--color-text)' : 'var(--color-text-muted)'}
+        />
       ),
     },
     {
       id: 'transactions' as TabType,
       label: t('navTransactions'),
       renderIcon: (isActive: boolean) => (
-        <ReceiptText size={20} strokeWidth={isActive ? 2.4 : 1.8} />
+        <ReceiptText
+          size={19}
+          strokeWidth={isActive ? 2.4 : 1.8}
+          color={isActive ? 'var(--color-text)' : 'var(--color-text-muted)'}
+        />
       ),
     },
     {
       id: 'add' as TabType,
       label: t('navAdd'),
       renderIcon: (isActive: boolean) => (
-        <Plus size={20} strokeWidth={isActive ? 2.8 : 2.0} />
+        <Plus
+          size={20}
+          strokeWidth={isActive ? 2.6 : 2.0}
+          color={isActive ? 'var(--color-text)' : 'var(--color-text-muted)'}
+        />
       ),
     },
   ]
@@ -345,7 +361,7 @@ export function DashboardView({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(84px + env(safe-area-inset-bottom, 12px))',
       }}
     >
       {/* Modal Onboarding Otomatis jika Belum Ada iPhone Terhubung */}
@@ -565,17 +581,13 @@ export function DashboardView({
           bottom: 0,
           left: 0,
           right: 0,
-          margin: '0 auto',
           width: '100%',
-          maxWidth: '430px',
           zIndex: 50,
           backgroundColor: 'var(--color-surface)',
           borderTop: '1px solid var(--color-border)',
-          boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)',
+          boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.03)',
           paddingTop: '6px',
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)',
-          paddingLeft: '10px',
-          paddingRight: '10px',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 12px) + 6px)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         }}
@@ -584,7 +596,10 @@ export function DashboardView({
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '6px',
+            maxWidth: '430px',
+            margin: '0 auto',
+            paddingLeft: 'var(--space-2)',
+            paddingRight: 'var(--space-2)',
             alignItems: 'center',
           }}
         >
@@ -603,14 +618,10 @@ export function DashboardView({
                   justifyContent: 'center',
                   gap: '3px',
                   minHeight: '48px',
-                  padding: '4px 2px',
-                  backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
-                  border: isActive ? '1px solid var(--color-border)' : '1px solid transparent',
-                  borderRadius: 'var(--radius-lg)',
+                  padding: '4px 0',
+                  backgroundColor: 'transparent',
+                  border: 'none',
                   cursor: 'pointer',
-                  color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
-                  boxShadow: isActive ? '0 1px 3px rgba(0, 0, 0, 0.04)' : 'none',
-                  transition: 'all var(--duration-fast) var(--ease-default)',
                   fontFamily: 'inherit',
                   userSelect: 'none',
                   WebkitTapHighlightColor: 'transparent',
@@ -621,7 +632,11 @@ export function DashboardView({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    height: '22px',
+                    width: '52px',
+                    height: '28px',
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
+                    transition: 'all var(--duration-fast) var(--ease-default)',
                   }}
                 >
                   {tab.renderIcon(isActive)}

@@ -41,7 +41,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     return (
       <main
         style={{
-          minHeight: '100svh',
+          minHeight: '100dvh',
           backgroundColor: 'var(--color-bg)',
           paddingLeft: 'var(--space-5)',
           paddingRight: 'var(--space-5)',
@@ -63,7 +63,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   return (
     <main
       style={{
-        minHeight: '100svh',
+        minHeight: '100dvh',
         backgroundColor: 'var(--color-bg)',
         paddingTop: 0,
         paddingBottom: 0,
