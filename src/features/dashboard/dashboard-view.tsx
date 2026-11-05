@@ -345,7 +345,7 @@ export function DashboardView({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: 'calc(94px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
       }}
     >
       {/* Modal Onboarding Otomatis jika Belum Ada iPhone Terhubung */}
@@ -557,23 +557,25 @@ export function DashboardView({
         </div>
       )}
 
-      {/* Modern Floating Navigation Dock — Ergonomis, elegan & modern di iPhone */}
+      {/* Bottom Navigation Bar — Tetap stay di paling bawah, bersih & konsisten di iPhone */}
       <nav
         aria-label={t('navDashboardTabsAria')}
         style={{
           position: 'fixed',
-          bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
+          bottom: 0,
           left: 0,
           right: 0,
           margin: '0 auto',
-          width: 'calc(100% - 28px)',
-          maxWidth: '380px',
+          width: '100%',
+          maxWidth: '430px',
           zIndex: 50,
           backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '24px',
-          boxShadow: '0 12px 32px -4px rgba(0, 0, 0, 0.10), 0 4px 12px -2px rgba(0, 0, 0, 0.04)',
-          padding: '4px',
+          borderTop: '1px solid var(--color-border)',
+          boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)',
+          paddingTop: '6px',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)',
+          paddingLeft: '10px',
+          paddingRight: '10px',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         }}
@@ -582,7 +584,8 @@ export function DashboardView({
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '3px',
+            gap: '6px',
+            alignItems: 'center',
           }}
         >
           {tabs.map((tab) => {
@@ -598,12 +601,12 @@ export function DashboardView({
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '2px',
-                  minHeight: '50px',
+                  gap: '3px',
+                  minHeight: '48px',
                   padding: '4px 2px',
                   backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
                   border: isActive ? '1px solid var(--color-border)' : '1px solid transparent',
-                  borderRadius: '18px',
+                  borderRadius: 'var(--radius-lg)',
                   cursor: 'pointer',
                   color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
                   boxShadow: isActive ? '0 1px 3px rgba(0, 0, 0, 0.04)' : 'none',
@@ -625,7 +628,7 @@ export function DashboardView({
                 </div>
                 <span
                   style={{
-                    fontSize: '0.67rem',
+                    fontSize: '0.68rem',
                     fontWeight: isActive ? 750 : 500,
                     letterSpacing: '-0.01em',
                     lineHeight: 1.1,
