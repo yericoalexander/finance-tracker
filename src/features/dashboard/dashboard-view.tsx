@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { RefreshCw, X, LayoutDashboard, ReceiptText, Plus, Wallet } from 'lucide-react'
+import { RefreshCw, X, LayoutDashboard, ReceiptText, Wallet } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CategoryBreakdown } from './category-breakdown'
 import { ManualEntryCard } from './manual-entry-card'
+import { ExpenseModal } from './expense-modal'
 import { RecentTransactions } from './recent-transactions'
 import { SummaryCards } from './summary-cards'
 import { MonthNavigator } from './month-navigator'
@@ -37,7 +38,14 @@ export function DashboardView({
 }: DashboardViewProps) {
   const router = useRouter()
   const { t, formatMonthName } = useI18n()
-  const [activeTab, setActiveTabState] = useState<TabType>(initialTab)
+  const [activeTab, setActiveTabState] = useState<TabType>(initialTab === 'add' ? 'overview' : initialTab)
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(initialTab === 'add')
+
+  useEffect(() => {
+    if (initialTab === 'add') {
+      setIsExpenseModalOpen(true)
+    }
+  }, [initialTab])
 
   const handleTabChange = (tab: TabType) => {
     setActiveTabState(tab)
@@ -315,7 +323,7 @@ export function DashboardView({
       label: t('navOverview'),
       renderIcon: (isActive: boolean) => (
         <LayoutDashboard
-          size={19}
+          size={20}
           strokeWidth={isActive ? 2.4 : 1.8}
           color={isActive ? 'var(--color-text)' : 'var(--color-text-muted)'}
         />
@@ -326,7 +334,7 @@ export function DashboardView({
       label: t('navWallets'),
       renderIcon: (isActive: boolean) => (
         <Wallet
-          size={19}
+          size={20}
           strokeWidth={isActive ? 2.4 : 1.8}
           color={isActive ? 'var(--color-text)' : 'var(--color-text-muted)'}
         />
@@ -337,19 +345,8 @@ export function DashboardView({
       label: t('navTransactions'),
       renderIcon: (isActive: boolean) => (
         <ReceiptText
-          size={19}
-          strokeWidth={isActive ? 2.4 : 1.8}
-          color={isActive ? 'var(--color-text)' : 'var(--color-text-muted)'}
-        />
-      ),
-    },
-    {
-      id: 'add' as TabType,
-      label: t('navAdd'),
-      renderIcon: (isActive: boolean) => (
-        <Plus
           size={20}
-          strokeWidth={isActive ? 2.6 : 2.0}
+          strokeWidth={isActive ? 2.4 : 1.8}
           color={isActive ? 'var(--color-text)' : 'var(--color-text-muted)'}
         />
       ),
@@ -534,6 +531,7 @@ export function DashboardView({
             selectedMonth={selectedMonth}
             currentMonthPrefix={currentMonthPrefix}
             reminderSetting={data.reminderSetting}
+            onOpenExpenseModal={() => setIsExpenseModalOpen(true)}
           />
 
           <CategoryBreakdown
@@ -560,20 +558,27 @@ export function DashboardView({
             transactions={data.recentTransactions}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
-            onNavigateToAdd={() => handleTabChange('add')}
+            onNavigateToAdd={() => setIsExpenseModalOpen(true)}
             stickyOffset={stickyOffset}
           />
         </div>
       )}
 
-      {/* Tab: Catat */}
+      {/* Tab: Catat (Fallback tampilan mandiri jika diakses via route langsung) */}
       {activeTab === 'add' && (
         <div key="add" className="animate-fade-in" style={{ paddingTop: 'var(--space-2)' }}>
           <ManualEntryCard onSuccess={() => handleTabChange('transactions')} />
         </div>
       )}
 
-      {/* Bottom Navigation Bar — Tetap stay di paling bawah, bersih & konsisten di iPhone */}
+      {/* Modal Popup Catat Pengeluaran — Smooth drawer up dari bawah, seragam dengan Dompet */}
+      <ExpenseModal
+        isOpen={isExpenseModalOpen}
+        onClose={() => setIsExpenseModalOpen(false)}
+        onSuccess={handleRefresh}
+      />
+
+      {/* Bottom Navigation Bar — 3 Tab Inti: Ringkasan, Dompet, Transaksi */}
       <nav
         aria-label={t('navDashboardTabsAria')}
         style={{
@@ -595,8 +600,8 @@ export function DashboardView({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            maxWidth: '430px',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            maxWidth: '390px',
             margin: '0 auto',
             paddingLeft: 'var(--space-2)',
             paddingRight: 'var(--space-2)',
@@ -632,7 +637,7 @@ export function DashboardView({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: '52px',
+                    width: '56px',
                     height: '28px',
                     borderRadius: 'var(--radius-full)',
                     backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
@@ -643,7 +648,7 @@ export function DashboardView({
                 </div>
                 <span
                   style={{
-                    fontSize: '0.68rem',
+                    fontSize: '0.7rem',
                     fontWeight: isActive ? 750 : 500,
                     letterSpacing: '-0.01em',
                     lineHeight: 1.1,

@@ -266,12 +266,19 @@ export const translations = {
     btnClose: 'Tutup',
 
     modalHelpTitle: 'Bantuan & Panduan',
-    guideBackTapTitle: '⚡ Cara Catat dengan Back Tap',
+    modalHelpSub: 'Panduan lengkap fitur & penggunaan aplikasi',
+    guideBackTapTitle: '⚡ Catat Otomatis (Back Tap iPhone)',
     guideBackTapText:
-      '1. Ambil screenshot bukti transfer/struk di iPhone.\n2. Ketuk 2x bagian belakang iPhone.\n3. Transaksi otomatis diekstrak AI dan masuk ke Google Sheets & Dashboard ini!',
+      '1. Ambil screenshot bukti transfer atau struk belanja di iPhone.\n2. Ketuk 2x bagian belakang iPhone (Back Tap).\n3. AI otomatis mengekstrak nominal & kategori ke Google Sheets serta memotong saldo dompet!',
+    guideManualTitle: '✍️ Catat Pengeluaran di Ringkasan',
+    guideManualText:
+      '1. Di tab Ringkasan, ketuk tombol "+ Catat Pengeluaran".\n2. Masukkan nominal dengan chip instan (+10rb, +25rb, dll) & pilih kategori.\n3. Data tersimpan rapi ke Google Sheets tanpa perlu repot.',
+    guideWalletTitle: '💳 Dompet & Pindah Saldo',
+    guideWalletText:
+      '1. Buka tab Dompet untuk melihat saldo kartu bank & e-wallet.\n2. Ketuk (+) untuk menambah kartu baru.\n3. Gunakan tombol (⇄) Pindah Saldo untuk transfer antar rekening tanpa tercatat sebagai pengeluaran.',
     guidePwaTitle: '📱 Pasang di Layar Utama (Add to Home Screen)',
     guidePwaText:
-      '1. Buka website ini di Safari iPhone.\n2. Ketuk ikon Bagikan (Share).\n3. Pilih "Tambah ke Layar Utama" (Add to Home Screen).',
+      '1. Buka website ini di Safari iPhone.\n2. Ketuk tombol Bagikan (Share) di bar bawah Safari.\n3. Pilih "Tambah ke Layar Utama" agar tampil fullscreen seperti aplikasi native.',
     btnGotIt: 'Mengerti',
 
     modalFeedbackTitle: 'Beri Masukan',
@@ -768,12 +775,19 @@ export const translations = {
     btnClose: 'Close',
 
     modalHelpTitle: 'Help & Guides',
-    guideBackTapTitle: '⚡ How to Record with Back Tap',
+    modalHelpSub: 'Complete guide to using app features',
+    guideBackTapTitle: '⚡ Automatic Tracking (iPhone Back Tap)',
     guideBackTapText:
-      '1. Take a screenshot of your receipt/payment on iPhone.\n2. Double-tap the back of your iPhone.\n3. AI automatically extracts the transaction into Google Sheets & this Dashboard!',
-    guidePwaTitle: '📱 Add to Home Screen',
+      '1. Take a screenshot of your transfer receipt or grocery bill on iPhone.\n2. Double-tap the back of your iPhone (Back Tap).\n3. AI automatically reads amount & category into Google Sheets and adjusts wallet balance!',
+    guideManualTitle: '✍️ Record Expenses in Overview',
+    guideManualText:
+      '1. In the Overview tab, tap "+ Record Expense".\n2. Use quick amount chips (+10k, +25k, etc.) & choose category.\n3. Data is neatly saved to Google Sheets without hassle.',
+    guideWalletTitle: '💳 Wallets & Balance Transfers',
+    guideWalletText:
+      '1. Open the Wallets tab to view all bank cards & e-wallets.\n2. Tap (+) to add a new card.\n3. Use (⇄) Transfer Balance to move funds between accounts without counting as an expense.',
+    guidePwaTitle: '📱 Add to Home Screen (iPhone PWA)',
     guidePwaText:
-      '1. Open this website in Safari on iPhone.\n2. Tap the Share button.\n3. Choose "Add to Home Screen".',
+      '1. Open this website in Safari on iPhone.\n2. Tap the Share button at the bottom of Safari.\n3. Select "Add to Home Screen" to run full-screen like a native app.',
     btnGotIt: 'Got it',
 
     modalFeedbackTitle: 'Send Feedback',

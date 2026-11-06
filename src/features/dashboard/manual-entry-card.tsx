@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, AlertCircle, Loader2, ArrowRight, Bell, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
+import { CheckCircle2, AlertCircle, Loader2, ArrowRight, Bell, Calendar } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { CATEGORIES, type Category } from '@/lib/ai/types'
@@ -9,7 +9,8 @@ import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
 import { createManualTransactionAction } from './manual-entry-action'
 
-type TxType = 'expense' | 'income'
+// Kategori pengeluaran murni tanpa 'Transfer Antar Bank' (karena transfer dikelola via Pindah Saldo di Dompet)
+const EXPENSE_CATEGORIES = CATEGORIES.filter((c) => c !== 'Transfer Antar Bank') as Category[]
 
 const PAYMENT_METHODS = [
   'QRIS',
@@ -20,6 +21,8 @@ const PAYMENT_METHODS = [
   'Lainnya',
 ]
 
+const QUICK_AMOUNTS = [10000, 25000, 50000, 100000, 500000]
+
 interface ManualEntryCardProps {
   onSuccess?: () => void
 }
@@ -29,7 +32,6 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
   const { t, translateCategory, translatePaymentMethod } = useI18n()
   const todayStr = new Date().toISOString().slice(0, 10)
 
-  const [txType, setTxType] = useState<TxType>('expense')
   const [merchant, setMerchant] = useState('')
   const [amountStr, setAmountStr] = useState('')
   const [category, setCategory] = useState<Category>('Makanan & Minuman')
@@ -46,6 +48,12 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawDigits = e.target.value.replace(/\D/g, '')
     setAmountStr(rawDigits)
+    setErrorMsg(null)
+  }
+
+  const handleAddAmount = (val: number) => {
+    const current = parseInt(amountStr.replace(/\D/g, ''), 10) || 0
+    setAmountStr(String(current + val))
     setErrorMsg(null)
   }
 
@@ -81,7 +89,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
         txDate,
         paymentMethod,
         note: note.trim() || '-',
-        txType,
+        txType: 'expense',
       })
 
       if (!res.ok) {
@@ -155,61 +163,6 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
           >
             {t('manualSub')}
           </p>
-        </div>
-
-        {/* Toggle Pengeluaran / Pemasukan */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '6px',
-            padding: '4px',
-            backgroundColor: 'var(--color-surface-raised)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--color-border)',
-          }}
-        >
-          {(['expense', 'income'] as const).map((type) => {
-            const isActive = txType === type
-            const isExpense = type === 'expense'
-            return (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setTxType(type)}
-                style={{
-                  minHeight: '40px',
-                  borderRadius: 'calc(var(--radius-lg) - 2px)',
-                  border: 'none',
-                  backgroundColor: isActive
-                    ? isExpense
-                      ? 'var(--color-expense-bg)'
-                      : 'var(--color-income-bg)'
-                    : 'transparent',
-                  color: isActive
-                    ? isExpense
-                      ? 'var(--color-expense)'
-                      : 'var(--color-income)'
-                    : 'var(--color-text-muted)',
-                  fontSize: '0.85rem',
-                  fontWeight: isActive ? 700 : 500,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  transition: 'all 150ms ease',
-                  boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
-                }}
-              >
-                {isExpense
-                  ? <ArrowDownLeft size={15} strokeWidth={2.5} />
-                  : <ArrowUpRight size={15} strokeWidth={2.5} />
-                }
-                {isExpense ? 'Pengeluaran' : 'Pemasukan'}
-              </button>
-            )
-          })}
         </div>
 
         {/* Feedback Pesan Sukses */}
@@ -323,26 +276,59 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               placeholder={t('placeholderAmount')}
               style={{
                 width: '100%',
-                minHeight: '44px',
+                minHeight: '48px',
                 padding: 'var(--space-2) var(--space-3)',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--color-border)',
                 backgroundColor: 'var(--color-surface-raised)',
                 color: 'var(--color-text)',
                 fontFamily: 'inherit',
-                fontSize: '1.1rem',
-                fontWeight: 700,
+                fontSize: '1.25rem',
+                fontWeight: 800,
                 fontVariantNumeric: 'tabular-nums',
                 outline: 'none',
               }}
             />
           </div>
+
+          {/* Quick Increment Chips */}
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '6px',
+              marginTop: '8px',
+            }}
+          >
+            {QUICK_AMOUNTS.map((val) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => handleAddAmount(val)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'var(--color-surface-raised)',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  fontVariantNumeric: 'tabular-nums',
+                  cursor: 'pointer',
+                  transition: 'all 150ms ease',
+                }}
+              >
+                +{val.toLocaleString('id-ID')}
+              </button>
+            ))}
+          </div>
+
           {numericAmount > 0 ? (
             <p
               style={{
                 fontSize: '0.76rem',
                 color: 'var(--color-text-muted)',
-                margin: '4px 0 0 0',
+                margin: '6px 0 0 0',
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
@@ -410,7 +396,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
               gap: '6px',
             }}
           >
-            {CATEGORIES.map((cat) => {
+            {EXPENSE_CATEGORIES.map((cat) => {
               const isSelected = category === cat
               return (
                 <button
@@ -490,9 +476,14 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
                 color: 'var(--color-text)',
                 fontFamily: 'inherit',
                 fontSize: '0.78rem',
+                fontWeight: 600,
                 cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
               }}
             >
+              <Calendar size={13} />
               {t('btnToday')}
             </button>
           </div>
@@ -591,19 +582,20 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 'var(--space-2)',
-            minHeight: '46px',
+            minHeight: '48px',
             width: '100%',
             marginTop: 'var(--space-2)',
-            borderRadius: 'var(--radius-md)',
+            borderRadius: 'var(--radius-lg)',
             backgroundColor: 'var(--color-accent)',
             color: 'var(--color-accent-text)',
             border: 'none',
             fontFamily: 'inherit',
             fontSize: '0.92rem',
-            fontWeight: 600,
+            fontWeight: 700,
             cursor: isSubmitting ? 'not-allowed' : 'pointer',
             opacity: isSubmitting ? 0.7 : 1,
             transition: 'all var(--duration-fast) var(--ease-default)',
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
           {isSubmitting ? (

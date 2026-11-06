@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FileSpreadsheet, ArrowDownLeft, ArrowUpRight, Bell } from 'lucide-react'
+import { FileSpreadsheet, ArrowDownLeft, ArrowUpRight, Bell, Plus } from 'lucide-react'
 
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
@@ -23,6 +23,7 @@ interface SummaryCardsProps {
   selectedMonth?: string
   currentMonthPrefix?: string
   reminderSetting?: ReminderSetting | null
+  onOpenExpenseModal?: () => void
 }
 
 export function SummaryCards({
@@ -33,6 +34,7 @@ export function SummaryCards({
   selectedMonth,
   currentMonthPrefix,
   reminderSetting,
+  onOpenExpenseModal,
 }: SummaryCardsProps) {
   const { t, formatMonthName, locale } = useI18n()
   const { isPrivate } = usePrivacy()
@@ -189,42 +191,71 @@ export function SummaryCards({
             </div>
           </div>
 
-          {/* Toggle Total / Harian */}
-          <div
-            style={{
-              display: 'inline-flex',
-              padding: '2px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--color-surface-raised)',
-              border: '1px solid var(--color-border)',
-              gap: '2px',
-              flexShrink: 0,
-            }}
-          >
-            {(['total', 'daily'] as const).map((mode) => (
+          {/* Toggle Total / Harian + Tombol Quick Catat Pengeluaran */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                padding: '2px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--color-surface-raised)',
+                border: '1px solid var(--color-border)',
+                gap: '2px',
+                flexShrink: 0,
+              }}
+            >
+              {(['total', 'daily'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode)}
+                  style={{
+                    padding: '4px 10px',
+                    minHeight: '28px',
+                    fontSize: '0.72rem',
+                    fontWeight: viewMode === mode ? 700 : 500,
+                    color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
+                    backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
+                    borderRadius: 'calc(var(--radius-md) - 2px)',
+                    border: 'none',
+                    boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
+                    cursor: 'pointer',
+                    transition: 'all var(--duration-fast) var(--ease-default)',
+                    fontFamily: 'inherit',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {mode === 'total' ? t('total') : t('daily')}
+                </button>
+              ))}
+            </div>
+
+            {onOpenExpenseModal && (
               <button
-                key={mode}
                 type="button"
-                onClick={() => setViewMode(mode)}
+                onClick={onOpenExpenseModal}
+                aria-label="Catat Pengeluaran"
+                title="Catat Pengeluaran"
                 style={{
-                  padding: '4px 10px',
-                  minHeight: '28px',
-                  fontSize: '0.72rem',
-                  fontWeight: viewMode === mode ? 700 : 500,
-                  color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
-                  backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
-                  borderRadius: 'calc(var(--radius-md) - 2px)',
-                  border: 'none',
-                  boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
+                  width: '32px',
+                  height: '32px',
+                  minWidth: '32px',
+                  minHeight: '32px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'var(--color-surface-raised)',
+                  color: 'var(--color-text)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   cursor: 'pointer',
-                  transition: 'all var(--duration-fast) var(--ease-default)',
-                  fontFamily: 'inherit',
-                  whiteSpace: 'nowrap',
+                  boxShadow: 'var(--shadow-sm)',
+                  transition: 'all 150ms ease',
                 }}
               >
-                {mode === 'total' ? t('total') : t('daily')}
+                <Plus size={15} strokeWidth={2.4} />
               </button>
-            ))}
+            )}
           </div>
         </div>
 
@@ -476,6 +507,34 @@ export function SummaryCards({
               <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>+ Atur Target</span>
             </button>
           ))}
+
+        {/* Tombol Catat Pengeluaran Utama Langsung di Ringkasan */}
+        {onOpenExpenseModal && (
+          <button
+            type="button"
+            onClick={onOpenExpenseModal}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              width: '100%',
+              minHeight: '44px',
+              backgroundColor: 'var(--color-accent)',
+              color: 'var(--color-accent-text)',
+              borderRadius: 'var(--radius-lg)',
+              border: 'none',
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)',
+              transition: 'all 150ms ease',
+            }}
+          >
+            <Plus size={16} strokeWidth={2.4} />
+            <span>Catat Pengeluaran</span>
+          </button>
+        )}
 
         {/* Divider & Ringkasan Transaksi */}
         <div

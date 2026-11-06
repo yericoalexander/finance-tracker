@@ -11,7 +11,6 @@ import {
   X,
   FileSpreadsheet,
   Smartphone,
-  Languages,
 } from 'lucide-react'
 
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -29,7 +28,7 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderProps) {
-  const { toggleLocale, t } = useI18n()
+  const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeModal, setActiveModal] = useState<'settings' | 'help' | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -232,37 +231,6 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
               >
                 <HelpCircle size={16} color="var(--color-text-muted)" />
                 {t('help')}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  toggleLocale()
-                  setMenuOpen(false)
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-text)',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'background-color var(--duration-fast)',
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = 'var(--color-surface-raised)')
-                }
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-              >
-                <Languages size={16} color="var(--color-text-muted)" />
-                {t('switchLangOption')}
               </button>
 
               <div
@@ -480,7 +448,7 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
           document.body,
         )}
 
-      {/* Modal: Bantuan */}
+      {/* Modal: Bantuan & Panduan */}
       {mounted &&
         activeModal === 'help' &&
         createPortal(
@@ -489,12 +457,13 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
             style={{
               position: 'fixed',
               inset: 0,
-              backgroundColor: 'rgba(0,0,0,0.45)',
-              backdropFilter: 'blur(4px)',
+              backgroundColor: 'rgba(0, 0, 0, 0.65)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              zIndex: 9999,
+              zIndex: 99999,
               padding: 'var(--space-4)',
             }}
             onClick={() => setActiveModal(null)}
@@ -503,52 +472,72 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
               className="animate-scale-in"
               style={{
                 backgroundColor: 'var(--color-surface)',
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: '24px',
                 border: '1px solid var(--color-border)',
-                padding: 'var(--space-5)',
+                padding: '20px 20px',
                 width: '100%',
-                maxWidth: '390px',
-                maxHeight: '85vh',
+                maxWidth: '420px',
+                maxHeight: '86vh',
                 overflowY: 'auto',
-                boxShadow: 'var(--shadow-lg)',
+                boxShadow: '0 16px 48px rgba(0, 0, 0, 0.35)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 'var(--space-4)',
+                gap: '14px',
               }}
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
               >
-                <h2
-                  style={{
-                    fontSize: '1.05rem',
-                    fontWeight: 700,
-                    color: 'var(--color-text)',
-                    margin: 0,
-                  }}
-                >
-                  {t('modalHelpTitle')}
-                </h2>
+                <div>
+                  <h2
+                    style={{
+                      fontSize: '1.08rem',
+                      fontWeight: 800,
+                      color: 'var(--color-text)',
+                      margin: 0,
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    {t('modalHelpTitle')}
+                  </h2>
+                  <p
+                    style={{
+                      fontSize: '0.74rem',
+                      color: 'var(--color-text-muted)',
+                      margin: '2px 0 0 0',
+                    }}
+                  >
+                    {t('modalHelpSub')}
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
+                  aria-label={t('btnClose')}
                   style={{
                     border: 'none',
-                    backgroundColor: 'transparent',
+                    backgroundColor: 'var(--color-surface-raised)',
                     color: 'var(--color-text-muted)',
                     cursor: 'pointer',
-                    padding: '4px',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: 'var(--radius-full)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
                   }}
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* 1. Panduan Back Tap iPhone */}
                 <div
                   style={{
-                    padding: 'var(--space-3)',
+                    padding: '12px 14px',
                     backgroundColor: 'var(--color-surface-raised)',
                     borderRadius: 'var(--radius-lg)',
                     border: '1px solid var(--color-border)',
@@ -556,8 +545,8 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 >
                   <p
                     style={{
-                      fontSize: '0.82rem',
-                      fontWeight: 700,
+                      fontSize: '0.84rem',
+                      fontWeight: 750,
                       color: 'var(--color-text)',
                       margin: 0,
                     }}
@@ -568,8 +557,8 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                     style={{
                       fontSize: '0.76rem',
                       color: 'var(--color-text-muted)',
-                      margin: '4px 0 0 0',
-                      lineHeight: 1.5,
+                      margin: '6px 0 0 0',
+                      lineHeight: 1.55,
                       whiteSpace: 'pre-line',
                     }}
                   >
@@ -577,9 +566,10 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                   </p>
                 </div>
 
+                {/* 2. Panduan Catat Pengeluaran di Ringkasan */}
                 <div
                   style={{
-                    padding: 'var(--space-3)',
+                    padding: '12px 14px',
                     backgroundColor: 'var(--color-surface-raised)',
                     borderRadius: 'var(--radius-lg)',
                     border: '1px solid var(--color-border)',
@@ -587,8 +577,72 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 >
                   <p
                     style={{
-                      fontSize: '0.82rem',
-                      fontWeight: 700,
+                      fontSize: '0.84rem',
+                      fontWeight: 750,
+                      color: 'var(--color-text)',
+                      margin: 0,
+                    }}
+                  >
+                    {t('guideManualTitle')}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: '0.76rem',
+                      color: 'var(--color-text-muted)',
+                      margin: '6px 0 0 0',
+                      lineHeight: 1.55,
+                      whiteSpace: 'pre-line',
+                    }}
+                  >
+                    {t('guideManualText')}
+                  </p>
+                </div>
+
+                {/* 3. Panduan Dompet & Pindah Saldo */}
+                <div
+                  style={{
+                    padding: '12px 14px',
+                    backgroundColor: 'var(--color-surface-raised)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '0.84rem',
+                      fontWeight: 750,
+                      color: 'var(--color-text)',
+                      margin: 0,
+                    }}
+                  >
+                    {t('guideWalletTitle')}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: '0.76rem',
+                      color: 'var(--color-text-muted)',
+                      margin: '6px 0 0 0',
+                      lineHeight: 1.55,
+                      whiteSpace: 'pre-line',
+                    }}
+                  >
+                    {t('guideWalletText')}
+                  </p>
+                </div>
+
+                {/* 4. Panduan Pasang PWA di Safari iPhone */}
+                <div
+                  style={{
+                    padding: '12px 14px',
+                    backgroundColor: 'var(--color-surface-raised)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '0.84rem',
+                      fontWeight: 750,
                       color: 'var(--color-text)',
                       margin: 0,
                     }}
@@ -599,8 +653,8 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                     style={{
                       fontSize: '0.76rem',
                       color: 'var(--color-text-muted)',
-                      margin: '4px 0 0 0',
-                      lineHeight: 1.5,
+                      margin: '6px 0 0 0',
+                      lineHeight: 1.55,
                       whiteSpace: 'pre-line',
                     }}
                   >
@@ -614,14 +668,17 @@ export function DashboardHeader({ user, sheetId, onSignOut }: DashboardHeaderPro
                 onClick={() => setActiveModal(null)}
                 style={{
                   width: '100%',
-                  minHeight: '44px',
-                  borderRadius: 'var(--radius-md)',
+                  minHeight: '46px',
+                  borderRadius: 'var(--radius-lg)',
                   border: 'none',
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-accent-text)',
                   fontWeight: 700,
-                  fontSize: '0.85rem',
+                  fontSize: '0.88rem',
                   cursor: 'pointer',
+                  marginTop: '2px',
+                  transition: 'all 150ms ease',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 {t('btnGotIt')}
