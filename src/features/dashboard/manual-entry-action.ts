@@ -30,21 +30,22 @@ export type CreateManualTransactionInput = z.infer<typeof CreateManualTransactio
  * Fetch Google refresh token and sheetId for authenticated user.
  */
 async function getUserGoogleCredentials(userId: string) {
-  const [userRecord] = await db
-    .select({ sheetId: users.sheetId })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1)
+  const [[userRecord], [tokenRecord]] = await Promise.all([
+    db
+      .select({ sheetId: users.sheetId })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1),
+    db
+      .select()
+      .from(googleTokens)
+      .where(eq(googleTokens.userId, userId))
+      .limit(1),
+  ])
 
   if (!userRecord?.sheetId) {
     throw new Error('Google Sheet belum terhubung. Hubungkan di dashboard terlebih dahulu.')
   }
-
-  const [tokenRecord] = await db
-    .select()
-    .from(googleTokens)
-    .where(eq(googleTokens.userId, userId))
-    .limit(1)
 
   if (!tokenRecord) {
     throw new Error('Token Google tidak ditemukan. Silakan login ulang.')
@@ -126,10 +127,7 @@ export async function createManualTransactionAction(rawInput: unknown): Promise<
       id: captureId,
     })
 
-    await Promise.all([insertDbPromise, appendSheetPromise])
-
-    // Sinkronisasi ke saldo dompet pengguna
-    await applyTransactionToWallets(userId, {
+    const applyWalletsPromise = applyTransactionToWallets(userId, {
       amountIdr: data.amountIdr,
       category: data.category,
       paymentMethod: data.paymentMethod,
@@ -137,6 +135,9 @@ export async function createManualTransactionAction(rawInput: unknown): Promise<
       isTransfer: data.category === 'Transfer Antar Bank',
       txType: data.txType ?? 'expense',
     }).catch(() => null)
+
+    // Eksekusi DB insert, Sheets append, dan sinkronisasi saldo dompet secara paralel (0 delay tambahan)
+    await Promise.all([insertDbPromise, appendSheetPromise, applyWalletsPromise])
 
     const txMonthPrefix = data.txDate.slice(0, 7)
     const reminderEval: BudgetReminderEvaluation = await evaluateBudgetReminder(
@@ -149,7 +150,7 @@ export async function createManualTransactionAction(rawInput: unknown): Promise<
         reminderEval.milestone === '100'
           ? '🚨 Batas Anggaran Terlampaui!'
           : `⚠️ Peringatan: Pengeluaran Mencapai ${reminderEval.milestone}%!`
-      sendPushNotificationToUser(userId, {
+      void sendPushNotificationToUser(userId, {
         title: pushTitle,
         body: reminderEval.alertMessage,
         url: '/dashboard',

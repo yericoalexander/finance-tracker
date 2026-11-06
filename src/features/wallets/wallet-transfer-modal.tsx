@@ -95,7 +95,7 @@ export function WalletTransferModal({
           setSuccessMsg(null)
           setAmountStr('')
           onClose()
-        }, 1200)
+        }, 400)
       }
     } catch {
       setErrorMsg('Terjadi kesalahan saat memproses transfer.')

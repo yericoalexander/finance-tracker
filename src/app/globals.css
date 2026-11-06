@@ -233,14 +233,17 @@ textarea::placeholder {
 
 .animate-scale-in {
   animation: scaleIn var(--duration-base) var(--ease-spring) forwards;
+  will-change: transform, opacity;
 }
 
 .animate-slide-up {
   animation: slideUp var(--duration-base) var(--ease-default) forwards;
+  will-change: transform, opacity;
 }
 
 .animate-drawer-up {
   animation: drawerSlideUp var(--duration-base) var(--ease-spring) forwards;
+  will-change: transform;
 }
 
 @keyframes pageEnter {

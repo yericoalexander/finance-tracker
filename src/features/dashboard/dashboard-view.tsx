@@ -259,19 +259,19 @@ export function DashboardView({
 
     document.addEventListener('visibilitychange', onVisibilityChange)
 
-    // Polling aktif 6 detik saat tab terbuka dan terlihat di layar
+    // Polling tenang saat tab aktif & terlihat di layar (dijeda saat modal terbuka agar tidak ada interupsi/delay input)
     const intervalTimer = setInterval(() => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && !isExpenseModalOpen) {
         triggerRefresh()
       }
-    }, 6000)
+    }, 10000)
 
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
       clearInterval(intervalTimer)
       cancelFollowUp?.()
     }
-  }, [router, selectedMonth, currentMonthPrefix])
+  }, [router, selectedMonth, currentMonthPrefix, isExpenseModalOpen])
 
   // Deteksi hanya transaksi baru yang belum pernah dimunculkan notifikasinya
   useEffect(() => {

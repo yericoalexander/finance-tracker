@@ -110,7 +110,7 @@ export function ManualEntryCard({ onSuccess }: ManualEntryCardProps) {
             () => {
               onSuccess()
             },
-            res.budgetAlert?.alertMessage ? 2500 : 700,
+            res.budgetAlert?.alertMessage ? 1600 : 350,
           )
         }
       }

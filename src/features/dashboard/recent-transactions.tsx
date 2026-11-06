@@ -26,6 +26,7 @@ import { CATEGORIES } from '@/lib/ai/types'
 import { formatRupiah } from '@/lib/ai/currency'
 import { useI18n } from '@/lib/i18n/context'
 import { usePrivacy } from '@/lib/privacy/context'
+import { PrivacyToggle } from '@/components/ui/privacy-toggle'
 import { deleteTransactionAction } from './actions'
 
 interface TransactionItem {
@@ -110,7 +111,7 @@ export function RecentTransactions({
 }: RecentTransactionsProps) {
   const router = useRouter()
   const { t, translateCategory, locale } = useI18n()
-  const { isPrivate } = usePrivacy()
+  const { isPrivate } = usePrivacy('transactions')
   const [searchQuery, setSearchQuery] = useState('')
   const [quickDate, setQuickDate] = useState<QuickDateOption>('all')
   const [startDate, setStartDate] = useState<string>('')
@@ -419,7 +420,7 @@ export function RecentTransactions({
         <div
           style={{
             display: 'flex',
-            alignItems: 'baseline',
+            alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
@@ -454,29 +455,33 @@ export function RecentTransactions({
             </p>
           </div>
 
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-text-muted)',
-                fontSize: '0.74rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              <RotateCcw size={11} />
-              {t('resetFilter')}
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                <RotateCcw size={11} />
+                {t('resetFilter')}
+              </button>
+            )}
+
+            <PrivacyToggle scope="transactions" size="sm" variant="surface" />
+          </div>
         </div>
 
         {/* Notifikasi Transaksi Berhasil Dihapus — Tepat di atas pencarian & di dalam shell mobile */}

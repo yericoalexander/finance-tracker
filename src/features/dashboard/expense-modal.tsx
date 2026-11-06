@@ -139,13 +139,13 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
         router.refresh()
         onSuccess?.()
 
-        // Tutup modal secara otomatis setelah jeda singkat agar user melihat konfirmasi
+        // Tutup modal secara otomatis cepat tanpa delay berlebih
         setTimeout(
           () => {
             resetForm()
             onClose()
           },
-          res.budgetAlert?.alertMessage ? 2200 : 900,
+          res.budgetAlert?.alertMessage ? 1600 : 350,
         )
       }
     } catch (err) {

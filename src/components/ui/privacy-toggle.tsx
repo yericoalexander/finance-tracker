@@ -1,17 +1,22 @@
 'use client'
 
 import { Eye, EyeOff } from 'lucide-react'
-import { usePrivacy } from '@/lib/privacy/context'
+import { usePrivacy, type PrivacyScope } from '@/lib/privacy/context'
 import { useI18n } from '@/lib/i18n/context'
 
 interface PrivacyToggleProps {
   size?: 'sm' | 'md'
   variant?: 'ghost' | 'surface'
   className?: string
+  scope?: PrivacyScope
 }
 
-export function PrivacyToggle({ size = 'md', variant = 'surface' }: PrivacyToggleProps) {
-  const { isPrivate, togglePrivacy } = usePrivacy()
+export function PrivacyToggle({
+  size = 'md',
+  variant = 'surface',
+  scope,
+}: PrivacyToggleProps) {
+  const { isPrivate, togglePrivacy } = usePrivacy(scope)
   const { t } = useI18n()
 
   const isSurface = variant === 'surface'
@@ -45,4 +50,3 @@ export function PrivacyToggle({ size = 'md', variant = 'surface' }: PrivacyToggl
     </button>
   )
 }
-

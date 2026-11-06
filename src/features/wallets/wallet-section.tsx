@@ -388,7 +388,7 @@ export function WalletSection() {
     deleteWallet,
     resetToDefault,
   } = useWallets()
-  const { isPrivate, togglePrivacy } = usePrivacy()
+  const { isPrivate, togglePrivacy } = usePrivacy('wallets')
   const isExpanded = false
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isTransferOpen, setIsTransferOpen] = useState(false)

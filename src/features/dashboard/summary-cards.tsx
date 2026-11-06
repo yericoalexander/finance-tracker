@@ -37,7 +37,7 @@ export function SummaryCards({
   onOpenExpenseModal,
 }: SummaryCardsProps) {
   const { t, formatMonthName, locale } = useI18n()
-  const { isPrivate } = usePrivacy()
+  const { isPrivate } = usePrivacy('expenses')
   const [viewMode, setViewMode] = useState<'total' | 'daily'>('total')
   const [activeReminder, setActiveReminder] = useState<ReminderSetting | null | undefined>(
     reminderSetting,
@@ -251,7 +251,7 @@ export function SummaryCards({
             >
               {isPrivate ? 'Rp ••••••' : formatRupiah(displayedAmount)}
             </div>
-            <PrivacyToggle size="sm" variant="ghost" />
+            <PrivacyToggle scope="expenses" size="sm" variant="ghost" />
           </div>
           <p
             suppressHydrationWarning

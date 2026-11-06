@@ -1,6 +1,14 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { formatMaskedAmount, PrivacyProvider, usePrivacy } from './context'
+import {
+  formatMaskedAmount,
+  PrivacyProvider,
+  usePrivacy,
+  STORAGE_KEY_GLOBAL,
+  STORAGE_KEY_EXPENSES,
+  STORAGE_KEY_WALLETS,
+  STORAGE_KEY_TRANSACTIONS,
+} from './context'
 
 describe('Privacy Mode Context & Formatters', () => {
   beforeEach(() => {
@@ -30,7 +38,7 @@ describe('Privacy Mode Context & Formatters', () => {
     })
   })
 
-  describe('PrivacyProvider and usePrivacy Hook', () => {
+  describe('PrivacyProvider and usePrivacy Hook (Global / Backward Compatible)', () => {
     it('defaults to visible (isPrivate: false)', () => {
       const { result } = renderHook(() => usePrivacy(), {
         wrapper: PrivacyProvider,
@@ -50,7 +58,7 @@ describe('Privacy Mode Context & Formatters', () => {
       })
 
       expect(result.current.isPrivate).toBe(true)
-      expect(localStorage.getItem('finance_privacy_mode')).toBe('true')
+      expect(localStorage.getItem(STORAGE_KEY_GLOBAL)).toBe('true')
       expect(result.current.maskAmount('Rp 100.000')).toBe('Rp ••••••')
 
       act(() => {
@@ -58,17 +66,108 @@ describe('Privacy Mode Context & Formatters', () => {
       })
 
       expect(result.current.isPrivate).toBe(false)
-      expect(localStorage.getItem('finance_privacy_mode')).toBe('false')
+      expect(localStorage.getItem(STORAGE_KEY_GLOBAL)).toBe('false')
     })
 
     it('initializes as private if localStorage was previously set to true', () => {
-      localStorage.setItem('finance_privacy_mode', 'true')
+      localStorage.setItem(STORAGE_KEY_GLOBAL, 'true')
 
       const { result } = renderHook(() => usePrivacy(), {
         wrapper: PrivacyProvider,
       })
 
       expect(result.current.isPrivate).toBe(true)
+    })
+  })
+
+  describe('Scoped Privacy: Per-Page Independence (Ringkasan vs Dompet vs Transaksi)', () => {
+    it('toggles Ringkasan/Expenses privacy independently without affecting Dompet or Transaksi', () => {
+      const { result: expensesHook } = renderHook(() => usePrivacy('expenses'), {
+        wrapper: PrivacyProvider,
+      })
+      const { result: walletsHook } = renderHook(() => usePrivacy('wallets'), {
+        wrapper: PrivacyProvider,
+      })
+      const { result: txHook } = renderHook(() => usePrivacy('transactions'), {
+        wrapper: PrivacyProvider,
+      })
+
+      expect(expensesHook.current.isPrivate).toBe(false)
+      expect(walletsHook.current.isPrivate).toBe(false)
+      expect(txHook.current.isPrivate).toBe(false)
+
+      // Toggle Expenses
+      act(() => {
+        expensesHook.current.togglePrivacy()
+      })
+
+      expect(expensesHook.current.isPrivate).toBe(true)
+      expect(localStorage.getItem(STORAGE_KEY_EXPENSES)).toBe('true')
+      expect(expensesHook.current.maskAmount('Rp 250.750')).toBe('Rp ••••••')
+
+      // Dompet dan Transaksi tetap tidak terpengaruh
+      expect(walletsHook.current.isPrivate).toBe(false)
+      expect(walletsHook.current.maskAmount('Rp 1.000.000')).toBe('Rp 1.000.000')
+      expect(txHook.current.isPrivate).toBe(false)
+      expect(txHook.current.maskAmount('Rp 50.000')).toBe('Rp 50.000')
+    })
+
+    it('toggles Dompet privacy independently without affecting Expenses or Transaksi', () => {
+      const { result: expensesHook } = renderHook(() => usePrivacy('expenses'), {
+        wrapper: PrivacyProvider,
+      })
+      const { result: walletsHook } = renderHook(() => usePrivacy('wallets'), {
+        wrapper: PrivacyProvider,
+      })
+      const { result: txHook } = renderHook(() => usePrivacy('transactions'), {
+        wrapper: PrivacyProvider,
+      })
+
+      expect(expensesHook.current.isPrivate).toBe(false)
+      expect(walletsHook.current.isPrivate).toBe(false)
+      expect(txHook.current.isPrivate).toBe(false)
+
+      // Toggle Dompet
+      act(() => {
+        walletsHook.current.togglePrivacy()
+      })
+
+      expect(walletsHook.current.isPrivate).toBe(true)
+      expect(localStorage.getItem(STORAGE_KEY_WALLETS)).toBe('true')
+      expect(walletsHook.current.maskAmount('Rp 500.000')).toBe('Rp ••••••')
+
+      // Expenses dan Transaksi tetap TIDAK terpengaruh
+      expect(expensesHook.current.isPrivate).toBe(false)
+      expect(expensesHook.current.maskAmount('Rp 250.750')).toBe('Rp 250.750')
+      expect(txHook.current.isPrivate).toBe(false)
+      expect(txHook.current.maskAmount('Rp 50.000')).toBe('Rp 50.000')
+    })
+
+    it('toggles Transaksi privacy independently without affecting Expenses or Dompet', () => {
+      const { result: expensesHook } = renderHook(() => usePrivacy('expenses'), {
+        wrapper: PrivacyProvider,
+      })
+      const { result: walletsHook } = renderHook(() => usePrivacy('wallets'), {
+        wrapper: PrivacyProvider,
+      })
+      const { result: txHook } = renderHook(() => usePrivacy('transactions'), {
+        wrapper: PrivacyProvider,
+      })
+
+      // Toggle Transaksi
+      act(() => {
+        txHook.current.togglePrivacy()
+      })
+
+      expect(txHook.current.isPrivate).toBe(true)
+      expect(localStorage.getItem(STORAGE_KEY_TRANSACTIONS)).toBe('true')
+      expect(txHook.current.maskAmount('Rp 75.000')).toBe('Rp ••••••')
+
+      // Expenses dan Dompet tetap TIDAK terpengaruh
+      expect(expensesHook.current.isPrivate).toBe(false)
+      expect(expensesHook.current.maskAmount('Rp 250.750')).toBe('Rp 250.750')
+      expect(walletsHook.current.isPrivate).toBe(false)
+      expect(walletsHook.current.maskAmount('Rp 1.000.000')).toBe('Rp 1.000.000')
     })
   })
 })

@@ -21,7 +21,7 @@ export function CategoryBreakdown({
   monthLabel,
 }: CategoryBreakdownProps) {
   const { t, translateCategory } = useI18n()
-  const { isPrivate } = usePrivacy()
+  const { isPrivate } = usePrivacy('expenses')
   const displayTitle = monthLabel
     ? t('categoriesTitle', { month: monthLabel })
     : t('categoriesThisMonth')

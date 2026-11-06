@@ -29,7 +29,7 @@ export function BudgetModal({
   onSaved,
 }: BudgetModalProps) {
   const { t } = useI18n()
-  const { isPrivate } = usePrivacy()
+  const { isPrivate } = usePrivacy('expenses')
   const [mounted, setMounted] = useState(false)
   const [isEnabled, setIsEnabled] = useState(currentSetting?.isEnabled ?? true)
   const [limitInput, setLimitInput] = useState(
