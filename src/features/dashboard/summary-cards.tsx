@@ -191,71 +191,42 @@ export function SummaryCards({
             </div>
           </div>
 
-          {/* Toggle Total / Harian + Tombol Quick Catat Pengeluaran */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                padding: '2px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-surface-raised)',
-                border: '1px solid var(--color-border)',
-                gap: '2px',
-                flexShrink: 0,
-              }}
-            >
-              {(['total', 'daily'] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setViewMode(mode)}
-                  style={{
-                    padding: '4px 10px',
-                    minHeight: '28px',
-                    fontSize: '0.72rem',
-                    fontWeight: viewMode === mode ? 700 : 500,
-                    color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
-                    backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
-                    borderRadius: 'calc(var(--radius-md) - 2px)',
-                    border: 'none',
-                    boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
-                    cursor: 'pointer',
-                    transition: 'all var(--duration-fast) var(--ease-default)',
-                    fontFamily: 'inherit',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {mode === 'total' ? t('total') : t('daily')}
-                </button>
-              ))}
-            </div>
-
-            {onOpenExpenseModal && (
+          {/* Toggle Total / Harian */}
+          <div
+            style={{
+              display: 'inline-flex',
+              padding: '2px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-border)',
+              gap: '2px',
+              flexShrink: 0,
+            }}
+          >
+            {(['total', 'daily'] as const).map((mode) => (
               <button
+                key={mode}
                 type="button"
-                onClick={onOpenExpenseModal}
-                aria-label="Catat Pengeluaran"
-                title="Catat Pengeluaran"
+                onClick={() => setViewMode(mode)}
                 style={{
-                  width: '32px',
-                  height: '32px',
-                  minWidth: '32px',
-                  minHeight: '32px',
-                  borderRadius: 'var(--radius-full)',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-surface-raised)',
-                  color: 'var(--color-text)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  padding: '4px 10px',
+                  minHeight: '28px',
+                  fontSize: '0.72rem',
+                  fontWeight: viewMode === mode ? 700 : 500,
+                  color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-muted)',
+                  backgroundColor: viewMode === mode ? 'var(--color-surface)' : 'transparent',
+                  borderRadius: 'calc(var(--radius-md) - 2px)',
+                  border: 'none',
+                  boxShadow: viewMode === mode ? 'var(--shadow-sm)' : 'none',
                   cursor: 'pointer',
-                  boxShadow: 'var(--shadow-sm)',
-                  transition: 'all 150ms ease',
+                  transition: 'all var(--duration-fast) var(--ease-default)',
+                  fontFamily: 'inherit',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                <Plus size={15} strokeWidth={2.4} />
+                {mode === 'total' ? t('total') : t('daily')}
               </button>
-            )}
+            ))}
           </div>
         </div>
 
