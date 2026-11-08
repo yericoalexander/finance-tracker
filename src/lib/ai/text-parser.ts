@@ -91,11 +91,35 @@ function getTodayDateTime(): { date: string; time: string } {
   }
 }
 
+/**
+ * Mendeteksi notifikasi promo/spam aplikasi yang tidak berisi pembayaran nyata.
+ * Mencegah notifikasi diskon/cashback masuk ke database sebagai transaksi Rp 0.
+ */
+export function isPromoText(text: string): boolean {
+  if (!text || typeof text !== 'string') return false
+  const t = text.toLowerCase()
+  const hasPromoWords =
+    /\b(promo|diskon|cashback hingga|cashback s\/d|voucher|kupon|klaim voucher|penawaran khusus|spesial untukmu|info promo|dapatkan cashback|menangkan|hadiah|iklan|selamat kamu berhak|ajak teman|bunga s\/d|bunga hingga|ekstra saldo|bonus saldo|buka rekening dapat|yuk bayar tagihanmu)\b/i.test(
+      t,
+    )
+  const hasPaymentProof =
+    /\b(melakukan pembayaran|pembayaran berhasil|pembayaran sukses|berhasil bayar|bayar\s+.*?\s+berhasil|transaksi berhasil|berhasil transaksi|transfer real-time|realtime transfer|berhasil transfer|transfer berhasil|kamu baru melakukan|kamu telah|debit\b|\bdb\b|terpotong)\b/i.test(
+      t,
+    )
+
+  return hasPromoWords && !hasPaymentProof
+}
+
 // ── Tier 1: Instant Regex Fast-Parser (<1ms) ──────────────────────────────────
 export function parseNotificationFast(text: string): ParsedNotification | null {
   if (!text || typeof text !== 'string') return null
   const trimmed = text.trim()
   if (trimmed.length < 5) return null
+
+  // Tolak notifikasi promo sedini mungkin
+  if (isPromoText(trimmed)) {
+    return null
+  }
 
   const { date: defaultDate, time: defaultTime } = getTodayDateTime()
 
@@ -193,9 +217,41 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
 
   const txType: 'expense' | 'income' = isIncome ? 'income' : 'expense'
 
-  // 2b. Deteksi Transfer Khusus Antar Bank / Dompet (SeaBank, Krom, BCA, dll)
+  // 2a. Pola Khusus: "melakukan pembayaran" (SeaBank, BCA, E-wallet, dll)
+  // e.g. "Kamu baru saja melakukan pembayaran senilai Rp 50.000 ke Kopi Kenangan pada 08/11"
+  // e.g. "SeaBank: Kamu telah melakukan pembayaran sebesar Rp 25.000 di Alfamart"
+  // e.g. "Melakukan pembayaran Rp 15.000 di Superindo"
+  const melakukanPembayaranMatch = trimmed.match(
+    /(?:baru\s+saja\s+|telah\s+|berhasil\s+)?melakukan\s+pembayaran\s*(?:sebesar|senilai|rp\.?)?\s*(?:rp\.?\s*)?([\d.,]+)(?:\s*(?:ke|di|untuk|pada)\s+([a-zA-Z0-9\s.,'-]+?))?(?:\s*(?:pada|tanggal|jam|berhasil|sukses|\.|$)|$)/i,
+  )
+  if (melakukanPembayaranMatch && melakukanPembayaranMatch[1]) {
+    const amount = parseIndonesianCurrency(melakukanPembayaranMatch[1])
+    if (amount > 0) {
+      const rawMerchant = melakukanPembayaranMatch[2]
+      const merchant = rawMerchant
+        ? cleanMerchantName(rawMerchant)
+        : sourceBank !== 'Bank'
+          ? `Pembayaran ${sourceBank}`
+          : 'Pembayaran'
+      return {
+        amountIdr: amount,
+        merchant,
+        category: inferCategory(merchant, trimmed),
+        paymentMethod: sourceBank !== 'Bank' ? sourceBank : paymentMethod,
+        date: defaultDate,
+        time: defaultTime,
+        txType: 'expense',
+        confidence: 0.98,
+        note: `Pembayaran ${sourceBank !== 'Bank' ? sourceBank : ''} di ${merchant}`.trim(),
+        sourceBank: sourceBank !== 'Bank' ? sourceBank : undefined,
+        isTransfer: false,
+      }
+    }
+  }
+
+  // 2b. Deteksi Transfer Bank Keluar (SeaBank, Krom, BCA, dll) -> Otomatis tercatat sebagai Pengeluaran
   // e.g. "Realtime Transfer: Kamu baru melakukan transfer real-time senilai Rp10.000 pada 05 Nov 2026 10:54."
-  // e.g. "Transfer Rp 10.000 dari SeaBank ke Krom" atau "tf dari seabank ke krom 10.000"
+  // e.g. "Transfer Rp 10.000 dari SeaBank ke Tokopedia"
   const isExplicitTransfer =
     /\b(transfer real-time|realtime transfer|transfer online|transfer antar bank|tf dari|transfer dari|transfer ke|tf ke)\b/i.test(
       trimmed,
@@ -214,7 +270,7 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
         return {
           amountIdr: amount,
           merchant,
-          category: 'Transfer Antar Bank',
+          category: inferCategory(merchant, trimmed),
           paymentMethod: sourceBank !== 'Bank' ? sourceBank : 'm-Banking',
           date: defaultDate,
           time: defaultTime,
@@ -223,7 +279,7 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
           note: `Transfer ${sourceBank} ke ${destinationBank || merchant}`,
           sourceBank: sourceBank !== 'Bank' ? sourceBank : undefined,
           destinationBank,
-          isTransfer: true,
+          isTransfer: false,
         }
       }
     }
@@ -241,7 +297,7 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
       return {
         amountIdr: amount,
         merchant: sender,
-        category: 'Transfer Antar Bank',
+        category: 'Lainnya',
         paymentMethod: sourceBank === 'Krom' ? 'Krom' : paymentMethod,
         date: defaultDate,
         time: defaultTime,
@@ -250,7 +306,7 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
         note: `Dana diterima di ${sourceBank !== 'Bank' ? sourceBank : 'Krom'} dari ${sender}`,
         sourceBank: sourceBank !== 'Bank' ? sourceBank : 'Krom',
         destinationBank: sourceBank !== 'Bank' ? sourceBank : 'Krom',
-        isTransfer: true,
+        isTransfer: false,
       }
     }
   }
@@ -387,15 +443,16 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
 const SYSTEM_PROMPT = `Anda adalah parser notifikasi transaksi keuangan Indonesia.
 Tugas Anda membaca teks notifikasi transaksi bank, SMS banking, e-wallet, atau QRIS di Indonesia.
 Ekstrak data secara akurat:
-1. amount: Total nominal uang (hanya angka bulat).
-2. merchant: Nama toko, merchant, atau pihak kedua (penerima / pengirim transfer).
-3. txType: HANYA "expense" (jika uang keluar / belanja / transfer ke orang/bank lain) atau "income" (jika uang masuk / transfer diterima / gaji).
-4. category: HANYA pilih dari: "Makanan & Minuman", "Transportasi", "Belanja", "Tagihan & Utilitas", "Hiburan", "Kesehatan", "Transfer Antar Bank", "Lainnya". Jika berupa mutasi/transfer antar bank atau antar dompet, wajib pilih "Transfer Antar Bank".
+1. amount: Total nominal uang yang dibayarkan atau diterima (hanya angka bulat positif > 0).
+2. merchant: Nama toko, merchant, atau pihak kedua (penerima / pengirim pembayaran).
+3. txType: HANYA "expense" (untuk semua pembayaran keluar, belanja, atau transfer keluar) atau "income" (jika uang masuk / transfer diterima / gaji).
+4. category: SEMUA PEMBAYARAN KELUAR adalah transaksi pengeluaran. Pilih kategori yang paling tepat dari: "Makanan & Minuman", "Transportasi", "Belanja", "Tagihan & Utilitas", "Hiburan", "Kesehatan", atau "Lainnya". JANGAN gunakan "Transfer Antar Bank" untuk pembayaran belanja/transaksi.
 5. paymentMethod: Nama bank atau e-wallet (misal: "SeaBank", "Krom", "QRIS BCA", "Mandiri", "GoPay", "ShopeePay", "DANA", dll).
-6. note: Ringkasan singkat transaksi.
+6. note: Ringkasan singkat transaksi pembayaran.
 7. sourceBank: Nama bank/dompet asal (misal: "SeaBank", "BCA", dll).
 8. destinationBank: Nama bank/dompet tujuan jika transfer (misal: "Krom", "SeaBank", dll).
-9. isTransfer: True jika berupa transfer antar bank atau rekening.`
+9. isTransfer: Set FALSE untuk semua transaksi pembayaran keluar.
+10. Validasi Promo: Jika teks adalah notifikasi promo, penawaran diskon, voucher, kupon cashback penawaran, atau tidak ada pembayaran nyata: isi amount dengan 0 dan confidence 0.`
 
 const NOTIF_JSON_SCHEMA = {
   type: 'OBJECT',
@@ -477,17 +534,22 @@ export async function extractNotificationWithAI(text: string): Promise<ParsedNot
   }
 
   const parsed = JSON.parse(contentText) as RawAiNotifOutput
+  const amountIdr = Math.round(Number(parsed.amount) || 0)
+
+  if (amountIdr <= 0 || (parsed.confidence !== undefined && parsed.confidence < 0.2)) {
+    throw new Error('Notifikasi promo atau bukan pembayaran valid diabaikan (nominal Rp 0)')
+  }
+
   const { date, time } = getTodayDateTime()
 
-  const validCategory: Category = CATEGORIES.includes(parsed.category as Category)
-    ? (parsed.category as Category)
-    : parsed.isTransfer
-      ? 'Transfer Antar Bank'
-      : 'Lainnya'
+  const validCategory: Category =
+    parsed.category && parsed.category !== 'Transfer Antar Bank' && CATEGORIES.includes(parsed.category as Category)
+      ? (parsed.category as Category)
+      : inferCategory(parsed.merchant || '', parsed.note || '')
 
   return {
-    amountIdr: Math.round(Number(parsed.amount) || 0),
-    merchant: cleanMerchantName(parsed.merchant || (parsed.isTransfer ? 'Transfer Antar Bank' : 'Transaksi')),
+    amountIdr,
+    merchant: cleanMerchantName(parsed.merchant || 'Transaksi'),
     category: validCategory,
     paymentMethod: parsed.paymentMethod || parsed.sourceBank || 'm-Banking',
     date,
@@ -497,15 +559,24 @@ export async function extractNotificationWithAI(text: string): Promise<ParsedNot
     note: parsed.note || 'Transaksi notifikasi',
     sourceBank: parsed.sourceBank,
     destinationBank: parsed.destinationBank,
-    isTransfer: Boolean(parsed.isTransfer || validCategory === 'Transfer Antar Bank'),
+    isTransfer: false,
   }
 }
 
 // ── Main Hybrid Entry Point ───────────────────────────────────────────────────
 export async function parseTransactionNotification(text: string): Promise<ParsedNotification> {
+  if (!text || typeof text !== 'string') {
+    throw new Error('Teks notifikasi kosong')
+  }
+
+  // 0. Tolak notifikasi promo / iklan sedini mungkin
+  if (isPromoText(text)) {
+    throw new Error('Notifikasi promo diabaikan. Hanya notifikasi pembayaran resmi yang dicatat.')
+  }
+
   // 1. Coba Regex Fast Parser terlebih dahulu (< 1 ms)
   const fastResult = parseNotificationFast(text)
-  if (fastResult && fastResult.confidence >= 0.9) {
+  if (fastResult && fastResult.amountIdr > 0 && fastResult.confidence >= 0.9) {
     return fastResult
   }
 
@@ -519,10 +590,10 @@ export async function parseTransactionNotification(text: string): Promise<Parsed
     console.error('[Notification Parser] Fallback to AI failed:', err)
   }
 
-  // 3. Jika AI gagal tapi ada hasil regex parsial, gunakan hasil regex
+  // 3. Jika AI gagal tapi ada hasil regex parsial dengan nominal > 0
   if (fastResult && fastResult.amountIdr > 0) {
     return fastResult
   }
 
-  throw new Error('Tidak dapat membaca nominal dan merchant dari notifikasi transaksi')
+  throw new Error('Tidak dapat membaca nominal pembayaran valid dari notifikasi (Rp 0 atau notifikasi promo)')
 }

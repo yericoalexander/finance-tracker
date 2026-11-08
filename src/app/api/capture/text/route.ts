@@ -97,7 +97,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: 'failed', message: errorMsg }, { status: 422 })
   }
 
-  // 6. Simpan transaksi ke database lokal
+  // Tolak transaksi dengan nominal 0 atau terdeteksi promo/bukan pembayaran riil
+  if (!parsed || parsed.amountIdr <= 0) {
+    return NextResponse.json(
+      {
+        status: 'failed',
+        message: 'Notifikasi promo atau bukan pembayaran valid diabaikan (nominal Rp 0). Transaksi tidak dicatat.',
+      },
+      { status: 422 },
+    )
+  }
+
+  // 6. Simpan transaksi ke database lokal — semua pembayaran keluar otomatis tercatat sebagai pengeluaran (expense)
   const [newCapture] = await db
     .insert(captures)
     .values({
@@ -108,12 +119,9 @@ export async function POST(request: NextRequest) {
       confidence: parsed.confidence,
       merchant: parsed.merchant,
       amountIdr: parsed.amountIdr,
-      category: parsed.category,
+      category: parsed.category === 'Transfer Antar Bank' ? 'Lainnya' : parsed.category,
       txDate: parsed.date,
-      txType:
-        parsed.isTransfer || parsed.category === 'Transfer Antar Bank'
-          ? 'transfer'
-          : parsed.txType,
+      txType: parsed.txType === 'income' ? 'income' : 'expense',
     })
     .returning()
 
@@ -124,16 +132,16 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Sinkronisasi mutasi ke sistem dompet / saldo kartu pengguna
+  // Sinkronisasi mutasi ke sistem dompet / saldo kartu pengguna (mengurangi saldo bank asal seperti SeaBank)
   const walletMutation = await applyTransactionToWallets(device.userId, {
     amountIdr: parsed.amountIdr,
-    category: parsed.category,
+    category: parsed.category === 'Transfer Antar Bank' ? 'Lainnya' : parsed.category,
     paymentMethod: parsed.paymentMethod,
     merchant: parsed.merchant,
     sourceBank: parsed.sourceBank,
     destinationBank: parsed.destinationBank,
-    isTransfer: parsed.isTransfer,
-    txType: parsed.txType,
+    isTransfer: false,
+    txType: parsed.txType === 'income' ? 'income' : 'expense',
   }).catch((err) => {
     console.error('[Capture Text API] Gagal sinkronisasi dompet:', err)
     return null

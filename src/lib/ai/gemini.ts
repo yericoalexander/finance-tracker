@@ -3,28 +3,25 @@ import { parseIndonesianCurrency } from './currency'
 import { resolveTransactionDateTime } from './date'
 import type { ExtractionProvider, TransactionExtraction } from './types'
 import { CATEGORIES, TransactionExtractionSchema } from './types'
+import { inferCategory } from './text-parser'
 
 const SYSTEM_PROMPT = `Anda adalah asisten keuangan pribadi cerdas di Indonesia.
-Tugas Anda adalah membaca screenshot struk belanja, invoice, bukti transfer bank (BCA, Mandiri, BRI, BNI, SeaBank, Krom, Jago, dll), e-wallet (GoPay, OVO, DANA, ShopeePay), QRIS, atau marketplace.
+Tugas Anda adalah membaca screenshot bukti pembayaran, struk belanja kasir, invoice lunas, atau notifikasi pembayaran resmi bank (SeaBank, BCA, Mandiri, BRI, BNI, Krom, Jago, dll), e-wallet (GoPay, OVO, DANA, ShopeePay), atau QRIS.
 
 Instruksi penting:
-1. Baca TOTAL AKHIR yang sebenarnya dibayarkan oleh pengguna.
-2. JANGAN membaca subtotal sebelum diskon, saldo e-wallet yang tersisa, perolehan poin, cashback, atau nomor rekening.
-3. Kategori harus dipilih HANYA dari salah satu pilihan berikut:
-   - "Makanan & Minuman"
-   - "Transportasi"
-   - "Belanja"
-   - "Tagihan & Utilitas"
-   - "Hiburan"
-   - "Kesehatan"
-   - "Transfer Antar Bank"
-   - "Lainnya"
-4. Jika transaksi berupa transfer antar rekening atau antar bank (misal dari SeaBank ke Krom, atau transfer ke rekening lain):
-   - Set category: "Transfer Antar Bank"
-   - Set isTransfer: true
-   - Identifikasi sourceBank (bank asal/pengirim, misal SeaBank) dan destinationBank (bank tujuan/penerima, misal Krom).
-5. Tanggal dalam format YYYY-MM-DD dan waktu dalam format HH:mm (24 jam). Jika tidak ada atau buram, kosongkan string.
-6. Nilai confidence (0.0 - 1.0): berikan >= 0.8 jika teks dan nominal terbaca sangat jelas, atau < 0.7 jika struk terpotong, buram, atau meragukan.`
+1. Validasi Pembayaran Resmi: HANYA ekstrak jika gambar berisi bukti atau notifikasi PEMBAYARAN RESMI yang memiliki nominal angka jelas dan teks transaksi/pembayaran (seperti "melakukan pembayaran...", "pembayaran berhasil", "transaksi berhasil", "debit", "berhasil bayar", atau struk kasir).
+2. TOLAK NOTIFIKASI PROMO: JANGAN mencatat notifikasi promo, iklan diskon, penawaran cashback, kupon/voucher, atau ajakan promo aplikasi. Jika gambar HANYA berisi notifikasi promo atau tidak ada pembayaran riil yang terjadi:
+   - Set amount: "0"
+   - Set confidence: 0
+   - Set note: "Notifikasi promo diabaikan"
+3. NOMINAL HARUS > 0: Jangan pernah mencatat nominal Rp 0. Jika tidak ada uang yang dibayarkan, set amount: "0" dan confidence: 0.
+4. SEMUA PEMBAYARAN KELUAR ADALAH PENGELUARAN (EXPENSE):
+   - Jika ada pembayaran belanja/transaksi (termasuk pembayaran via transfer bank), otomatis masukkan sebagai pengeluaran pengguna.
+   - JANGAN gunakan kategori "Transfer Antar Bank" untuk pembayaran belanja/transaksi. Pilih kategori yang paling tepat: "Makanan & Minuman", "Transportasi", "Belanja", "Tagihan & Utilitas", "Hiburan", "Kesehatan", atau "Lainnya".
+   - Set isTransfer: false.
+5. Identifikasi Bank Asal: Identifikasi bank atau dompet sumber dana pembayaran (misal: "SeaBank", "BCA", "Mandiri", "Krom", "GoPay", "OVO", "DANA") dan masukkan ke sourceBank agar saldo dompet kartu tersebut terpotong otomatis.
+6. Tanggal dalam format YYYY-MM-DD dan waktu dalam format HH:mm (24 jam). Jika tidak ada atau buram, kosongkan string.
+7. Nilai confidence (0.0 - 1.0): berikan >= 0.85 jika teks dan nominal pembayaran terbaca sangat jelas, atau 0 jika berupa promo / tidak valid.`
 
 const GEMINI_JSON_SCHEMA = {
   type: 'OBJECT',
@@ -131,18 +128,48 @@ function processRawOutput(raw: RawGeminiOutput): TransactionExtraction {
     confidence = Math.max(0, confidence - 0.35)
   }
 
+  // Tolak transaksi dengan nominal 0 atau terdeteksi promo/bukan pembayaran
+  if (amountIdr <= 0 || confidence < 0.2) {
+    throw new Error('Nominal transaksi Rp 0 atau bukan bukti pembayaran nyata (notifikasi promo diabaikan)')
+  }
+
+  const merchant = (raw.merchant || 'Transaksi').trim()
+  const note = (raw.note || '-').trim()
+
+  // Deteksi bank/dompet asal pembayaran
+  let sourceBank = raw.sourceBank?.trim()
+  const combinedText = `${merchant} ${raw.paymentMethod || ''} ${note}`
+  if (!sourceBank) {
+    if (/seabank/i.test(combinedText)) sourceBank = 'SeaBank'
+    else if (/bca|m-bca/i.test(combinedText)) sourceBank = 'BCA'
+    else if (/mandiri|livin/i.test(combinedText)) sourceBank = 'Mandiri'
+    else if (/brimo|bri\b/i.test(combinedText)) sourceBank = 'BRI'
+    else if (/bni|wondr/i.test(combinedText)) sourceBank = 'BNI'
+    else if (/krom/i.test(combinedText)) sourceBank = 'Krom'
+    else if (/gopay/i.test(combinedText)) sourceBank = 'GoPay'
+    else if (/ovo/i.test(combinedText)) sourceBank = 'OVO'
+    else if (/dana/i.test(combinedText)) sourceBank = 'DANA'
+    else if (/shopeepay/i.test(combinedText)) sourceBank = 'ShopeePay'
+  }
+
+  // Semua pembayaran keluar otomatis adalah pengeluaran (bukan transfer antar bank)
+  const validCategory =
+    raw.category && raw.category !== 'Transfer Antar Bank' && CATEGORIES.includes(raw.category as (typeof CATEGORIES)[number])
+      ? (raw.category as (typeof CATEGORIES)[number])
+      : inferCategory(merchant, note)
+
   const candidate = {
     date: dt.date,
     time: dt.time,
-    merchant: (raw.merchant || 'Transaksi').trim(),
+    merchant,
     amountIdr,
-    category: raw.category ?? (raw.isTransfer ? 'Transfer Antar Bank' : 'Lainnya'),
-    paymentMethod: (raw.paymentMethod || raw.sourceBank || 'Lainnya').trim(),
-    note: (raw.note || '-').trim(),
+    category: validCategory,
+    paymentMethod: (raw.paymentMethod || sourceBank || 'Lainnya').trim(),
+    note,
     confidence: Number(confidence.toFixed(2)),
-    sourceBank: raw.sourceBank?.trim(),
+    sourceBank,
     destinationBank: raw.destinationBank?.trim(),
-    isTransfer: raw.isTransfer ?? (raw.category === 'Transfer Antar Bank'),
+    isTransfer: false,
   }
 
   const parsed = TransactionExtractionSchema.safeParse(candidate)

@@ -196,6 +196,19 @@ export async function POST(request: NextRequest) {
   }
 
   const extraction = extractionResult.value
+
+  // Tolak notifikasi promo atau gambar tanpa nominal pembayaran nyata (Rp 0)
+  if (!extraction.amountIdr || extraction.amountIdr <= 0) {
+    return NextResponse.json(
+      {
+        status: 'failed',
+        message:
+          'Notifikasi promo atau bukan pembayaran valid diabaikan (nominal Rp 0). Transaksi tidak dicatat.',
+      },
+      { status: 400 },
+    )
+  }
+
   const [preloadedUser, preloadedToken] = authData
   const preloadedAuth = {
     user: preloadedUser,
@@ -205,7 +218,7 @@ export async function POST(request: NextRequest) {
   // 6. Simpan transaksi langsung dengan status 'ok' dan tulis ke Google Sheets
   const formattedAmount = formatRupiah(extraction.amountIdr)
 
-  // Simpan record capture status ok
+  // Simpan record capture status ok — semua pembayaran otomatis masuk pengeluaran (expense)
   const [newCapture] = await db
     .insert(captures)
     .values({
@@ -216,12 +229,10 @@ export async function POST(request: NextRequest) {
       confidence: extraction.confidence,
       merchant: extraction.merchant,
       amountIdr: extraction.amountIdr,
-      category: extraction.category,
+      category:
+        extraction.category === 'Transfer Antar Bank' ? 'Lainnya' : extraction.category,
       txDate: extraction.date,
-      txType:
-        extraction.isTransfer || extraction.category === 'Transfer Antar Bank'
-          ? 'transfer'
-          : 'expense',
+      txType: 'expense',
     })
     .returning()
 
@@ -239,15 +250,15 @@ export async function POST(request: NextRequest) {
 
     revalidatePath('/dashboard')
 
-    // Sinkronisasi mutasi ke sistem dompet / saldo kartu pengguna
+    // Sinkronisasi mutasi ke sistem dompet / saldo kartu pengguna (mengurangi saldo bank asal)
     const walletMutation = await applyTransactionToWallets(device.userId, {
       amountIdr: extraction.amountIdr,
-      category: extraction.category,
+      category: extraction.category === 'Transfer Antar Bank' ? 'Lainnya' : extraction.category,
       paymentMethod: extraction.paymentMethod,
       merchant: extraction.merchant,
       sourceBank: extraction.sourceBank,
       destinationBank: extraction.destinationBank,
-      isTransfer: extraction.isTransfer,
+      isTransfer: false,
       txType: 'expense',
     }).catch((err) => {
       console.error('[Capture API] Gagal sinkronisasi dompet:', err)

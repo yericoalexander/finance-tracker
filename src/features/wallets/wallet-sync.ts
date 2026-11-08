@@ -272,7 +272,7 @@ export async function applyTransactionToWallets(
   }
 
   const userWallets = await ensureUserWallets(userId)
-  const isTransfer = Boolean(input.isTransfer || input.category === 'Transfer Antar Bank')
+  const isTransfer = Boolean(input.isTransfer && input.category === 'Transfer Antar Bank')
 
   if (userWallets.length === 0) {
     return {

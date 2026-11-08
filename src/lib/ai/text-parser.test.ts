@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { inferCategory, parseNotificationFast } from './text-parser'
+import { inferCategory, isPromoText, parseNotificationFast, parseTransactionNotification } from './text-parser'
 
 describe('parseNotificationFast (Regex Tier 1)', () => {
   it('parses BCA QRIS notification accurately', () => {
@@ -88,7 +88,20 @@ describe('parseNotificationFast (Regex Tier 1)', () => {
     expect(result?.category).toBe('Belanja')
   })
 
-  it('parses SeaBank realtime transfer notification accurately', () => {
+  it('parses "melakukan pembayaran" from SeaBank into expense transaction', () => {
+    const text = 'SeaBank: Kamu baru saja melakukan pembayaran sebesar Rp 35.000 ke KOPI KENANGAN pada 08/11/2026'
+    const result = parseNotificationFast(text)
+
+    expect(result).not.toBeNull()
+    expect(result?.amountIdr).toBe(35000)
+    expect(result?.merchant).toBe('KOPI KENANGAN')
+    expect(result?.sourceBank).toBe('SeaBank')
+    expect(result?.category).toBe('Makanan & Minuman')
+    expect(result?.txType).toBe('expense')
+    expect(result?.isTransfer).toBe(false)
+  })
+
+  it('parses SeaBank realtime transfer notification as expense (not transfer antar bank)', () => {
     const text =
       'Realtime Transfer: Kamu baru melakukan transfer real-time senilai Rp10.000 pada 05 Nov 2026 10:54. Jika kamu tidak melakukan ini, segera hubungi 1500130.'
     const result = parseNotificationFast(text)
@@ -96,12 +109,12 @@ describe('parseNotificationFast (Regex Tier 1)', () => {
     expect(result).not.toBeNull()
     expect(result?.amountIdr).toBe(10000)
     expect(result?.sourceBank).toBe('SeaBank')
-    expect(result?.isTransfer).toBe(true)
-    expect(result?.category).toBe('Transfer Antar Bank')
+    expect(result?.isTransfer).toBe(false)
+    expect(result?.category).toBe('Lainnya')
     expect(result?.txType).toBe('expense')
   })
 
-  it('parses explicit inter-bank transfer between SeaBank and Krom', () => {
+  it('parses explicit inter-bank transfer as expense transaction', () => {
     const text = 'Transfer Rp 10.000 dari SeaBank ke Krom berhasil'
     const result = parseNotificationFast(text)
 
@@ -109,24 +122,42 @@ describe('parseNotificationFast (Regex Tier 1)', () => {
     expect(result?.amountIdr).toBe(10000)
     expect(result?.sourceBank).toBe('SeaBank')
     expect(result?.destinationBank).toBe('Krom')
-    expect(result?.isTransfer).toBe(true)
-    expect(result?.category).toBe('Transfer Antar Bank')
+    expect(result?.isTransfer).toBe(false)
+    expect(result?.txType).toBe('expense')
   })
 
-  it('parses Krom incoming dana diterima notification', () => {
+  it('parses Krom incoming dana diterima notification as income', () => {
     const text = 'Tabungan Utama baru saja menerima dana sebesar Rp10.000 dari YERICO ALEXANDER.'
     const result = parseNotificationFast(text)
 
     expect(result).not.toBeNull()
     expect(result?.amountIdr).toBe(10000)
     expect(result?.destinationBank).toBe('Krom')
-    expect(result?.isTransfer).toBe(true)
     expect(result?.txType).toBe('income')
   })
 
   it('returns null for empty or non-financial string', () => {
     expect(parseNotificationFast('')).toBeNull()
     expect(parseNotificationFast('Halo selamat pagi apa kabar?')).toBeNull()
+  })
+
+  it('filters out promo notifications and avoids 0 Rp transactions', () => {
+    const promo1 = 'SeaBank: Dapatkan bunga hingga 6% p.a. dan promo cashback menarik hari ini!'
+    const promo2 = 'ShopeePay: Promo 11.11! Dapatkan diskon 50% hingga Rp 20.000!'
+    const promo3 = 'Voucher diskon 50% siap dipakai untuk jajan hemat!'
+
+    expect(isPromoText(promo1)).toBe(true)
+    expect(isPromoText(promo2)).toBe(true)
+    expect(isPromoText(promo3)).toBe(true)
+
+    expect(parseNotificationFast(promo1)).toBeNull()
+    expect(parseNotificationFast(promo2)).toBeNull()
+    expect(parseNotificationFast(promo3)).toBeNull()
+  })
+
+  it('throws error when parseTransactionNotification receives promo notification', async () => {
+    const promo = 'SeaBank: Dapatkan bunga hingga 6% p.a. dan promo cashback menarik hari ini!'
+    await expect(parseTransactionNotification(promo)).rejects.toThrow(/promo diabaikan/i)
   })
 })
 
