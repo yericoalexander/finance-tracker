@@ -155,6 +155,20 @@ describe('parseNotificationFast (Regex Tier 1)', () => {
     expect(parseNotificationFast(promo3)).toBeNull()
   })
 
+  it('parses SeaBank transfer notification with recipient name correctly', async () => {
+    const text =
+      'Realtime Transfer\nKamu baru melakukan transfer senilai Rp55.000 kepada HAIDAR ABIYYU pada 08 Nov 2026 19:17 (WIB). Jika kamu tidak melakukan ini, segera hubungi 1500130.'
+    const result = await parseTransactionNotification(text)
+
+    expect(result.amountIdr).toBe(55000)
+    expect(result.merchant).toBe('HAIDAR ABIYYU')
+    expect(result.sourceBank).toBe('SeaBank')
+    expect(result.date).toBe('2026-11-08')
+    expect(result.time).toBe('19:17')
+    expect(result.txType).toBe('expense')
+    expect(result.isTransfer).toBe(false)
+  })
+
   it('throws error when parseTransactionNotification receives promo notification', async () => {
     const promo = 'SeaBank: Dapatkan bunga hingga 6% p.a. dan promo cashback menarik hari ini!'
     await expect(parseTransactionNotification(promo)).rejects.toThrow(/promo diabaikan/i)

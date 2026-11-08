@@ -19,6 +19,8 @@ import { authenticateDevice } from '@/lib/security/device-auth'
 import { syncCaptureToGoogleSheets } from '@/lib/google/sync-helper'
 import { applyTransactionToWallets } from '@/features/wallets/wallet-sync'
 
+export const maxDuration = 60
+
 // ── Handler POST /api/capture ────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
   // 1. Autentikasi token perangkat
@@ -142,10 +144,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // 4. Deteksi duplikat via SHA-256 gambar (cek instan sebelum AI untuk hemat kuota & waktu)
+  // 4. Deteksi duplikat via SHA-256 gambar (hanya transaksi yang berhasil dicatat sebelumnya)
   const imageHash = createHash('sha256').update(imageBuffer).digest('hex')
   const existing = await db.query.captures.findFirst({
-    where: and(eq(captures.userId, device.userId), eq(captures.imageHash, imageHash)),
+    where: and(
+      eq(captures.userId, device.userId),
+      eq(captures.imageHash, imageHash),
+      eq(captures.status, 'ok'),
+    ),
   })
 
   if (existing) {
@@ -186,12 +192,15 @@ export async function POST(request: NextRequest) {
       status: 'failed',
       errorCode: 'EXTRACTION_FAILED',
     })
+    const isPromoOrZero = errorMsg.includes('promo') || errorMsg.includes('Rp 0')
     return NextResponse.json({
       status: 'failed',
       message:
         errorMsg.includes('429') || errorMsg.includes('quota')
           ? 'Layanan AI sedang padat. Silakan coba kembali sesaat lagi.'
-          : 'Gagal mengekstrak struk: informasi transaksi tidak terbaca',
+          : isPromoOrZero
+            ? 'Notifikasi promo atau tanpa transaksi pembayaran riil diabaikan.'
+            : 'Gagal mengekstrak struk: informasi transaksi tidak terbaca',
     })
   }
 

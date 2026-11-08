@@ -1,4 +1,5 @@
 import { parseIndonesianCurrency } from './currency'
+import { normalizeDateString } from './date'
 import type { Category } from './types'
 import { CATEGORIES } from './types'
 
@@ -260,20 +261,29 @@ export function parseNotificationFast(text: string): ParsedNotification | null {
 
   if (isExplicitTransfer) {
     const transferAmountMatch = trimmed.match(
-      /(?:senilai|sebesar|rp\.?|nominal)?\s*(?:rp\.?\s*)?([\d.,]+)(?:\s*(?:ke|pada|dari|tanggal|jam|\.|$))/i,
+      /(?:senilai|sebesar|rp\.?|nominal)?\s*(?:rp\.?\s*)?([\d.,]+)(?:\s*(?:ke|kepada|pada|dari|tanggal|jam|\.|$))/i,
     )
     if (transferAmountMatch && transferAmountMatch[1]) {
       const amount = parseIndonesianCurrency(transferAmountMatch[1])
       if (amount > 0) {
-        const destName = destinationBank || (trimmed.match(/ke\s+([A-Za-z0-9\s]+?)(?:\s+(?:pada|sebesar|senilai|berhasil|\.|$)|$)/i)?.[1]?.trim() ?? 'Rekening Tujuan')
+        const destName =
+          destinationBank ||
+          (trimmed.match(
+            /(?:ke|kepada)\s+([A-Za-z0-9\s.,'-]+?)(?:\s+(?:pada|sebesar|senilai|berhasil|\.|\(|$)|$)/i,
+          )?.[1]?.trim() ?? 'Rekening Tujuan')
         const merchant = destinationBank ? `Transfer ke ${destinationBank}` : cleanMerchantName(destName)
+
+        const dateMatch = trimmed.match(/pada\s+(\d{1,2}\s+[a-zA-Z]+\s+\d{4})(?:\s+(\d{2}:\d{2}))?/i)
+        const txDate = dateMatch?.[1] ? normalizeDateString(dateMatch[1]) ?? defaultDate : defaultDate
+        const txTime = dateMatch?.[2] ?? defaultTime
+
         return {
           amountIdr: amount,
           merchant,
           category: inferCategory(merchant, trimmed),
           paymentMethod: sourceBank !== 'Bank' ? sourceBank : 'm-Banking',
-          date: defaultDate,
-          time: defaultTime,
+          date: txDate,
+          time: txTime,
           txType: 'expense',
           confidence: 0.96,
           note: `Transfer ${sourceBank} ke ${destinationBank || merchant}`,

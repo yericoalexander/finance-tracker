@@ -1,35 +1,42 @@
 import { env } from '@/lib/env'
 import { parseIndonesianCurrency } from './currency'
-import { resolveTransactionDateTime } from './date'
+import { normalizeDateString, resolveTransactionDateTime } from './date'
 import type { ExtractionProvider, TransactionExtraction } from './types'
 import { CATEGORIES, TransactionExtractionSchema } from './types'
 import { inferCategory } from './text-parser'
 
 const SYSTEM_PROMPT = `Anda adalah asisten keuangan pribadi cerdas di Indonesia.
-Tugas Anda adalah membaca screenshot bukti pembayaran, struk belanja kasir, invoice lunas, atau notifikasi pembayaran resmi bank (SeaBank, BCA, Mandiri, BRI, BNI, Krom, Jago, dll), e-wallet (GoPay, OVO, DANA, ShopeePay), atau QRIS.
+Tugas Anda adalah membaca gambar bukti transaksi keuangan: struk belanja kasir fisik, invoice digital, bukti transfer bank, atau tangkapan layar notifikasi perbankan di iPhone Lock Screen / Notification Center (seperti SeaBank, BCA, Mandiri, BRI, BNI, Krom, Jago, GoPay, OVO, DANA, ShopeePay, QRIS).
 
-Instruksi penting:
-1. Validasi Pembayaran Resmi: HANYA ekstrak jika gambar berisi bukti atau notifikasi PEMBAYARAN RESMI yang memiliki nominal angka jelas dan teks transaksi/pembayaran (seperti "melakukan pembayaran...", "pembayaran berhasil", "transaksi berhasil", "debit", "berhasil bayar", atau struk kasir).
-2. TOLAK NOTIFIKASI PROMO: JANGAN mencatat notifikasi promo, iklan diskon, penawaran cashback, kupon/voucher, atau ajakan promo aplikasi. Jika gambar HANYA berisi notifikasi promo atau tidak ada pembayaran riil yang terjadi:
-   - Set amount: "0"
-   - Set confidence: 0
-   - Set note: "Notifikasi promo diabaikan"
-3. NOMINAL HARUS > 0: Jangan pernah mencatat nominal Rp 0. Jika tidak ada uang yang dibayarkan, set amount: "0" dan confidence: 0.
-4. SEMUA PEMBAYARAN KELUAR ADALAH PENGELUARAN (EXPENSE):
-   - Jika ada pembayaran belanja/transaksi (termasuk pembayaran via transfer bank), otomatis masukkan sebagai pengeluaran pengguna.
-   - JANGAN gunakan kategori "Transfer Antar Bank" untuk pembayaran belanja/transaksi. Pilih kategori yang paling tepat: "Makanan & Minuman", "Transportasi", "Belanja", "Tagihan & Utilitas", "Hiburan", "Kesehatan", atau "Lainnya".
-   - Set isTransfer: false.
-5. Identifikasi Bank Asal: Identifikasi bank atau dompet sumber dana pembayaran (misal: "SeaBank", "BCA", "Mandiri", "Krom", "GoPay", "OVO", "DANA") dan masukkan ke sourceBank agar saldo dompet kartu tersebut terpotong otomatis.
-6. Tanggal dalam format YYYY-MM-DD dan waktu dalam format HH:mm (24 jam). Jika tidak ada atau buram, kosongkan string.
-7. Nilai confidence (0.0 - 1.0): berikan >= 0.85 jika teks dan nominal pembayaran terbaca sangat jelas, atau 0 jika berupa promo / tidak valid.`
+Panduan penting:
+1. Tangkapan Layar Lock Screen / Notifikasi HP:
+   - Gambar sering kali berupa tangkapan layar Lock Screen iPhone yang berisi jam besar (mis. 19.17), tanggal hari, dan kartu banner notifikasi yang bertumpuk.
+   - FOKUS pada kartu notifikasi perbankan / pembayaran (misal notifikasi SeaBank "Realtime Transfer", "Kamu baru melakukan transfer senilai...", atau "melakukan pembayaran...").
+   - Abaikan kartu notifikasi error, pintasan, atau aplikasi lain (misal notifikasi 'Finance Tracker').
+2. Transfer Keluar & Pembayaran = Pengeluaran (Expense):
+   - SEMUA transfer uang keluar kepada seseorang atau pembayaran via transfer bank otomatis dicatat sebagai transaksi pengeluaran (expense).
+   - merchant: Nama pihak penerima transfer / toko / tujuan pembayaran (misal: "HAIDAR ABIYYU" dari teks "kepada HAIDAR ABIYYU" atau "ke BUDI").
+   - amount: Nominal angka yang dibayarkan/ditransfer (misal "55000" dari "Rp55.000"). Nominal HARUS > 0.
+   - sourceBank: Bank pengirim dana (misal: "SeaBank" dari logo oranye 'S' atau call center 1500130, "BCA", "Mandiri", "Krom", "GoPay", "OVO", "DANA", dll).
+   - category: Pilih kategori pengeluaran yang tepat ("Makanan & Minuman", "Transportasi", "Belanja", "Tagihan & Utilitas", "Hiburan", "Kesehatan", atau "Lainnya"). JANGAN gunakan "Transfer Antar Bank" untuk transfer keluar kepada pihak lain.
+   - isTransfer: false.
+   - confidence: Berikan >= 0.90 jika nominal dan penerima terbaca jelas di notifikasi.
+3. Tolak Notifikasi Promo / Iklan:
+   - Jika gambar HANYA berisi notifikasi promo, diskon, cashback penawaran, voucher, atau iklan perbankan tanpa mutasi uang riil yang dibayarkan:
+     - Set amount: "0"
+     - Set confidence: 0
+     - Set note: "Notifikasi promo diabaikan"
+4. Tanggal & Waktu:
+   - date: format YYYY-MM-DD (misal dari "08 Nov 2026" menjadi "2026-11-08").
+   - time: format HH:mm (misal "19:17").`
 
 const GEMINI_JSON_SCHEMA = {
   type: 'OBJECT',
   properties: {
     date: { type: 'STRING', description: 'YYYY-MM-DD' },
     time: { type: 'STRING', description: 'HH:mm' },
-    merchant: { type: 'STRING' },
-    amount: { type: 'STRING', description: 'Nominal yang dibayar' },
+    merchant: { type: 'STRING', description: 'Nama toko atau nama penerima transfer' },
+    amount: { type: 'STRING', description: 'Nominal yang dibayar/ditransfer (angka bulat)' },
     category: {
       type: 'STRING',
       enum: CATEGORIES,
@@ -38,8 +45,8 @@ const GEMINI_JSON_SCHEMA = {
     note: { type: 'STRING' },
     confidence: { type: 'NUMBER' },
     sourceBank: { type: 'STRING', description: 'Bank asal pengirim (mis. SeaBank, BCA, Mandiri)' },
-    destinationBank: { type: 'STRING', description: 'Bank tujuan penerima jika transfer (mis. Krom, BCA)' },
-    isTransfer: { type: 'BOOLEAN', description: 'True jika transfer dana antar bank' },
+    destinationBank: { type: 'STRING', description: 'Bank tujuan penerima jika ada' },
+    isTransfer: { type: 'BOOLEAN', description: 'Set false untuk pengeluaran' },
   },
   required: ['merchant', 'amount', 'category', 'paymentMethod', 'note', 'confidence'],
 }
@@ -120,16 +127,17 @@ async function callGeminiApi(
 
 function processRawOutput(raw: RawGeminiOutput): TransactionExtraction {
   const amountIdr = parseIndonesianCurrency(raw.amount ?? 0)
-  const dt = resolveTransactionDateTime(raw.date, raw.time)
+  const normalizedDate = normalizeDateString(raw.date)
+  const dt = resolveTransactionDateTime(normalizedDate, raw.time)
 
-  let confidence = typeof raw.confidence === 'number' ? raw.confidence : 0.5
+  let confidence = typeof raw.confidence === 'number' ? raw.confidence : 0.85
   if (dt.fallbackUsed) {
-    // Kurangi confidence bila tanggal tidak terbaca di struk
-    confidence = Math.max(0, confidence - 0.35)
+    // Sedikit kurangi confidence jika tanggal menggunakan waktu saat ini
+    confidence = Math.max(0.3, confidence - 0.1)
   }
 
-  // Tolak transaksi dengan nominal 0 atau terdeteksi promo/bukan pembayaran
-  if (amountIdr <= 0 || confidence < 0.2) {
+  // Tolak transaksi jika nominal Rp 0 atau promo eksplisit (confidence 0)
+  if (amountIdr <= 0 || confidence === 0) {
     throw new Error('Nominal transaksi Rp 0 atau bukan bukti pembayaran nyata (notifikasi promo diabaikan)')
   }
 

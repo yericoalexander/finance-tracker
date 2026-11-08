@@ -18,6 +18,8 @@ import { authenticateDevice } from '@/lib/security/device-auth'
 import { checkRateLimit } from '@/lib/security/rate-limit'
 import { applyTransactionToWallets } from '@/features/wallets/wallet-sync'
 
+export const maxDuration = 60
+
 const CaptureTextRequestSchema = z.object({
   text: z.string().min(5, 'Teks notifikasi minimal 5 karakter').max(2000),
   source: z.string().optional().default('notification'),

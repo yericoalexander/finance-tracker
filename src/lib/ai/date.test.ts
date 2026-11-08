@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getCurrentJakartaDateTime, resolveTransactionDateTime } from './date'
+import { getCurrentJakartaDateTime, normalizeDateString, resolveTransactionDateTime } from './date'
 
 describe('date resolver', () => {
   it('menggunakan tanggal dan waktu valid jika tersedia', () => {
@@ -8,6 +8,12 @@ describe('date resolver', () => {
     expect(res.date).toBe('2026-10-13')
     expect(res.time).toBe('14:30')
     expect(res.fallbackUsed).toBe(false)
+  })
+
+  it('menormalisasi tanggal Indonesia berteks ke format YYYY-MM-DD', () => {
+    expect(normalizeDateString('08 Nov 2026')).toBe('2026-11-08')
+    expect(normalizeDateString('8 November 2026')).toBe('2026-11-08')
+    expect(normalizeDateString('2026-11-08')).toBe('2026-11-08')
   })
 
   it('menggunakan fallback waktu server Asia/Jakarta jika tanggal tidak terbaca', () => {
